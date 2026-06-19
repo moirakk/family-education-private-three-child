@@ -42,6 +42,13 @@
 3. 做好后分享：优先使用 private Vercel 项目或带访问码的私有链接，不把定制数据推到公开 GitHub。
 4. 长期使用：接 Supabase Auth 和 Postgres，家长登录后实时编辑，日历订阅源从数据库动态生成。
 
+### 私有访问保护
+
+- 本地开发默认不启用访问码。
+- 私有部署时设置 `PRIVATE_ACCESS_CODE`，页面会先进入 `/access`。
+- iOS 日历订阅可额外设置 `PRIVATE_CALENDAR_TOKEN`，用 token 化订阅链接保护日历源。
+- 访问码是过渡方案，正式长期版仍应使用 Supabase Auth 和角色权限。
+
 ### P0 必须完成
 
 - 家庭总览：今日重点、本周安排、三孩状态摘要、家长待办。
