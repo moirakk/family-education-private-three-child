@@ -221,6 +221,42 @@ as $$
   );
 $$;
 
+create or replace function public.get_calendar_feed_by_token(feed_token text)
+returns table (
+  event_id uuid,
+  title text,
+  category public.event_category,
+  starts_at timestamptz,
+  ends_at timestamptz,
+  location text,
+  child_ids uuid[],
+  child_names text[]
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    e.id as event_id,
+    e.title,
+    e.category,
+    e.starts_at,
+    e.ends_at,
+    e.location,
+    coalesce(array_agg(c.id order by c.first_name) filter (where c.id is not null), '{}') as child_ids,
+    coalesce(array_agg(c.first_name order by c.first_name) filter (where c.id is not null), '{}') as child_names
+  from public.family_settings fs
+  join public.calendar_events e on e.family_id = fs.family_id
+  left join public.calendar_event_children ec on ec.event_id = e.id
+  left join public.children c on c.id = ec.child_id
+  where fs.calendar_token = feed_token
+  group by e.id, e.title, e.category, e.starts_at, e.ends_at, e.location
+  order by e.starts_at;
+$$;
+
+grant execute on function public.get_calendar_feed_by_token(text) to anon, authenticated;
+
 drop policy if exists "families select member" on public.families;
 drop policy if exists "family settings select member" on public.family_settings;
 drop policy if exists "family settings update editor" on public.family_settings;

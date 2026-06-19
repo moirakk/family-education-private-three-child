@@ -36,6 +36,16 @@
 - iOS 日历订阅源从数据库动态生成。
 - 周报/月报从真实数据生成。
 
+## iOS 日历长期同步
+
+长期版通过 `family_settings.calendar_token` 生成独立订阅源：
+
+```text
+/api/calendar/ios?token=<calendar_token>
+```
+
+API 会优先通过 Supabase RPC `get_calendar_feed_by_token` 读取真实日程；如果没有配置 Supabase 或没有 token，则回退到当前 pilot 数据，保证明天版本不被后端阻塞。
+
 ## 数据核心
 
 ### 家庭
