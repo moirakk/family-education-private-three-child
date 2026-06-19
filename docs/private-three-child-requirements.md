@@ -75,6 +75,15 @@
 - AI 学习建议。
 - Vercel 私有部署。
 
+## 核心工程产物
+
+- `docs/private-core-architecture.md`：私有版核心数据和权限路线。
+- `docs/private-supabase-schema.sql`：长期使用版 Supabase 数据库 schema。
+- `docs/private-pilot-seed-template.sql`：伯仲叔 pilot 数据种子模板。
+- `src/lib/core-types.ts`：家庭工作台、现场补充资料、Repository 等核心类型。
+- `src/lib/pilot-snapshot.ts`：伯仲叔当前 pilot 数据快照。
+- `src/lib/local-family-repository.ts`：明天可用的本机数据仓库边界，后续替换为 Supabase repository。
+
 ## 需要继续补充的信息
 
 为了把明天版本做得更像成品，需要继续确认：
