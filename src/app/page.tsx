@@ -7,6 +7,7 @@ import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
+import { FamilyEventPlanner } from "@/components/dashboard/family-event-planner";
 import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-workspace";
 import { GrowthSummary } from "@/components/dashboard/growth-summary";
 import { MetricCard } from "@/components/dashboard/metric-card";
@@ -35,6 +36,7 @@ import {
 export default function Home() {
   const [managedChildren, setManagedChildren] = useState(pilotChildren);
   const [selectedChildId, setSelectedChildId] = useState(pilotChildren[0].id);
+  const [localCalendarEvents, setLocalCalendarEvents] = useState<typeof pilotCalendarEvents>([]);
 
   const selectedChild = useMemo(
     () => managedChildren.find((child) => child.id === selectedChildId) ?? managedChildren[0],
@@ -42,6 +44,10 @@ export default function Home() {
   );
 
   const totalMinutes = pilotLearningRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
+  const calendarEvents = useMemo(
+    () => [...pilotCalendarEvents, ...localCalendarEvents].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
+    [localCalendarEvents]
+  );
   const averageGoalProgress = Math.round(
     pilotEducationGoals.reduce((sum, goal) => sum + goal.progress, 0) / pilotEducationGoals.length
   );
@@ -66,7 +72,7 @@ export default function Home() {
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard title="本周事项" value={String(pilotCalendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
+          <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
           <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
           <MetricCard title="教育目标" value={String(pilotEducationGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
           <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯 / 仲 / 叔 定制版" icon={GraduationCap} tone="rose" />
@@ -77,13 +83,14 @@ export default function Home() {
         <ParentActionBoard actions={parentActions} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+        <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-          <WeeklyOverview events={pilotCalendarEvents} childProfiles={managedChildren} />
-          <UpcomingEvents events={pilotCalendarEvents} childProfiles={managedChildren} />
+          <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
+          <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <CalendarSyncCard />
+        <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
 
         <ChildManagement
           childProfiles={managedChildren}
@@ -104,7 +111,7 @@ export default function Home() {
             <ChildProfile child={selectedChild} records={pilotLearningRecords} goals={pilotEducationGoals} />
           </TabsContent>
           <TabsContent value="calendar">
-            <UnifiedCalendar events={pilotCalendarEvents} childProfiles={managedChildren} />
+            <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
           </TabsContent>
           <TabsContent value="growth">
             <GrowthSummary childProfiles={managedChildren} records={pilotLearningRecords} goals={pilotEducationGoals} />
@@ -122,7 +129,7 @@ export default function Home() {
           <ChildProfile child={selectedChild} records={pilotLearningRecords} goals={pilotEducationGoals} />
         </div>
 
-        <UnifiedCalendar events={pilotCalendarEvents} childProfiles={managedChildren} />
+        <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
         <EducationRoadmap goals={pilotEducationGoals} childProfiles={managedChildren} />
         <ResourceCenter resources={pilotResources} childProfiles={managedChildren} />
       </div>

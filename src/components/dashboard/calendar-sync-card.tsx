@@ -5,8 +5,16 @@ import { CalendarCheck, CheckCircle2, Copy, Download, Smartphone } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { buildEducationCalendarIcs } from "@/lib/ics";
+import type { CalendarEvent, Child } from "@/lib/types";
 
-export function CalendarSyncCard() {
+export function CalendarSyncCard({
+  currentEvents,
+  childProfiles
+}: {
+  currentEvents: CalendarEvent[];
+  childProfiles: Child[];
+}) {
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -21,6 +29,21 @@ export function CalendarSyncCard() {
     await navigator.clipboard.writeText(webcalUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
+  }
+
+  function downloadCurrentIcs() {
+    const ics = buildEducationCalendarIcs({
+      events: currentEvents,
+      children: childProfiles,
+      calendarName: "伯仲叔教育日历"
+    });
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "boyang-zhongyang-shuyang-current-calendar.ics";
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -54,8 +77,12 @@ export function CalendarSyncCard() {
             <Button asChild variant="outline">
               <a href="/api/calendar/ios?download=1">
                 <Download className="mr-2 h-4 w-4" />
-                下载 ICS
+                下载服务器 ICS
               </a>
+            </Button>
+            <Button variant="outline" onClick={downloadCurrentIcs}>
+              <Download className="mr-2 h-4 w-4" />
+              下载当前页面 ICS
             </Button>
             <Button asChild>
               <a href={webcalUrl}>
@@ -73,7 +100,7 @@ export function CalendarSyncCard() {
         <div className="rounded-lg bg-slate-950 p-4 text-white">
           <p className="text-sm font-semibold">同步策略</p>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            当前版本生成只读教育日历，避免误改家庭主日历。真正日常使用时，建议在 iOS 里单独建立“伯仲叔教育日历”，颜色独立，提醒策略独立。
+            当前页面 ICS 会包含本机新增日程，适合明天导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。
           </p>
           <p className="mt-4 break-all rounded-md bg-white/10 p-3 text-xs text-slate-300">{webcalUrl}</p>
         </div>
