@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { CalendarCheck2, Clock3, GraduationCap, Target } from "lucide-react";
 import { AppShell } from "@/components/dashboard/app-shell";
+import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
@@ -79,6 +80,8 @@ export default function Home() {
           <WeeklyOverview events={pilotCalendarEvents} childProfiles={managedChildren} />
           <UpcomingEvents events={pilotCalendarEvents} childProfiles={managedChildren} />
         </div>
+
+        <CalendarSyncCard />
 
         <ChildManagement
           childProfiles={managedChildren}
