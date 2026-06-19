@@ -21,14 +21,24 @@
 - 周报可以复制、截图、打印或另存 PDF。
 - 定制版保留在私有分支，不进入公开 GitHub。
 
-### Phase 2: 私有在线版
+### Phase 2: 伯仲叔私有在线版
 
 - 部署到私有 Vercel 项目。
 - 设置访问码 `PRIVATE_ACCESS_CODE`。
 - 设置 iOS 日历 token `PRIVATE_CALENDAR_TOKEN`。
 - 家长通过私有链接访问。
+- 不要求家长注册账号，不做登录流程。
+- 写入数据通过服务端私有 API 完成，由访问码/私有链接保护。
 
-### Phase 3: 长期使用版
+私有写入 API：
+
+- `PUT /api/private/intake`
+- `POST /api/private/events`
+- `DELETE /api/private/events?eventId=...`
+
+这些 API 只在配置 `PRIVATE_ACCESS_CODE`、`NEXT_PUBLIC_PRIVATE_FAMILY_ID`、`SUPABASE_SERVICE_ROLE_KEY` 后启用。service role key 只能存在服务端环境变量里，不能暴露到浏览器。
+
+### Phase 3: 通用商业长期版
 
 - Supabase Auth 登录。
 - PostgreSQL 持久化孩子、日程、目标、资源和现场补充资料。
@@ -94,7 +104,7 @@ API 会优先通过 Supabase RPC `get_calendar_feed_by_token` 读取真实日程
 UI 不直接关心数据来自哪里，只依赖 `FamilyRepository`。
 
 - 明天：LocalStorage repository
-- 私有在线：Supabase repository
+- 伯仲叔私有在线：No-login private API + Supabase service role repository
 - 商业版：multi-tenant Supabase repository + billing + roles
 
 ## 隐私原则
@@ -102,4 +112,5 @@ UI 不直接关心数据来自哪里，只依赖 `FamilyRepository`。
 - 公开仓库只保留通用产品。
 - 私有定制数据只在本地私有分支、私有部署或 Supabase 私有项目。
 - iOS 日历订阅不能依赖浏览器 cookie，必须使用独立 token。
-- 访问码只是过渡方案，长期使用必须做账号和角色权限。
+- 伯仲叔特制版可以长期使用访问码/私有链接，不强迫家长登录。
+- 大众商业版必须做账号、角色权限和审计。

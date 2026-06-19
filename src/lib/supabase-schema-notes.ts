@@ -5,5 +5,6 @@ export const requiredSupabaseEnv = [
 
 export const privateDeploymentEnv = [
   "PRIVATE_ACCESS_CODE",
-  "PRIVATE_CALENDAR_TOKEN"
+  "PRIVATE_CALENDAR_TOKEN",
+  "SUPABASE_SERVICE_ROLE_KEY"
 ] as const;

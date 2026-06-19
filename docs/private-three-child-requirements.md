@@ -40,14 +40,16 @@
 1. 明天现场：使用本地 demo 或私有预览链接，由家长在“现场补充工作台”编辑，系统自动保存到浏览器。
 2. 当天交付：导出 JSON 备份，复制周报框架，必要时下载 ICS 导入 Apple 日历。
 3. 做好后分享：优先使用 private Vercel 项目或带访问码的私有链接，不把定制数据推到公开 GitHub。
-4. 长期使用：接 Supabase Auth 和 Postgres，家长登录后实时编辑，日历订阅源从数据库动态生成。
+4. 伯仲叔长期使用：不要求家长登录，通过私有访问码/私有链接进入，服务端把数据写入 Supabase。
+5. 大众商业版长期使用：再接 Supabase Auth 和 Postgres，家庭成员登录后实时编辑，日历订阅源从数据库动态生成。
 
 ### 私有访问保护
 
 - 本地开发默认不启用访问码。
 - 私有部署时设置 `PRIVATE_ACCESS_CODE`，页面会先进入 `/access`。
 - iOS 日历订阅可额外设置 `PRIVATE_CALENDAR_TOKEN`，用 token 化订阅链接保护日历源。
-- 访问码是过渡方案，正式长期版仍应使用 Supabase Auth 和角色权限。
+- 伯仲叔特制版不强制登录，访问码就是正式私有入口。
+- 大众商业版再使用 Supabase Auth、家庭成员角色和更完整权限。
 
 ### P0 必须完成
 
@@ -67,9 +69,9 @@
 
 ### P1 可随后增强
 
-- Supabase 持久化。
+- Supabase 持久化，伯仲叔版通过私有服务端 API 写入，不要求家长登录。
 - 家长现场补充日程实时进入 iOS 订阅源。
-- 登录和家庭权限。
+- 大众商业版登录和家庭权限。
 - 文件上传。
 - 月报导出。
 - AI 学习建议。
@@ -83,6 +85,8 @@
 - `src/lib/core-types.ts`：家庭工作台、现场补充资料、Repository 等核心类型。
 - `src/lib/pilot-snapshot.ts`：伯仲叔当前 pilot 数据快照。
 - `src/lib/local-family-repository.ts`：明天可用的本机数据仓库边界，后续替换为 Supabase repository。
+- `src/app/api/private/intake/route.ts`：伯仲叔无登录版本的现场补充资料写入 API。
+- `src/app/api/private/events/route.ts`：伯仲叔无登录版本的日程写入 API。
 
 ## 需要继续补充的信息
 
