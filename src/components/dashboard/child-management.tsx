@@ -115,20 +115,20 @@ export function ChildManagement({
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Child management</CardTitle>
-            <CardDescription>Add, edit, and switch between child profiles.</CardDescription>
+            <CardTitle>孩子档案管理</CardTitle>
+            <CardDescription>维护伯、仲、叔三人的学校、阶段和关注重点。</CardDescription>
           </div>
           <Dialog>
             <DialogTrigger asChild>
               <Button size="sm" onClick={openCreate}>
                 <Plus className="h-4 w-4" />
-                Add child
+                新增孩子
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingChild ? "Edit child" : "Add child"}</DialogTitle>
-                <DialogDescription>Profile data maps directly to the future children table.</DialogDescription>
+                <DialogTitle>{editingChild ? "编辑孩子档案" : "新增孩子档案"}</DialogTitle>
+                <DialogDescription>这些信息未来会直接映射到 children 数据表。</DialogDescription>
               </DialogHeader>
               <ChildForm form={form} setForm={setForm} />
               <DialogClose asChild>
@@ -183,13 +183,13 @@ export function ChildManagement({
                       }}
                     >
                       <Edit3 className="h-3.5 w-3.5" />
-                      Edit
+                      编辑
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Edit child</DialogTitle>
-                      <DialogDescription>Update school and focus information.</DialogDescription>
+                      <DialogTitle>编辑孩子档案</DialogTitle>
+                      <DialogDescription>更新学校、课程和阶段重点。</DialogDescription>
                     </DialogHeader>
                     <ChildForm form={form} setForm={setForm} />
                     <DialogClose asChild>
@@ -207,7 +207,7 @@ export function ChildManagement({
                   disabled={childProfiles.length === 1}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Delete
+                  删除
                 </Button>
               </div>
             </div>
@@ -228,25 +228,25 @@ function ChildForm({
   return (
     <div className="grid gap-4">
       <div className="grid gap-2">
-        <Label htmlFor="firstName">First name</Label>
+        <Label htmlFor="firstName">显示名称</Label>
         <Input id="firstName" value={form.firstName} onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))} />
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="grade">Grade</Label>
+          <Label htmlFor="grade">阶段 / 年级</Label>
           <Input id="grade" value={form.grade} onChange={(event) => setForm((current) => ({ ...current, grade: event.target.value }))} />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="program">Program</Label>
+          <Label htmlFor="program">课程组合</Label>
           <Input id="program" value={form.schoolProgram} onChange={(event) => setForm((current) => ({ ...current, schoolProgram: event.target.value }))} />
         </div>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="school">School</Label>
+        <Label htmlFor="school">学校</Label>
         <Input id="school" value={form.schoolName} onChange={(event) => setForm((current) => ({ ...current, schoolName: event.target.value }))} />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="focus">Focus areas</Label>
+        <Label htmlFor="focus">关注重点</Label>
         <Textarea
           id="focus"
           value={form.focusAreas}

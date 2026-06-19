@@ -6,12 +6,12 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "#dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "#children", label: "Children", icon: GraduationCap },
-  { href: "#calendar", label: "Calendar", icon: CalendarDays },
-  { href: "#growth", label: "Growth", icon: LineChart },
-  { href: "#roadmap", label: "Roadmap", icon: Map },
-  { href: "#resources", label: "Resources", icon: FileText }
+  { href: "#dashboard", label: "总览", icon: LayoutDashboard },
+  { href: "#children", label: "孩子档案", icon: GraduationCap },
+  { href: "#calendar", label: "统一日历", icon: CalendarDays },
+  { href: "#growth", label: "成长记录", icon: LineChart },
+  { href: "#roadmap", label: "教育路线", icon: Map },
+  { href: "#resources", label: "资源中心", icon: FileText }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -23,8 +23,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold">Family Education</p>
-            <p className="text-xs text-muted-foreground">Tanaka workspace</p>
+            <p className="text-sm font-semibold">伯仲叔教育管理</p>
+            <p className="text-xs text-muted-foreground">三孩定制工作区</p>
           </div>
         </div>
         <Separator className="my-5" />
@@ -46,11 +46,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mt-8 rounded-lg border bg-slate-950 p-4 text-white">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Sparkles className="h-4 w-4 text-cyan-300" />
-            Monthly report
+            月度报告
           </div>
-          <p className="mt-2 text-xs leading-5 text-slate-300">Draft AI-assisted family summaries after learning records mature.</p>
+          <p className="mt-2 text-xs leading-5 text-slate-300">定制版稳定后，生成面向家长的月度成长复盘。</p>
           <Button size="sm" variant="secondary" className="mt-4 w-full">
-            Preview
+            预览
           </Button>
         </div>
       </aside>
@@ -62,11 +62,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <BookOpen className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Family Education</p>
-                <p className="text-xs text-muted-foreground">This week</p>
+                <p className="text-sm font-semibold">伯仲叔教育管理</p>
+                <p className="text-xs text-muted-foreground">本周</p>
               </div>
             </div>
-            <Button size="sm">Add</Button>
+            <Button size="sm">新增</Button>
           </div>
         </header>
         <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8">{children}</main>

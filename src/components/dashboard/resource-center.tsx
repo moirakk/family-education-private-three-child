@@ -21,12 +21,12 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <CardTitle>Resource center</CardTitle>
-            <CardDescription>Files, notes, learning materials, and family planning references.</CardDescription>
+            <CardTitle>资源中心</CardTitle>
+            <CardDescription>管理文件、笔记、练习材料和家庭规划资料。</CardDescription>
           </div>
           <div className="relative w-full lg:w-80">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Search resources" />
+            <Input className="pl-9" placeholder="搜索资源" />
           </div>
         </div>
       </CardHeader>
@@ -44,7 +44,7 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
                 </div>
                 <p className="mt-4 text-sm font-semibold">{resource.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {resource.childId ? childById.get(resource.childId) : "Family"} · {resource.subject}
+                  {resource.childId ? childById.get(resource.childId) : "全家"} · {resource.subject}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1">
                   {resource.tags.map((tag) => (

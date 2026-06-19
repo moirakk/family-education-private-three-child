@@ -13,12 +13,12 @@ export function EducationRoadmap({ goals, childProfiles }: { goals: EducationGoa
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Education roadmap</CardTitle>
-            <CardDescription>Goals, milestones, and exam timeline readiness.</CardDescription>
+            <CardTitle>教育路线图</CardTitle>
+            <CardDescription>按孩子管理目标、里程碑和测评准备节奏。</CardDescription>
           </div>
           <Badge variant="success" className="gap-1">
             <Flag className="h-3 w-3" />
-            {goals.length} active paths
+            {goals.length} 条路线
           </Badge>
         </div>
       </CardHeader>
@@ -36,7 +36,7 @@ export function EducationRoadmap({ goals, childProfiles }: { goals: EducationGoa
                 <Badge variant={goal.status === "planned" ? "outline" : "secondary"}>{goal.status.replace("_", " ")}</Badge>
               </div>
               <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Target {format(new Date(goal.targetDate), "MMM d")}</span>
+                <span>目标 {format(new Date(goal.targetDate), "MMM d")}</span>
                 <span>{goal.progress}%</span>
               </div>
               <Progress value={goal.progress} className="mt-2" />

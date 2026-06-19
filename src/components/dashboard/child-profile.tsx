@@ -33,7 +33,7 @@ export function ChildProfile({
         <div className="rounded-lg border bg-white p-4">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <School className="h-4 w-4 text-primary" />
-            School information
+            学校信息
           </p>
           <p className="mt-2 text-sm">{child.schoolName}</p>
           <p className="text-xs text-muted-foreground">{child.schoolProgram}</p>
@@ -41,7 +41,7 @@ export function ChildProfile({
         <div className="rounded-lg border bg-white p-4">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <GraduationCap className="h-4 w-4 text-primary" />
-            Focus areas
+            关注重点
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {child.focusAreas.map((area) => (
@@ -52,11 +52,11 @@ export function ChildProfile({
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border bg-white p-4">
             <p className="text-2xl font-semibold">{childRecords.length}</p>
-            <p className="text-xs text-muted-foreground">Recent learning records</p>
+            <p className="text-xs text-muted-foreground">近期学习记录</p>
           </div>
           <div className="rounded-lg border bg-white p-4">
             <p className="text-2xl font-semibold">{childGoals.length}</p>
-            <p className="text-xs text-muted-foreground">Education goals</p>
+            <p className="text-xs text-muted-foreground">教育目标</p>
           </div>
         </div>
       </CardContent>

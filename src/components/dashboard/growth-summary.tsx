@@ -15,8 +15,8 @@ export function GrowthSummary({
   return (
     <Card id="growth" className="h-full border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
-        <CardTitle>Growth summary</CardTitle>
-        <CardDescription>Learning consistency and goal progress by child.</CardDescription>
+        <CardTitle>成长摘要</CardTitle>
+        <CardDescription>按孩子查看学习稳定性和目标推进情况。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {childProfiles.map((child) => {
@@ -40,11 +40,11 @@ export function GrowthSummary({
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <BookOpenCheck className="h-3.5 w-3.5" />
-                  {minutes} study min
+                  {minutes} 分钟
                 </span>
                 <span className="flex items-center gap-1.5">
                   <TrendingUp className="h-3.5 w-3.5" />
-                  {childGoals.length} active goals
+                  {childGoals.length} 个目标
                 </span>
               </div>
             </div>

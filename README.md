@@ -182,8 +182,11 @@ See [docs/database-schema.sql](./docs/database-schema.sql) for the full PostgreS
 
 Implemented:
 
+- Two-track product direction: custom three-child version and commercial SaaS version.
 - Mobile-first responsive dashboard.
 - Multi-child pilot data model.
+- Custom pilot layer for the 伯 / 仲 / 叔 three-child management system.
+- Parent action board and three-child operating matrix.
 - Dynamic child add/edit/delete UI.
 - Child profile panel.
 - Weekly overview and upcoming events.
@@ -282,6 +285,7 @@ The product interface is inspired by Apple Education, Linear, Notion, and Stripe
 - [Product Architecture](./docs/product-architecture.md)
 - [Database Schema](./docs/database-schema.sql)
 - [Wireframes](./docs/wireframes.md)
+- [Two-Track Roadmap](./docs/two-track-roadmap.md)
 
 ## License
 

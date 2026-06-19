@@ -9,8 +9,8 @@ export function UpcomingEvents({ events, childProfiles }: { events: CalendarEven
   return (
     <Card className="h-full border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
-        <CardTitle>Upcoming events</CardTitle>
-        <CardDescription>Next commitments that need parent attention.</CardDescription>
+        <CardTitle>近期事项</CardTitle>
+        <CardDescription>需要家长关注的下一批安排。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {events.slice(0, 4).map((event) => (

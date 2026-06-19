@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
 
 const categoryLabels: Record<EventCategory, string> = {
-  school: "School",
-  tutoring: "Tutoring",
-  activity: "Activity",
-  exam: "Exam",
-  family: "Family"
+  school: "学校",
+  tutoring: "辅导",
+  activity: "活动",
+  exam: "测评",
+  family: "家庭"
 };
 
 export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEvent[]; childProfiles: Child[] }) {
@@ -20,12 +20,12 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Unified calendar</CardTitle>
-            <CardDescription>Every education and family commitment in one normalized event stream.</CardDescription>
+            <CardTitle>统一日历</CardTitle>
+            <CardDescription>把每个孩子和全家的教育事项统一成一条事件流。</CardDescription>
           </div>
           <Badge variant="outline" className="gap-1">
             <CalendarRange className="h-3 w-3" />
-            5 categories
+            5 类事项
           </Badge>
         </div>
       </CardHeader>
@@ -47,7 +47,7 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
                     </div>
                   ))}
                 {!events.some((event) => event.category === category) && (
-                  <p className="rounded-md bg-slate-50 p-3 text-xs text-muted-foreground">No events this week</p>
+                  <p className="rounded-md bg-slate-50 p-3 text-xs text-muted-foreground">本周暂无事项</p>
                 )}
               </div>
             </div>

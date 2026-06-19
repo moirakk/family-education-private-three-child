@@ -20,12 +20,12 @@ export function WeeklyOverview({ events, childProfiles }: { events: CalendarEven
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <CardTitle>Weekly overview</CardTitle>
-            <CardDescription>School, tutoring, activities, exams, and family rhythm in one view.</CardDescription>
+            <CardTitle>本周总览</CardTitle>
+            <CardDescription>把学校、辅导、活动、测评和家庭复盘放在同一个视图。</CardDescription>
           </div>
           <Badge variant="outline" className="gap-1">
             <CalendarDays className="h-3 w-3" />
-            Jun 22-28
+            6月22-28日
           </Badge>
         </div>
       </CardHeader>
