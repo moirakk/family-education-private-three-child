@@ -18,6 +18,7 @@ import { ResourceCenter } from "@/components/dashboard/resource-center";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
 import { UnifiedCalendar } from "@/components/dashboard/unified-calendar";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
+import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
 import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,6 +81,7 @@ export default function Home() {
 
         <ProductTrackSplit tracks={productTracks} />
         <ParentHandoffPlan />
+        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={pilotLearningRecords} />
         <ParentActionBoard actions={parentActions} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
