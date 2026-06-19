@@ -6,6 +6,7 @@ import { AppShell } from "@/components/dashboard/app-shell";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
+import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-workspace";
 import { GrowthSummary } from "@/components/dashboard/growth-summary";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
@@ -71,6 +72,7 @@ export default function Home() {
 
         <ProductTrackSplit tracks={productTracks} />
         <ParentActionBoard actions={parentActions} />
+        <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
 
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
