@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ClipboardList, Copy, Save } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle2, ClipboardList, Copy, Download, Save, Upload } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
   const [intake, setIntake] = useState<IntakeState>(() => buildInitialState(childProfiles));
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -98,6 +99,35 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
     window.setTimeout(() => setCopied(false), 1500);
   }
 
+  function exportIntake() {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      family: "伯仲叔家庭教育管理系统",
+      children: childProfiles.map((child) => ({
+        id: child.id,
+        name: child.firstName,
+        grade: child.grade
+      })),
+      intake
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "boyang-zhongyang-shuyang-intake.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importIntake(file: File | undefined) {
+    if (!file) return;
+    const text = await file.text();
+    const payload = JSON.parse(text) as { intake?: IntakeState };
+    if (!payload.intake) return;
+    setIntake({ ...buildInitialState(childProfiles), ...payload.intake });
+  }
+
   return (
     <Card id="intake" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
@@ -116,6 +146,24 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
               <Save className="h-3 w-3" />
               {saved ? "已自动保存" : "本机浏览器保存"}
             </Badge>
+            <Button variant="outline" size="sm" onClick={exportIntake}>
+              <Download className="mr-2 h-4 w-4" />
+              导出资料
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" />
+              导入资料
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(event) => {
+                void importIntake(event.target.files?.[0]);
+                event.currentTarget.value = "";
+              }}
+            />
             <Button variant="outline" size="sm" onClick={copyShareText}>
               {copied ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
               {copied ? "已复制" : "复制周报框架"}

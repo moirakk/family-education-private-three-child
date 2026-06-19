@@ -11,6 +11,7 @@ import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-work
 import { GrowthSummary } from "@/components/dashboard/growth-summary";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
+import { ParentHandoffPlan } from "@/components/dashboard/parent-handoff-plan";
 import { ProductTrackSplit } from "@/components/dashboard/product-track-split";
 import { ResourceCenter } from "@/components/dashboard/resource-center";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
@@ -72,6 +73,7 @@ export default function Home() {
         </section>
 
         <ProductTrackSplit tracks={productTracks} />
+        <ParentHandoffPlan />
         <ParentActionBoard actions={parentActions} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
