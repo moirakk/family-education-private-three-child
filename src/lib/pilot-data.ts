@@ -5,39 +5,39 @@ export const pilotFamilyName = "伯仲叔教育管理中枢";
 export const pilotChildren: Child[] = [
   {
     id: "bo",
-    firstName: "伯",
-    lastName: "定制档案",
+    firstName: "伯杨",
+    lastName: "",
     age: 12,
-    grade: "高年级 / 升学准备期",
+    grade: "马上升初一 / 小升初衔接期",
     schoolName: "主学校信息待补充",
-    schoolProgram: "校内课程 + 数学强化 + 英语阅读",
+    schoolProgram: "小升初衔接 + 数学体系化 + 英语阅读写作",
     avatarColor: "#0f766e",
     interests: ["阅读", "数学", "项目制学习"],
-    focusAreas: ["数学体系化", "英文写作", "考试节奏"]
+    focusAreas: ["小升初衔接", "数学体系化", "英文写作"]
   },
   {
     id: "zhong",
-    firstName: "仲",
-    lastName: "定制档案",
-    age: 9,
-    grade: "中年级 / 习惯建立期",
+    firstName: "仲杨",
+    lastName: "",
+    age: 10,
+    grade: "马上升五年级 / 高年级准备期",
     schoolName: "主学校信息待补充",
-    schoolProgram: "校内课程 + 阅读习惯 + 基础计算",
+    schoolProgram: "校内课程 + 阅读习惯 + 数学基础巩固",
     avatarColor: "#2563eb",
     interests: ["科学", "运动", "动手实验"],
-    focusAreas: ["阅读稳定性", "计算速度", "作业独立性"]
+    focusAreas: ["高年级过渡", "阅读稳定性", "作业独立性"]
   },
   {
     id: "shu",
-    firstName: "叔",
-    lastName: "定制档案",
-    age: 6,
-    grade: "低年级 / 启蒙衔接期",
+    firstName: "叔杨",
+    lastName: "",
+    age: 7,
+    grade: "马上升二年级 / 低年级习惯成型期",
     schoolName: "主学校信息待补充",
-    schoolProgram: "校内课程 + 拼读启蒙 + 日常表达",
+    schoolProgram: "低年级校内基础 + 拼读启蒙 + 日常表达",
     avatarColor: "#db2777",
     interests: ["画画", "故事", "音乐律动"],
-    focusAreas: ["拼读启蒙", "专注力", "晨间流程"]
+    focusAreas: ["低年级习惯", "拼读启蒙", "专注力"]
   }
 ];
 
@@ -53,7 +53,7 @@ export const pilotCalendarEvents: CalendarEvent[] = [
   },
   {
     id: "pilot-event-2",
-    title: "伯：数学错题复盘",
+    title: "伯杨：数学错题复盘",
     category: "tutoring",
     startsAt: "2026-06-22T19:00:00+09:00",
     endsAt: "2026-06-22T19:45:00+09:00",
@@ -62,7 +62,7 @@ export const pilotCalendarEvents: CalendarEvent[] = [
   },
   {
     id: "pilot-event-3",
-    title: "仲：阅读打卡 + 口头复述",
+    title: "仲杨：阅读打卡 + 口头复述",
     category: "family",
     startsAt: "2026-06-23T19:30:00+09:00",
     endsAt: "2026-06-23T20:00:00+09:00",
@@ -71,7 +71,7 @@ export const pilotCalendarEvents: CalendarEvent[] = [
   },
   {
     id: "pilot-event-4",
-    title: "叔：拼读小游戏",
+    title: "叔杨：拼读小游戏",
     category: "activity",
     startsAt: "2026-06-24T18:30:00+09:00",
     endsAt: "2026-06-24T18:50:00+09:00",
@@ -136,13 +136,13 @@ export const pilotEducationGoals: EducationGoal[] = [
   {
     id: "pilot-goal-1",
     childId: "bo",
-    title: "建立升学准备节奏",
+    title: "建立小升初衔接节奏",
     subject: "综合规划",
     targetDate: "2026-11-30",
     status: "in_progress",
     progress: 58,
     milestones: [
-      { id: "pilot-m1", title: "完成数学能力盘点", dueDate: "2026-07-05", completed: true },
+      { id: "pilot-m1", title: "完成小升初数学能力盘点", dueDate: "2026-07-05", completed: true },
       { id: "pilot-m2", title: "建立每周错题复盘流程", dueDate: "2026-07-20", completed: false },
       { id: "pilot-m3", title: "完成一次模拟考试复盘", dueDate: "2026-09-15", completed: false }
     ]
@@ -150,7 +150,7 @@ export const pilotEducationGoals: EducationGoal[] = [
   {
     id: "pilot-goal-2",
     childId: "zhong",
-    title: "形成稳定自主学习习惯",
+    title: "形成五年级前的自主学习习惯",
     subject: "习惯培养",
     targetDate: "2026-09-30",
     status: "in_progress",
@@ -163,7 +163,7 @@ export const pilotEducationGoals: EducationGoal[] = [
   {
     id: "pilot-goal-3",
     childId: "shu",
-    title: "完成低年级学习流程衔接",
+    title: "完成二年级学习流程衔接",
     subject: "启蒙衔接",
     targetDate: "2026-08-31",
     status: "planned",
@@ -180,7 +180,7 @@ export const pilotResources: Resource[] = [
     id: "pilot-res-1",
     childId: "bo",
     kind: "note",
-    title: "伯：升学准备观察记录",
+    title: "伯杨：小升初衔接观察记录",
     subject: "规划",
     tags: ["升学", "复盘", "数学"],
     updatedAt: "2026-06-18"
@@ -189,7 +189,7 @@ export const pilotResources: Resource[] = [
     id: "pilot-res-2",
     childId: "zhong",
     kind: "worksheet",
-    title: "仲：阅读复述模板",
+    title: "仲杨：阅读复述模板",
     subject: "阅读",
     tags: ["阅读", "习惯", "表达"],
     updatedAt: "2026-06-17"
@@ -198,7 +198,7 @@ export const pilotResources: Resource[] = [
     id: "pilot-res-3",
     childId: "shu",
     kind: "worksheet",
-    title: "叔：拼读练习包",
+    title: "叔杨：拼读练习包",
     subject: "拼读",
     tags: ["启蒙", "拼读", "游戏"],
     updatedAt: "2026-06-16"
@@ -217,7 +217,7 @@ export const parentActions = [
   {
     id: "action-1",
     owner: "家长",
-    title: "补全三人真实学校/年级/课程信息",
+    title: "补全三人真实学校/课程/固定安排",
     priority: "今天必须",
     status: "待补充"
   },
@@ -247,26 +247,26 @@ export const parentActions = [
 export const childOperatingPlans = [
   {
     childId: "bo",
-    stage: "升学准备期",
-    weeklyFocus: "数学体系化 + 英文表达",
+    stage: "小升初衔接期",
+    weeklyFocus: "初一适应准备 + 数学体系化 + 英文表达",
     parentRole: "减少临时催促，固定复盘节奏",
-    risk: "目标多但节奏容易碎片化",
+    risk: "进入初中前目标变多，节奏容易碎片化",
     nextStep: "每周一次错题归因，而不是只看分数"
   },
   {
     childId: "zhong",
-    stage: "习惯建立期",
-    weeklyFocus: "阅读稳定性 + 作业独立性",
+    stage: "五年级准备期",
+    weeklyFocus: "高年级过渡 + 阅读稳定性 + 作业独立性",
     parentRole: "把任务拆小，让孩子自己勾选",
-    risk: "兴趣强但持续性不足",
+    risk: "从中年级进入高年级后，任务量增加带来稳定性压力",
     nextStep: "建立每日 20 分钟阅读 + 2 分钟复述"
   },
   {
     childId: "shu",
-    stage: "启蒙衔接期",
-    weeklyFocus: "拼读启蒙 + 晨间流程",
+    stage: "二年级习惯成型期",
+    weeklyFocus: "低年级学习流程 + 拼读启蒙 + 晨间流程",
     parentRole: "用游戏化方式保持正反馈",
-    risk: "注意力窗口短",
+    risk: "注意力窗口短，需要稳定但轻量的学习仪式",
     nextStep: "每次学习控制在 15-20 分钟"
   }
 ];
