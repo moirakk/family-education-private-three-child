@@ -70,7 +70,7 @@ export function WeeklyFamilyReport({
   }
 
   return (
-    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur print:shadow-none">
+    <Card id="weekly-report" className="border-white/70 bg-white/85 shadow-sm backdrop-blur print:shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>

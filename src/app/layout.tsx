@@ -1,9 +1,30 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Family Education Dashboard",
-  description: "A family education management platform for multi-child households."
+  title: "伯仲叔教育管理",
+  description: "伯杨、仲杨、叔杨的私有家庭教育日程与成长管理应用。",
+  applicationName: "伯仲叔教育管理",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "伯仲叔教育",
+    statusBarStyle: "default"
+  },
+  formatDetection: {
+    telephone: false
+  },
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon"
+  }
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover"
 };
 
 export default function RootLayout({
@@ -12,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );

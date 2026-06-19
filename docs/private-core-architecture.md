@@ -12,6 +12,16 @@
 4. iOS 日历能同步。
 5. 后续能从本机 demo 平滑迁移到 Supabase。
 
+## 伯仲叔交付形态
+
+伯仲叔特制版采用私有 PWA Web App，而不是原生 App。
+
+- 家长不需要去 App Store 下载。
+- 家长第一次打开私有链接后，可以添加到 iPhone 主屏幕。
+- 桌面图标名称为“伯仲叔教育管理”。
+- 后续从主屏幕打开，体验接近日常 App。
+- PWA 继续保留网页快速迭代、私有链接分享和 iOS 日历同步能力。
+
 ## 三阶段路线
 
 ### Phase 1: 明天可用
@@ -37,6 +47,12 @@
 - `DELETE /api/private/events?eventId=...`
 
 这些 API 只在配置 `PRIVATE_ACCESS_CODE`、`NEXT_PUBLIC_PRIVATE_FAMILY_ID`、`SUPABASE_SERVICE_ROLE_KEY` 后启用。service role key 只能存在服务端环境变量里，不能暴露到浏览器。
+
+前端数据模式：
+
+- 默认：`local`
+- 伯仲叔私有在线版：`NEXT_PUBLIC_FAMILY_DATA_MODE=private-api`
+- 大众商业版：`NEXT_PUBLIC_FAMILY_DATA_MODE=supabase`
 
 ### Phase 3: 通用商业长期版
 

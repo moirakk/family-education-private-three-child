@@ -14,6 +14,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
 import { ParentHandoffPlan } from "@/components/dashboard/parent-handoff-plan";
 import { ProductTrackSplit } from "@/components/dashboard/product-track-split";
+import { PwaInstallCard } from "@/components/dashboard/pwa-install-card";
 import { ResourceCenter } from "@/components/dashboard/resource-center";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
 import { UnifiedCalendar } from "@/components/dashboard/unified-calendar";
@@ -81,6 +82,7 @@ export default function Home() {
 
         <ProductTrackSplit tracks={productTracks} />
         <ParentHandoffPlan />
+        <PwaInstallCard />
         <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={pilotLearningRecords} />
         <ParentActionBoard actions={parentActions} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />

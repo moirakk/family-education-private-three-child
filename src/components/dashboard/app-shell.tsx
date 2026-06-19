@@ -1,12 +1,13 @@
 "use client";
 
-import { BookOpen, CalendarDays, FileText, GraduationCap, LayoutDashboard, LineChart, Map, Sparkles } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardList, FileText, GraduationCap, LayoutDashboard, LineChart, Map, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "#dashboard", label: "总览", icon: LayoutDashboard },
+  { href: "#intake", label: "补资料", icon: ClipboardList },
   { href: "#children", label: "孩子档案", icon: GraduationCap },
   { href: "#calendar", label: "统一日历", icon: CalendarDays },
   { href: "#calendar-sync", label: "iOS 同步", icon: CalendarDays },
@@ -70,7 +71,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button size="sm">新增</Button>
           </div>
         </header>
-        <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8">{children}</main>
+        <main className="min-w-0 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+            {navItems.slice(0, 4).map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </nav>
       </div>
     </div>
   );
