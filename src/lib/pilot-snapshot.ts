@@ -16,7 +16,7 @@ export const pilotSnapshot: FamilySnapshot = {
     name: pilotFamilyName,
     timezone: "Asia/Tokyo",
     locale: "zh-CN",
-    calendarName: "伯仲叔教育日历"
+    calendarName: "Family Education Calendar"
   },
   children: pilotChildren,
   childIntakeProfiles: pilotChildren.map((child) => ({

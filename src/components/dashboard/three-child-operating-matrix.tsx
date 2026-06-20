@@ -27,7 +27,7 @@ export function ThreeChildOperatingMatrix({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <UsersRound className="h-4 w-4 text-primary" />
-          伯仲叔三人管理矩阵
+          三孩管理矩阵
         </CardTitle>
         <CardDescription>按孩子阶段拆分目标、风险和家长介入方式。</CardDescription>
       </CardHeader>

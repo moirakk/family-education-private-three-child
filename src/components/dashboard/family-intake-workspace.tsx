@@ -85,7 +85,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
       ].join("\n");
     });
 
-    return ["伯仲叔家庭教育周报框架", "", ...childSections.map((section) => `${section}\n`)].join("\n");
+    return ["Family Education Weekly Report Framework", "", ...childSections.map((section) => `${section}\n`)].join("\n");
   }, [childProfiles, intake]);
 
   function updateEntry(childId: string, key: keyof IntakeEntry, value: string) {
@@ -108,7 +108,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
-      family: "伯仲叔家庭教育管理系统",
+      family: "Family Education Management System",
       children: childProfiles.map((child) => ({
         id: child.id,
         name: child.firstName,

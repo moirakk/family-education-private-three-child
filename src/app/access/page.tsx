@@ -22,7 +22,7 @@ export default async function AccessPage({
           </div>
           <CardTitle className="flex items-center gap-2">
             <LockKeyhole className="h-4 w-4 text-primary" />
-            伯仲叔私有访问
+            Family Education 私有访问
           </CardTitle>
           <CardDescription>
             请输入访问码。这个入口用于私有部署时给家长安全查看和编辑。

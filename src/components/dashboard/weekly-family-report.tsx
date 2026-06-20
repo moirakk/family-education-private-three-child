@@ -42,7 +42,7 @@ export function WeeklyFamilyReport({
 
   const reportText = useMemo(() => {
     const lines = [
-      "伯仲叔家庭教育周报",
+      "Family Education Weekly Report",
       "",
       `本周事项：${events.length} 个`,
       `学习记录：${records.length} 条`,
@@ -99,7 +99,7 @@ export function WeeklyFamilyReport({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm text-slate-300">Private Family Education Report</p>
-              <h2 className="mt-2 text-2xl font-semibold">伯仲叔家庭教育周报</h2>
+              <h2 className="mt-2 text-2xl font-semibold">Family Education Weekly Report</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">本周事项 {events.length}</Badge>

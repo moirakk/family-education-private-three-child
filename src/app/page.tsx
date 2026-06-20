@@ -67,7 +67,7 @@ export default function Home() {
             <div>
               <p className="text-sm font-semibold text-primary">{pilotFamilyName}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                伯仲叔三人教育管理系统
+                Family Education Management System
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                 第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。

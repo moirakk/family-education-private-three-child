@@ -35,7 +35,7 @@ export function CalendarSyncCard({
     const ics = buildEducationCalendarIcs({
       events: currentEvents,
       children: childProfiles,
-      calendarName: "伯仲叔教育日历"
+      calendarName: "Family Education Calendar"
     });
     const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const ics = buildEducationCalendarIcs({
     events: supabaseFeed?.events ?? pilotCalendarEvents,
     children: supabaseFeed?.children ?? pilotChildren,
-    calendarName: "伯仲叔教育日历"
+    calendarName: "Family Education Calendar"
   });
 
   return new Response(ics, {

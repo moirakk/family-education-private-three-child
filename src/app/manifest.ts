@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "伯仲叔教育管理",
-    short_name: "伯仲叔教育",
-    description: "伯杨、仲杨、叔杨的私有家庭教育日程与成长管理应用。",
+    name: "Family Education Management System",
+    short_name: "Family Education",
+    description: "A private family education schedule, growth, and resource management system.",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -43,7 +43,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "家长周报",
         short_name: "周报",
-        description: "查看伯仲叔家庭教育周报",
+        description: "查看家庭教育周报",
         url: "/#weekly-report",
         icons: [{ src: "/icon", sizes: "512x512", type: "image/png" }]
       }

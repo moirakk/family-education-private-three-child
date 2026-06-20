@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold">伯仲叔教育管理</p>
+            <p className="text-sm font-semibold">Family Education</p>
             <p className="text-xs text-muted-foreground">三孩定制工作区</p>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <BookOpen className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold">伯仲叔教育管理</p>
+                <p className="text-sm font-semibold">Family Education</p>
                 <p className="text-xs text-muted-foreground">本周</p>
               </div>
             </div>

@@ -27,7 +27,7 @@ function addMinutes(value: string, minutes: number) {
 export function buildEducationCalendarIcs({
   events,
   children,
-  calendarName = "伯仲叔教育日历"
+  calendarName = "Family Education Calendar"
 }: {
   events: CalendarEvent[];
   children: Child[];

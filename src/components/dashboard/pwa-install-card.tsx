@@ -51,7 +51,7 @@ export function PwaInstallCard() {
               手机桌面私有 App
             </CardTitle>
             <CardDescription>
-              伯仲叔版本按 PWA 设计：家长打开私有链接后，可以添加到手机主屏幕，像 App 一样日常使用。
+              Family Education 按 PWA 设计：家长打开私有链接后，可以添加到手机主屏幕，像 App 一样日常使用。
             </CardDescription>
           </div>
           <Badge variant={isStandalone ? "success" : "outline"} className="gap-1">
@@ -67,7 +67,7 @@ export function PwaInstallCard() {
             <p className="flex gap-2"><span className="font-semibold text-slate-700">1.</span> 用 Safari 打开私有链接并输入访问码。</p>
             <p className="flex gap-2"><Share className="mt-0.5 h-4 w-4 text-slate-500" /> 点击分享按钮。</p>
             <p className="flex gap-2"><Home className="mt-0.5 h-4 w-4 text-slate-500" /> 选择“添加到主屏幕”。</p>
-            <p className="flex gap-2"><span className="font-semibold text-slate-700">4.</span> 之后从桌面图标进入“伯仲叔教育管理”。</p>
+            <p className="flex gap-2"><span className="font-semibold text-slate-700">4.</span> 之后从桌面图标进入“Family Education”。</p>
           </div>
         </div>
 

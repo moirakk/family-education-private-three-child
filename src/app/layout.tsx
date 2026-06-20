@@ -3,13 +3,13 @@ import { ServiceWorkerRegister } from "@/components/system/service-worker-regist
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "伯仲叔教育管理",
-  description: "伯杨、仲杨、叔杨的私有家庭教育日程与成长管理应用。",
-  applicationName: "伯仲叔教育管理",
+  title: "Family Education Management System",
+  description: "A private family education schedule, growth, and resource management system.",
+  applicationName: "Family Education Management System",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "伯仲叔教育",
+    title: "Family Education",
     statusBarStyle: "default"
   },
   formatDetection: {

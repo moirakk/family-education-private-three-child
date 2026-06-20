@@ -93,7 +93,7 @@ export function ExportPreviewCenter({
 
   const reportText = useMemo(() => {
     const lines = [
-      "伯仲叔家庭教育周报",
+      "Family Education Weekly Report",
       "",
       `本周事项：${events.length} 个`,
       `学习记录：${records.length} 条`,
@@ -124,7 +124,7 @@ export function ExportPreviewCenter({
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
-      family: "伯仲叔家庭教育管理系统",
+      family: "Family Education Management System",
       scope: "private-three-child-pilot",
       children: childProfiles,
       calendarEvents: events,
@@ -142,7 +142,7 @@ export function ExportPreviewCenter({
       buildEducationCalendarIcs({
         events,
         children: childProfiles,
-        calendarName: "伯仲叔教育日历"
+        calendarName: "Family Education Calendar"
       }),
     [childProfiles, events]
   );
