@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { Child } from "@/lib/types";
 
@@ -40,6 +41,10 @@ function buildInitialState(children: Child[]): IntakeState {
     state[child.id] = createEmptyEntry();
     return state;
   }, {});
+}
+
+function completionCount(entry: IntakeEntry) {
+  return [entry.school, entry.weeklySchedule, entry.importantDates, entry.currentGoals, entry.parentConcerns].filter((value) => value.trim()).length;
 }
 
 export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[] }) {
@@ -171,72 +176,103 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-3">
-        {childProfiles.map((child) => {
-          const entry = intake[child.id] ?? createEmptyEntry();
+      <CardContent>
+        <Tabs defaultValue={childProfiles[0]?.id} className="grid gap-4 xl:grid-cols-[280px_1fr]">
+          <TabsList className="flex h-auto flex-col items-stretch justify-start gap-2 bg-transparent p-0">
+            {childProfiles.map((child) => {
+              const entry = intake[child.id] ?? createEmptyEntry();
+              const completed = completionCount(entry);
 
-          return (
-            <div key={child.id} className="rounded-lg border bg-white p-4">
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-semibold">{child.firstName}</p>
-                  <p className="text-xs text-muted-foreground">{child.grade}</p>
-                </div>
-              </div>
+              return (
+                <TabsTrigger
+                  key={child.id}
+                  value={child.id}
+                  className="h-auto justify-start rounded-lg border bg-white p-3 text-left data-[state=active]:border-primary data-[state=active]:shadow-sm"
+                >
+                  <span className="flex w-full items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-slate-950">{child.firstName}</span>
+                      <span className="mt-1 block truncate text-xs text-muted-foreground">{child.grade}</span>
+                    </span>
+                    <Badge variant={completed >= 4 ? "default" : "outline"}>{completed}/5</Badge>
+                  </span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
 
-              <div className="mt-4 space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${child.id}-school`}>学校 / 班级 / 课程体系</Label>
-                  <Input
-                    id={`${child.id}-school`}
-                    placeholder="今天现场补充"
-                    value={entry.school}
-                    onChange={(event) => updateEntry(child.id, "school", event.target.value)}
-                  />
+          {childProfiles.map((child) => {
+            const entry = intake[child.id] ?? createEmptyEntry();
+
+            return (
+              <TabsContent key={child.id} value={child.id} className="mt-0">
+                <div className="rounded-lg border bg-white p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">{child.firstName} 信息补充</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{child.grade}</p>
+                    </div>
+                    <Badge variant="secondary">自动保存</Badge>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`${child.id}-school`}>学校 / 班级 / 课程体系</Label>
+                      <Input
+                        id={`${child.id}-school`}
+                        placeholder="今天现场补充"
+                        value={entry.school}
+                        onChange={(event) => updateEntry(child.id, "school", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`${child.id}-goals`}>阶段目标</Label>
+                      <Input
+                        id={`${child.id}-goals`}
+                        placeholder={child.focusAreas.join(" / ")}
+                        value={entry.currentGoals}
+                        onChange={(event) => updateEntry(child.id, "currentGoals", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`${child.id}-schedule`}>固定周课表</Label>
+                      <Textarea
+                        id={`${child.id}-schedule`}
+                        className="min-h-28"
+                        placeholder="例如：周一数学，周三英文，周六运动..."
+                        value={entry.weeklySchedule}
+                        onChange={(event) => updateEntry(child.id, "weeklySchedule", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`${child.id}-dates`}>近期重要日期</Label>
+                      <Textarea
+                        id={`${child.id}-dates`}
+                        className="min-h-28"
+                        placeholder="考试、报名、面试、活动、假期安排..."
+                        value={entry.importantDates}
+                        onChange={(event) => updateEntry(child.id, "importantDates", event.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5 lg:col-span-2">
+                      <Label htmlFor={`${child.id}-concerns`}>家长最关心的问题</Label>
+                      <Textarea
+                        id={`${child.id}-concerns`}
+                        className="min-h-24"
+                        placeholder="作业、成绩、习惯、情绪、升学、时间管理..."
+                        value={entry.parentConcerns}
+                        onChange={(event) => updateEntry(child.id, "parentConcerns", event.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${child.id}-schedule`}>固定周课表</Label>
-                  <Textarea
-                    id={`${child.id}-schedule`}
-                    placeholder="例如：周一数学，周三英文，周六运动..."
-                    value={entry.weeklySchedule}
-                    onChange={(event) => updateEntry(child.id, "weeklySchedule", event.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${child.id}-dates`}>近期重要日期</Label>
-                  <Textarea
-                    id={`${child.id}-dates`}
-                    placeholder="考试、报名、面试、活动、假期安排..."
-                    value={entry.importantDates}
-                    onChange={(event) => updateEntry(child.id, "importantDates", event.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${child.id}-goals`}>阶段目标</Label>
-                  <Textarea
-                    id={`${child.id}-goals`}
-                    placeholder={child.focusAreas.join(" / ")}
-                    value={entry.currentGoals}
-                    onChange={(event) => updateEntry(child.id, "currentGoals", event.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor={`${child.id}-concerns`}>家长最关心的问题</Label>
-                  <Textarea
-                    id={`${child.id}-concerns`}
-                    placeholder="作业、成绩、习惯、情绪、升学、时间管理..."
-                    value={entry.parentConcerns}
-                    onChange={(event) => updateEntry(child.id, "parentConcerns", event.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       </CardContent>
     </Card>
   );

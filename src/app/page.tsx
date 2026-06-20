@@ -21,6 +21,7 @@ import { ResourceCenter } from "@/components/dashboard/resource-center";
 import { SelfEvaluationBoard } from "@/components/dashboard/self-evaluation-board";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
 import { TutorFeedbackBoard } from "@/components/dashboard/tutor-feedback-board";
+import { TodayCommandCenter } from "@/components/dashboard/today-command-center";
 import { UnifiedCalendar } from "@/components/dashboard/unified-calendar";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
@@ -61,20 +62,20 @@ export default function Home() {
   return (
     <AppShell>
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <section id="dashboard" className="rounded-lg border border-white/70 bg-white/80 p-5 shadow-sm backdrop-blur">
+        <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium text-primary">{pilotFamilyName}</p>
+              <p className="text-sm font-semibold text-primary">{pilotFamilyName}</p>
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                 伯仲叔三人教育管理系统
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                今日现场使用：先补信息、排日程、看周报，再沉淀为长期私有 PWA。
+                第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild variant="outline">
-                <a href="#weekly-report">导出周报</a>
+                <a href="#export-preview">看导出效果</a>
               </Button>
               <Button asChild>
                 <a href="#event-planner">新增事项</a>
@@ -90,6 +91,7 @@ export default function Home() {
           <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
         </section>
 
+        <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} records={learningRecords} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 
