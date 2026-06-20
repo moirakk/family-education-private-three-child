@@ -13,6 +13,7 @@ export async function GET() {
     privateFamilyId: isConfigured(process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID),
     privateAccessCode: isConfigured(process.env.PRIVATE_ACCESS_CODE),
     privateCalendarToken: isConfigured(process.env.PRIVATE_CALENDAR_TOKEN),
+    learningMaterialsBucket: isConfigured(process.env.SUPABASE_LEARNING_MATERIALS_BUCKET),
     dataMode: process.env.NEXT_PUBLIC_FAMILY_DATA_MODE ?? "local"
   };
 
@@ -22,7 +23,8 @@ export async function GET() {
       checks.supabaseServiceRole &&
       checks.privateFamilyId &&
       checks.privateAccessCode &&
-      checks.privateCalendarToken
+      checks.privateCalendarToken &&
+      checks.learningMaterialsBucket
   );
 
   return NextResponse.json({

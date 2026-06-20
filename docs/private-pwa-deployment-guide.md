@@ -73,12 +73,14 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 1. 创建 Supabase project。
 2. 打开 SQL Editor。
 3. 运行 `docs/private-supabase-schema.sql`。
-4. 创建 Supabase Storage bucket：`learning-materials`，用于保存试卷、讲义、错题照片等文件本体。
+4. 运行 `docs/private-supabase-storage.sql`，创建 `learning-materials` 私有 bucket。
 5. 创建一个家长 auth user，拿到 `auth.users.id`。
 6. 复制 `docs/private-pilot-seed-template.sql`。
 7. 替换 `owner_user_id`。
 8. 运行 seed。
 9. 把 `family_id` 设置到 Vercel 的 `NEXT_PUBLIC_PRIVATE_FAMILY_ID`。
+
+完整联调清单见：`docs/private-supabase-vercel-runbook.md`。
 
 ## 数据库长期稳定规则
 
