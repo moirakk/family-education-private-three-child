@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Trash2 } from "lucide-react";
+import { CalendarPlus, Pencil, Trash2, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
 
 type EventFormState = {
@@ -46,6 +47,32 @@ function toCalendarDate(value: string) {
   return new Date(value).toISOString();
 }
 
+function toDateTimeInputValue(value: string) {
+  const date = new Date(value);
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function mapApiEvent(data: {
+  id: string;
+  title: string;
+  category: CalendarEvent["category"];
+  starts_at: string;
+  ends_at: string | null;
+  location: string | null;
+  childIds: string[];
+}): CalendarEvent {
+  return {
+    id: data.id,
+    title: data.title,
+    category: data.category,
+    startsAt: data.starts_at,
+    endsAt: data.ends_at ?? undefined,
+    location: data.location ?? "",
+    childIds: data.childIds
+  };
+}
+
 export function FamilyEventPlanner({
   childProfiles,
   onEventsChange
@@ -55,6 +82,8 @@ export function FamilyEventPlanner({
 }) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [form, setForm] = useState<EventFormState>(initialForm);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -89,12 +118,31 @@ export function FamilyEventPlanner({
     }));
   }
 
-  function addEvent(event: FormEvent<HTMLFormElement>) {
+  function resetForm() {
+    setForm(initialForm);
+    setEditingEventId(null);
+  }
+
+  function editEvent(event: CalendarEvent) {
+    setEditingEventId(event.id);
+    setForm({
+      title: event.title,
+      category: event.category,
+      startsAt: toDateTimeInputValue(event.startsAt),
+      endsAt: event.endsAt ? toDateTimeInputValue(event.endsAt) : "",
+      location: event.location,
+      childIds: event.childIds,
+      notes: ""
+    });
+    setSyncStatus("");
+  }
+
+  async function saveEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.title.trim() || !form.startsAt || form.childIds.length === 0) return;
 
-    const newEvent: CalendarEvent = {
-      id: `local-${Date.now()}`,
+    const nextEvent: CalendarEvent = {
+      id: editingEventId ?? `local-event-${Date.now()}`,
       title: form.title.trim(),
       category: form.category,
       startsAt: toCalendarDate(form.startsAt),
@@ -103,12 +151,69 @@ export function FamilyEventPlanner({
       childIds: form.childIds
     };
 
-    setEvents((current) => [...current, newEvent].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)));
-    setForm(initialForm);
+    if (editingEventId) {
+      const previousEvents = events;
+      setEvents((current) =>
+        current.map((currentEvent) => (currentEvent.id === editingEventId ? nextEvent : currentEvent)).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
+      );
+      resetForm();
+
+      if (isPrivateApiMode() && !editingEventId.startsWith("local-")) {
+        try {
+          setSyncStatus("正在同步日程修改...");
+          const data = await putPrivateApi<Parameters<typeof mapApiEvent>[0]>(
+            `/api/private/events?eventId=${encodeURIComponent(editingEventId)}`,
+            { ...nextEvent, description: form.notes }
+          );
+          const savedEvent = mapApiEvent(data);
+          setEvents((current) =>
+            current.map((currentEvent) => (currentEvent.id === editingEventId ? savedEvent : currentEvent)).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
+          );
+          setSyncStatus("日程修改已同步到数据库。");
+        } catch (error) {
+          setEvents(previousEvents);
+          setSyncStatus(error instanceof Error ? `日程修改失败，已恢复：${error.message}` : "日程修改失败，已恢复。");
+        }
+      }
+      return;
+    }
+
+    setEvents((current) => [...current, nextEvent].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)));
+    resetForm();
+
+    if (!isPrivateApiMode()) return;
+
+    try {
+      setSyncStatus("正在同步新日程到数据库...");
+      const data = await postPrivateApi<Parameters<typeof mapApiEvent>[0]>("/api/private/events", {
+        ...nextEvent,
+        description: form.notes
+      });
+      const savedEvent = mapApiEvent(data);
+      setEvents((current) =>
+        current.map((currentEvent) => (currentEvent.id === nextEvent.id ? savedEvent : currentEvent)).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
+      );
+      setSyncStatus("新日程已同步到数据库。");
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
+    }
   }
 
-  function deleteEvent(eventId: string) {
+  async function deleteEvent(eventId: string) {
+    const previousEvents = events;
     setEvents((current) => current.filter((event) => event.id !== eventId));
+    if (editingEventId === eventId) resetForm();
+
+    if (isPrivateApiMode() && !eventId.startsWith("local-")) {
+      try {
+        setSyncStatus("正在从数据库删除日程...");
+        await deletePrivateApi(`/api/private/events?eventId=${encodeURIComponent(eventId)}`);
+        setSyncStatus("日程已从数据库删除。");
+      } catch (error) {
+        setEvents(previousEvents);
+        setSyncStatus(error instanceof Error ? `删除失败，已恢复：${error.message}` : "删除失败，已恢复。");
+      }
+    }
   }
 
   return (
@@ -128,8 +233,17 @@ export function FamilyEventPlanner({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <form onSubmit={addEvent} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveEvent} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
+            {editingEventId && (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                正在编辑日程
+                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
+                  <X className="h-3.5 w-3.5" />
+                  取消
+                </button>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="event-title">事项名称</Label>
               <Input
@@ -215,8 +329,9 @@ export function FamilyEventPlanner({
               />
             </div>
             <Button type="submit" disabled={!form.title.trim() || !form.startsAt || form.childIds.length === 0}>
-              新增到日历
+              {editingEventId ? "保存日程修改" : "新增到日历"}
             </Button>
+            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
         </form>
 
@@ -260,9 +375,14 @@ export function FamilyEventPlanner({
                     })}
                   </div>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex shrink-0 gap-1">
+                  <Button type="button" variant="ghost" size="icon" onClick={() => editEvent(event)} aria-label="编辑日程">
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
             ))}
             {events.length === 0 && (
