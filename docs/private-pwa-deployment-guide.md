@@ -88,7 +88,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - 不要手动修改已分配的 `family_id`、`child_id`、`calendar_token`，这些会影响数据关联和 iOS 订阅。
 - 新增真实日程必须保证结束时间晚于开始时间。
 - 分数类数据只使用 0-100。
-- 学习资料文件本体放 Supabase Storage，`learning_materials` 表只存索引、路径和元数据。
+- 学习资料文件本体放 Supabase Storage，`learning_materials` 表存索引、路径和元数据。
 - 自我评价与家教反馈独立成表，避免混进普通学习记录。
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
@@ -105,7 +105,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - `POST /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：保存和删除孩子自评。
 - `POST /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：保存和删除家教反馈。
 
-学习资料文件本体下一步接 `learning-materials` Storage bucket；当前数据库先保存文件名、大小、类型、外部链接、备注和标签。
+学习资料文件本体通过 `learning-materials` 私有 Storage bucket 保存；下载时服务端生成短期 signed URL。
 
 ## 部署后自检
 

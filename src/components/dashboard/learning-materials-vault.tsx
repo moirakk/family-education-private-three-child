@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { deletePrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
+import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
 
 type MaterialFormState = {
@@ -134,6 +134,21 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   }, []);
 
   useEffect(() => {
+    if (!isPrivateApiMode()) return;
+
+    getPrivateApi<LearningMaterial[]>("/api/private/materials")
+      .then((remoteMaterials) => {
+        setMaterials((current) => {
+          const localOnly = current.filter((material) => material.id.startsWith("local-"));
+          return [...remoteMaterials, ...localOnly];
+        });
+      })
+      .catch((error) => {
+        setStatus(error instanceof Error ? `资料库读取数据库失败：${error.message}` : "资料库读取数据库失败。");
+      });
+  }, []);
+
+  useEffect(() => {
     window.localStorage.setItem(metadataStorageKey, JSON.stringify(materials));
   }, [materials]);
 
@@ -197,52 +212,60 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
 
       if (!isPrivateApiMode()) return;
 
-      setStatus("本机已保存，正在同步资料索引到数据库...");
-      const data = await postPrivateApi<{
-        id: string;
-        child_id: string | null;
-        title: string;
-        subject: string;
-        kind: LearningMaterial["kind"];
-        file_name: string | null;
-        file_size: number | null;
-        mime_type: string | null;
-        external_url: string | null;
-        notes: string | null;
-        tags: string[] | null;
-        created_at: string;
-        updated_at: string;
-      }>("/api/private/materials", nextMaterial);
+      setStatus(file ? "本机已保存，正在上传文件到私有 Storage..." : "本机已保存，正在同步资料索引到数据库...");
+      let data: LearningMaterial;
+
+      if (file) {
+        const uploadPayload = new FormData();
+        uploadPayload.set("file", file);
+        uploadPayload.set("title", nextMaterial.title);
+        uploadPayload.set("subject", nextMaterial.subject);
+        uploadPayload.set("kind", nextMaterial.kind);
+        uploadPayload.set("childId", nextMaterial.childId ?? "");
+        uploadPayload.set("externalUrl", nextMaterial.externalUrl ?? "");
+        uploadPayload.set("notes", nextMaterial.notes ?? "");
+        uploadPayload.set("tags", nextMaterial.tags.join(","));
+        data = await postPrivateFormData<LearningMaterial>("/api/private/materials", uploadPayload);
+      } else {
+        data = await postPrivateApi<LearningMaterial>("/api/private/materials", nextMaterial);
+      }
 
       setMaterials((current) =>
         current.map((material) =>
           material.id === nextMaterial.id
             ? {
                 id: data.id,
-                childId: data.child_id ?? undefined,
+                childId: data.childId,
                 title: data.title,
                 subject: data.subject,
                 kind: data.kind,
-                fileName: data.file_name ?? undefined,
-                fileSize: data.file_size ?? undefined,
-                mimeType: data.mime_type ?? undefined,
+                fileName: data.fileName,
+                fileSize: data.fileSize,
+                mimeType: data.mimeType,
                 localBlobId: material.localBlobId,
-                externalUrl: data.external_url ?? undefined,
-                notes: data.notes ?? undefined,
-                tags: data.tags ?? [],
-                createdAt: data.created_at,
-                updatedAt: data.updated_at
+                storagePath: data.storagePath,
+                externalUrl: data.externalUrl,
+                notes: data.notes,
+                tags: data.tags,
+                createdAt: data.createdAt,
+                updatedAt: data.updatedAt
               }
             : material
         )
       );
-      setStatus("资料索引已同步到数据库。文件本体下一步迁移到 Supabase Storage。");
+      setStatus(file ? "文件已上传到私有 Storage，并已写入数据库。" : "资料索引已同步到数据库。");
     } catch {
       setStatus(localSaved && isPrivateApiMode() ? "本机已保存，数据库同步失败。请检查 Supabase 配置。" : "文件保存失败，请换一个文件重试。");
     }
   }
 
   async function downloadMaterial(material: LearningMaterial) {
+    if (isPrivateApiMode() && !material.id.startsWith("local-")) {
+      const data = await getPrivateApi<{ url: string }>(`/api/private/materials?materialId=${encodeURIComponent(material.id)}`);
+      window.open(data.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     if (material.externalUrl) {
       window.open(material.externalUrl, "_blank", "noopener,noreferrer");
       return;
@@ -284,7 +307,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             </CardTitle>
             <CardDescription>保存试卷、讲义、错题照片、阅读材料和链接。</CardDescription>
           </div>
-          <Badge variant="outline">{materials.length} 份本机资料</Badge>
+          <Badge variant="outline">{materials.length} 份资料</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
@@ -429,7 +452,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
               </p>
             )}
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">今天版文件保存在当前浏览器；线上长期版会迁移到 Supabase Storage。</p>
+          <p className="mt-4 text-xs text-muted-foreground">私有在线版会把文件上传到 Supabase Storage；本地模式会保存在当前浏览器。</p>
         </div>
       </CardContent>
     </Card>

@@ -85,7 +85,8 @@ Test these writes:
 
 - Add calendar event.
 - Add learning record.
-- Add learning material metadata.
+- Upload a learning material file.
+- Add learning material external link metadata.
 - Add child self-evaluation.
 - Add tutor feedback.
 - Click `同步数据库` in parent intake workspace.
@@ -99,6 +100,7 @@ Verify records appear in Supabase tables:
 - `self_evaluations`
 - `tutor_feedback`
 - `child_intake_profiles`
+- `storage.objects` where `bucket_id = 'learning-materials'`
 
 ## 5. iOS Calendar Test
 
@@ -152,8 +154,12 @@ Persisted to PostgreSQL:
 - Resources
 - iOS calendar feed from database
 
+Persisted to Supabase Storage:
+
+- Learning material file bodies in the private `learning-materials` bucket
+- Download access through short-lived signed URLs
+
 Still next step:
 
-- Upload actual file bodies to Supabase Storage.
-- Add signed download URLs for family materials.
 - Add backup/export from database, not only browser state.
+- Add richer file management such as replace file, folder grouping, and preview thumbnails.
