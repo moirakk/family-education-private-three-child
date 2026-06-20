@@ -232,7 +232,7 @@ export const parentActions = [
     id: "action-3",
     owner: "系统",
     title: "把伯仲叔定制数据迁移到 Supabase",
-    priority: "明日交付",
+    priority: "今日交付",
     status: "下一步"
   },
   {
@@ -274,7 +274,7 @@ export const childOperatingPlans = [
 export const productTracks = [
   {
     title: "伯仲叔定制版",
-    deadline: "明日优先交付",
+    deadline: "今日优先交付",
     goal: "服务当前三孩家庭，完成可直接使用的教育管理中枢。",
     scope: ["三人画像", "周计划", "家长行动清单", "学习记录", "资源中心", "路线图"]
   },

@@ -121,7 +121,7 @@ export function FamilyEventPlanner({
               日程编辑器
             </CardTitle>
             <CardDescription>
-              明天家长可直接补课表、考试、活动和家庭事项；新增内容会进入页面日历和本机 ICS 导出。
+              今天家长可直接补课表、考试、活动和家庭事项；新增内容会进入页面日历和本机 ICS 导出。
             </CardDescription>
           </div>
           <Badge variant="outline">{events.length} 个本机新增事项</Badge>
@@ -267,7 +267,7 @@ export function FamilyEventPlanner({
             ))}
             {events.length === 0 && (
               <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">
-                还没有本机新增日程。明天可以边和家长沟通边补，补完后立刻进入总览和 iOS 导出。
+                还没有本机新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 导出。
               </p>
             )}
           </div>

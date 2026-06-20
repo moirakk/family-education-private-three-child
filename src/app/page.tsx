@@ -64,7 +64,7 @@ export default function Home() {
               伯仲叔三人教育管理系统
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              明天优先交付的家庭定制版：把三位孩子的学校事项、课外安排、学习记录、资源材料和长期路线图放进一个家长可执行的中枢。
+              今日现场使用的家庭定制版：把三位孩子的学校事项、课外安排、学习记录、资源材料和长期路线图放进一个家长可执行的中枢。
             </p>
           </div>
           <div className="flex gap-2">

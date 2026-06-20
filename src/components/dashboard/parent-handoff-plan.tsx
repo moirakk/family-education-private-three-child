@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 const handoffSteps = [
   {
-    title: "明天现场编辑",
+    title: "今天现场编辑",
     icon: PencilLine,
     badge: "当前可用",
     description: "家长直接在工作台里补学校、课表、重要日期和关注点，浏览器会自动保存。",
@@ -37,7 +37,7 @@ export function ParentHandoffPlan() {
               编辑、分享与长期使用路径
             </CardTitle>
             <CardDescription>
-              先保证明天能编辑和交付，再升级为家长长期使用的私有在线系统。
+              先保证今天能编辑和交付，再升级为家长长期使用的私有在线系统。
             </CardDescription>
           </div>
           <Badge variant="warning">私有定制版</Badge>

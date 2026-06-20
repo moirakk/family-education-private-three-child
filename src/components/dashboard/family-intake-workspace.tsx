@@ -138,7 +138,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
               家长现场补充工作台
             </CardTitle>
             <CardDescription>
-              先把框架搭好，明天和家长见面时直接补学校、固定课表、重要日期和关注点。
+              框架已经搭好，今天和家长见面时直接补学校、固定课表、重要日期和关注点。
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -192,7 +192,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
                   <Label htmlFor={`${child.id}-school`}>学校 / 班级 / 课程体系</Label>
                   <Input
                     id={`${child.id}-school`}
-                    placeholder="明天现场补充"
+                    placeholder="今天现场补充"
                     value={entry.school}
                     onChange={(event) => updateEntry(child.id, "school", event.target.value)}
                   />

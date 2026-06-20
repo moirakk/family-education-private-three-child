@@ -20,7 +20,7 @@ export function ParentActionBoard({ actions }: { actions: ParentAction[] }) {
               <ClipboardCheck className="h-4 w-4 text-primary" />
               家长行动看板
             </CardTitle>
-            <CardDescription>明天交付前优先补齐的关键事项。</CardDescription>
+            <CardDescription>今天现场优先补齐的关键事项。</CardDescription>
           </div>
           <Badge variant="warning" className="gap-1">
             <ShieldAlert className="h-3 w-3" />

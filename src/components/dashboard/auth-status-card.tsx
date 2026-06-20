@@ -68,7 +68,7 @@ export function AuthStatusCard() {
               登录与数据保存模式
             </CardTitle>
             <CardDescription>
-              明天可用本机模式，长期版接 Supabase 后家长登录即可云端保存和多设备同步。
+              今天可用本机模式，长期版接 Supabase 后再云端保存和多设备同步。
             </CardDescription>
           </div>
           <Badge variant={mode === "supabase" ? "success" : "outline"} className="gap-1">
@@ -90,7 +90,7 @@ export function AuthStatusCard() {
         <div className="rounded-lg border bg-white p-4">
           {!hasSupabase ? (
             <div>
-              <p className="text-sm font-semibold">明天推荐模式</p>
+              <p className="text-sm font-semibold">今天推荐模式</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 先使用本机模式和 JSON 备份完成家长沟通。Supabase 项目建好后，同一套 Repository 会切换到云端保存。
               </p>

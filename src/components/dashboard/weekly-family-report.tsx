@@ -59,7 +59,7 @@ export function WeeklyFamilyReport({
       lines.push("");
     });
 
-    lines.push("下一步：明天现场补齐固定课表、重要日期和家长关注点。");
+    lines.push("下一步：今天现场补齐固定课表、重要日期和家长关注点。");
     return lines.join("\n");
   }, [childSummaries, events.length, goals.length, records.length]);
 
@@ -79,7 +79,7 @@ export function WeeklyFamilyReport({
               家长版周报预览
             </CardTitle>
             <CardDescription>
-              适合明天现场讲解、截图、打印或复制给家长的只读摘要。
+              适合今天现场讲解、截图、打印或复制给家长的只读摘要。
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2 print:hidden">

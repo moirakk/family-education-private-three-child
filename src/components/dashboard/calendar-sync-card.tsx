@@ -56,7 +56,7 @@ export function CalendarSyncCard({
               iOS 日历同步
             </CardTitle>
             <CardDescription>
-              先支持 Apple Calendar 标准 ICS。明天可先导入，本项目私有部署后可用订阅链接自动同步。
+              先支持 Apple Calendar 标准 ICS。今天可先导入，本项目私有部署后可用订阅链接自动同步。
             </CardDescription>
           </div>
           <Badge variant="outline" className="gap-1">
@@ -67,7 +67,7 @@ export function CalendarSyncCard({
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm font-semibold">明天可用方式</p>
+          <p className="text-sm font-semibold">今天可用方式</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
             <p>1. 本地演示时，先下载 `.ics` 文件并导入 iPhone / Mac 日历。</p>
             <p>2. 私有 Vercel 部署后，复制订阅链接，在 iOS 日历中添加“订阅日历”。</p>
@@ -100,7 +100,7 @@ export function CalendarSyncCard({
         <div className="rounded-lg bg-slate-950 p-4 text-white">
           <p className="text-sm font-semibold">同步策略</p>
           <p className="mt-3 text-sm leading-6 text-slate-300">
-            当前页面 ICS 会包含本机新增日程，适合明天导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。
+            当前页面 ICS 会包含本机新增日程，适合今天现场导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。
           </p>
           <p className="mt-4 break-all rounded-md bg-white/10 p-3 text-xs text-slate-300">{webcalUrl}</p>
         </div>
