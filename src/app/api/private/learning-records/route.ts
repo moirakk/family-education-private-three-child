@@ -41,6 +41,40 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { familyId, supabase } = getPrivateWriteContext();
+    const recordId = new URL(request.url).searchParams.get("recordId");
+    const payload = (await request.json()) as LearningRecordPayload;
+    const childId = requireString(payload.childId, "childId");
+    const subject = requireString(payload.subject, "subject");
+    const title = requireString(payload.title, "title");
+
+    if (!recordId) return NextResponse.json({ error: "recordId is required" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from("learning_records")
+      .update({
+        child_id: childId,
+        subject,
+        title,
+        record_date: payload.date || new Date().toISOString().slice(0, 10),
+        duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
+        score: numberOrNull(payload.score),
+        confidence: scoreOneToFive(payload.confidence)
+      })
+      .eq("family_id", familyId)
+      .eq("id", recordId)
+      .select("id,child_id,subject,title,record_date,duration_minutes,score,confidence,created_at")
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ data });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { familyId, supabase } = getPrivateWriteContext();

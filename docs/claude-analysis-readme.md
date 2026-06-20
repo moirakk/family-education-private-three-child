@@ -292,12 +292,18 @@ flowchart LR
 - `PUT /api/private/events`
 - `DELETE /api/private/events`
 - `POST /api/private/learning-records`
+- `PUT /api/private/learning-records`
 - `DELETE /api/private/learning-records`
 - `POST /api/private/materials`
+- `PUT /api/private/materials`
 - `DELETE /api/private/materials`
+- `GET /api/private/self-evaluations`
 - `POST /api/private/self-evaluations`
+- `PUT /api/private/self-evaluations`
 - `DELETE /api/private/self-evaluations`
+- `GET /api/private/tutor-feedback`
 - `POST /api/private/tutor-feedback`
+- `PUT /api/private/tutor-feedback`
 - `DELETE /api/private/tutor-feedback`
 - `GET /api/private/export`
 - `GET /api/calendar/ios`
@@ -337,7 +343,7 @@ flowchart TD
 重要环境说明：
 
 - 当前本机系统 Node 是 v24，Next.js 15 在该环境下生产 build 可能出现 `.next/server/pages-manifest.json` 或 `next-font-manifest.json` 缺失问题。
-- 项目已在 `package.json` 中声明 `engines.node = "22.x"`，建议本地和 Vercel 使用 Node 22 LTS。
+- 项目已在 `package.json` 中声明 `engines.node = "22.x"`，并新增 `.nvmrc`，建议本地和 Vercel 使用 Node 22 LTS。
 
 ## 12. 当前已知问题 / 风险
 
@@ -419,7 +425,7 @@ flowchart TD
 
 短期，优先服务真实家长试用：
 
-1. 切换本地和部署环境到 Node 22 LTS。
+1. 切换本地和部署环境到 Node 22 LTS，并执行 `nvm use`。
 2. 配好 Supabase project、schema、storage bucket、seed。
 3. 配好 Vercel env。
 4. 跑通 private-api 模式。
@@ -430,7 +436,7 @@ flowchart TD
 
 中期，形成长期系统：
 
-1. 完整 CRUD。
+1. 补齐孩子档案、教育路线图等低频模块的完整 CRUD。
 2. 数据恢复。
 3. 家教账号或轻量提交入口。
 4. 月报生成。

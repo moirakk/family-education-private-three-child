@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { MessageSquareText, Trash2 } from "lucide-react";
+import { MessageSquareText, Pencil, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { deletePrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
+import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, TutorFeedback } from "@/lib/types";
 
 type TutorFeedbackFormState = {
@@ -54,6 +54,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   const [feedbackItems, setFeedbackItems] = useState<TutorFeedback[]>([]);
   const [form, setForm] = useState<TutorFeedbackFormState>(() => createInitialForm(childProfiles));
   const [syncStatus, setSyncStatus] = useState("");
+  const [editingFeedbackId, setEditingFeedbackId] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -70,9 +71,46 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
     window.localStorage.setItem(storageKey, JSON.stringify(feedbackItems));
   }, [feedbackItems]);
 
+  useEffect(() => {
+    if (!isPrivateApiMode()) return;
+
+    getPrivateApi<TutorFeedback[]>("/api/private/tutor-feedback")
+      .then((remoteFeedback) => {
+        setFeedbackItems((current) => {
+          const localOnly = current.filter((feedback) => feedback.id.startsWith("local-"));
+          return [...remoteFeedback, ...localOnly];
+        });
+      })
+      .catch((error) => {
+        setSyncStatus(error instanceof Error ? `家教反馈读取数据库失败：${error.message}` : "家教反馈读取数据库失败。");
+      });
+  }, []);
+
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  async function addFeedback(event: FormEvent<HTMLFormElement>) {
+  function resetForm() {
+    setForm(createInitialForm(childProfiles));
+    setEditingFeedbackId(null);
+  }
+
+  function editFeedback(feedback: TutorFeedback) {
+    setEditingFeedbackId(feedback.id);
+    setForm({
+      childId: feedback.childId,
+      tutorName: feedback.tutorName,
+      subject: feedback.subject,
+      sessionDate: feedback.sessionDate,
+      durationMinutes: String(feedback.durationMinutes),
+      focus: feedback.focus,
+      performance: feedback.performance,
+      homework: feedback.homework,
+      nextFocus: feedback.nextFocus,
+      rating: String(feedback.rating)
+    });
+    setSyncStatus("");
+  }
+
+  async function saveFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()) return;
 
@@ -91,47 +129,44 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
       createdAt: new Date().toISOString()
     };
 
+    if (editingFeedbackId) {
+      const previousFeedback = feedbackItems;
+      const updatedFeedback = {
+        ...nextFeedback,
+        id: editingFeedbackId,
+        createdAt: feedbackItems.find((feedback) => feedback.id === editingFeedbackId)?.createdAt ?? nextFeedback.createdAt
+      };
+      setFeedbackItems((current) => current.map((feedback) => (feedback.id === editingFeedbackId ? updatedFeedback : feedback)));
+      resetForm();
+
+      if (isPrivateApiMode() && !editingFeedbackId.startsWith("local-")) {
+        try {
+          setSyncStatus("正在同步家教反馈修改...");
+          const data = await putPrivateApi<TutorFeedback>(
+            `/api/private/tutor-feedback?feedbackId=${encodeURIComponent(editingFeedbackId)}`,
+            updatedFeedback
+          );
+          setFeedbackItems((current) => current.map((feedback) => (feedback.id === editingFeedbackId ? data : feedback)));
+          setSyncStatus("家教反馈修改已同步到数据库。");
+        } catch (error) {
+          setFeedbackItems(previousFeedback);
+          setSyncStatus(error instanceof Error ? `修改失败，已恢复：${error.message}` : "修改失败，已恢复。");
+        }
+      }
+      return;
+    }
+
     setFeedbackItems((current) => [nextFeedback, ...current]);
-    setForm(createInitialForm(childProfiles));
+    resetForm();
 
     if (!isPrivateApiMode()) return;
 
     try {
       setSyncStatus("正在同步到数据库...");
-      const data = await postPrivateApi<{
-        id: string;
-        child_id: string;
-        tutor_name: string;
-        subject: string;
-        session_date: string;
-        duration_minutes: number | null;
-        focus: string;
-        performance: string | null;
-        homework: string | null;
-        next_focus: string | null;
-        rating: number;
-        created_at: string;
-      }>("/api/private/tutor-feedback", nextFeedback);
+      const data = await postPrivateApi<TutorFeedback>("/api/private/tutor-feedback", nextFeedback);
 
       setFeedbackItems((current) =>
-        current.map((feedback) =>
-          feedback.id === nextFeedback.id
-            ? {
-                id: data.id,
-                childId: data.child_id,
-                tutorName: data.tutor_name,
-                subject: data.subject,
-                sessionDate: data.session_date,
-                durationMinutes: data.duration_minutes ?? 0,
-                focus: data.focus,
-                performance: data.performance ?? "",
-                homework: data.homework ?? "",
-                nextFocus: data.next_focus ?? "",
-                rating: data.rating,
-                createdAt: data.created_at
-              }
-            : feedback
-        )
+        current.map((feedback) => (feedback.id === nextFeedback.id ? data : feedback))
       );
       setSyncStatus("已同步到数据库。");
     } catch (error) {
@@ -161,8 +196,17 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={addFeedback} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveFeedback} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
+            {editingFeedbackId && (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                正在编辑家教反馈
+                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
+                  <X className="h-3.5 w-3.5" />
+                  取消
+                </button>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>孩子</Label>
@@ -269,7 +313,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
               />
             </div>
             <Button type="submit" disabled={!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()}>
-              保存反馈
+              {editingFeedbackId ? "保存反馈修改" : "保存反馈"}
             </Button>
             {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
@@ -293,9 +337,14 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                 {feedback.homework && <p className="mt-1 text-xs text-muted-foreground">任务：{feedback.homework}</p>}
                 {feedback.nextFocus && <p className="mt-1 text-xs text-muted-foreground">下次：{feedback.nextFocus}</p>}
               </div>
-              <Button type="button" variant="ghost" size="icon" onClick={() => deleteFeedback(feedback.id)} aria-label="删除家教反馈">
-                <Trash2 className="h-4 w-4 text-muted-foreground" />
-              </Button>
+              <div className="flex shrink-0 gap-1">
+                <Button type="button" variant="ghost" size="icon" onClick={() => editFeedback(feedback)} aria-label="编辑家教反馈">
+                  <Pencil className="h-4 w-4 text-muted-foreground" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => deleteFeedback(feedback.id)} aria-label="删除家教反馈">
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
             </div>
           ))}
           {feedbackItems.length === 0 && <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">还没有家教反馈。</p>}

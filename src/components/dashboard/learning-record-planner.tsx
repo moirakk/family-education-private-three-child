@@ -1,14 +1,14 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Trash2 } from "lucide-react";
+import { BookOpenCheck, Pencil, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { isPrivateApiMode, postPrivateApi, deletePrivateApi } from "@/lib/private-api-client";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningRecord } from "@/lib/types";
 
 type RecordFormState = {
@@ -49,6 +49,7 @@ export function LearningRecordPlanner({
   const [records, setRecords] = useState<LearningRecord[]>([]);
   const [form, setForm] = useState<RecordFormState>(() => createInitialForm(childProfiles));
   const [syncStatus, setSyncStatus] = useState("");
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -71,7 +72,48 @@ export function LearningRecordPlanner({
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  async function addRecord(event: FormEvent<HTMLFormElement>) {
+  function mapApiRecord(data: {
+    id: string;
+    child_id: string;
+    subject: string;
+    title: string;
+    record_date: string;
+    duration_minutes: number | null;
+    score: number | null;
+    confidence: number | null;
+  }): LearningRecord {
+    return {
+      id: data.id,
+      childId: data.child_id,
+      subject: data.subject,
+      title: data.title,
+      date: data.record_date,
+      durationMinutes: data.duration_minutes ?? 0,
+      score: data.score ?? undefined,
+      confidence: data.confidence ?? 3
+    };
+  }
+
+  function resetForm() {
+    setForm(createInitialForm(childProfiles));
+    setEditingRecordId(null);
+  }
+
+  function editRecord(record: LearningRecord) {
+    setEditingRecordId(record.id);
+    setForm({
+      childId: record.childId,
+      subject: record.subject,
+      title: record.title,
+      date: record.date,
+      durationMinutes: String(record.durationMinutes),
+      score: record.score === undefined ? "" : String(record.score),
+      confidence: String(record.confidence)
+    });
+    setSyncStatus("");
+  }
+
+  async function saveRecord(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.childId || !form.subject.trim() || !form.title.trim()) return;
 
@@ -86,39 +128,40 @@ export function LearningRecordPlanner({
       confidence: Math.min(5, Math.max(1, Number(form.confidence) || 3))
     };
 
+    if (editingRecordId) {
+      const previousRecords = records;
+      const updatedRecord = { ...nextRecord, id: editingRecordId };
+      setRecords((current) => current.map((record) => (record.id === editingRecordId ? updatedRecord : record)));
+      resetForm();
+
+      if (isPrivateApiMode() && !editingRecordId.startsWith("local-")) {
+        try {
+          setSyncStatus("正在同步学习记录修改...");
+          const data = await putPrivateApi<Parameters<typeof mapApiRecord>[0]>(
+            `/api/private/learning-records?recordId=${encodeURIComponent(editingRecordId)}`,
+            updatedRecord
+          );
+          setRecords((current) => current.map((record) => (record.id === editingRecordId ? mapApiRecord(data) : record)));
+          setSyncStatus("学习记录修改已同步到数据库。");
+        } catch (error) {
+          setRecords(previousRecords);
+          setSyncStatus(error instanceof Error ? `修改失败，已恢复：${error.message}` : "修改失败，已恢复。");
+        }
+      }
+      return;
+    }
+
     setRecords((current) => [nextRecord, ...current]);
-    setForm(createInitialForm(childProfiles));
+    resetForm();
 
     if (!isPrivateApiMode()) return;
 
     try {
       setSyncStatus("正在同步到数据库...");
-      const data = await postPrivateApi<{
-        id: string;
-        child_id: string;
-        subject: string;
-        title: string;
-        record_date: string;
-        duration_minutes: number | null;
-        score: number | null;
-        confidence: number | null;
-      }>("/api/private/learning-records", nextRecord);
+      const data = await postPrivateApi<Parameters<typeof mapApiRecord>[0]>("/api/private/learning-records", nextRecord);
 
       setRecords((current) =>
-        current.map((record) =>
-          record.id === nextRecord.id
-            ? {
-                id: data.id,
-                childId: data.child_id,
-                subject: data.subject,
-                title: data.title,
-                date: data.record_date,
-                durationMinutes: data.duration_minutes ?? 0,
-                score: data.score ?? undefined,
-                confidence: data.confidence ?? 3
-              }
-            : record
-        )
+        current.map((record) => (record.id === nextRecord.id ? mapApiRecord(data) : record))
       );
       setSyncStatus("已同步到数据库。");
     } catch (error) {
@@ -150,8 +193,17 @@ export function LearningRecordPlanner({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <form onSubmit={addRecord} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveRecord} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
+            {editingRecordId && (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                正在编辑学习记录
+                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
+                  <X className="h-3.5 w-3.5" />
+                  取消
+                </button>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>孩子</Label>
@@ -232,7 +284,7 @@ export function LearningRecordPlanner({
               </div>
             </div>
             <Button type="submit" disabled={!form.childId || !form.subject.trim() || !form.title.trim()}>
-              新增学习记录
+              {editingRecordId ? "保存学习记录修改" : "新增学习记录"}
             </Button>
             {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
@@ -253,9 +305,14 @@ export function LearningRecordPlanner({
                     {record.score !== undefined ? ` · ${record.score} 分` : ""}
                   </p>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => deleteRecord(record.id)} aria-label="删除学习记录">
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <div className="flex shrink-0 gap-1">
+                  <Button type="button" variant="ghost" size="icon" onClick={() => editRecord(record)} aria-label="编辑学习记录">
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => deleteRecord(record.id)} aria-label="删除学习记录">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
             ))}
             {records.length === 0 && (

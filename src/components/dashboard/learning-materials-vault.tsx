@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import { Download, LibraryBig, Trash2, UploadCloud } from "lucide-react";
+import { Download, LibraryBig, Pencil, Trash2, UploadCloud, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData } from "@/lib/private-api-client";
+import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
 
 type MaterialFormState = {
@@ -121,6 +121,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   const [form, setForm] = useState<MaterialFormState>(() => createInitialForm(childProfiles));
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
+  const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(metadataStorageKey);
@@ -154,6 +155,28 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
+  function resetForm(formElement?: HTMLFormElement | null) {
+    setForm(createInitialForm(childProfiles));
+    setFile(null);
+    setEditingMaterialId(null);
+    formElement?.reset();
+  }
+
+  function editMaterial(material: LearningMaterial) {
+    setEditingMaterialId(material.id);
+    setFile(null);
+    setForm({
+      childId: material.childId ?? "family",
+      title: material.title,
+      subject: material.subject,
+      kind: material.kind,
+      externalUrl: material.externalUrl ?? "",
+      notes: material.notes ?? "",
+      tags: material.tags.join(" ")
+    });
+    setStatus("正在编辑资料索引；如需替换文件，请先删除后重新上传。");
+  }
+
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const nextFile = event.target.files?.[0] ?? null;
     setFile(nextFile);
@@ -168,11 +191,58 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
     }
   }
 
-  async function addMaterial(event: FormEvent<HTMLFormElement>) {
+  async function saveMaterial(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.title.trim() || !form.subject.trim()) return;
-    if (form.kind === "file" && !file && !form.externalUrl.trim()) {
+
+    if (!editingMaterialId && form.kind === "file" && !file && !form.externalUrl.trim()) {
       setStatus("请上传文件，或填写外部链接。");
+      return;
+    }
+
+    if (editingMaterialId) {
+      const previousMaterials = materials;
+      const currentMaterial = materials.find((material) => material.id === editingMaterialId);
+      if (!currentMaterial) return;
+
+      const updatedMaterial: LearningMaterial = {
+        ...currentMaterial,
+        childId: form.childId === "family" ? undefined : form.childId,
+        title: form.title.trim(),
+        subject: form.subject.trim(),
+        kind: form.kind,
+        externalUrl: form.externalUrl.trim() || undefined,
+        notes: form.notes.trim() || undefined,
+        tags: splitTags(form.tags),
+        updatedAt: nowIso()
+      };
+
+      setMaterials((current) => current.map((material) => (material.id === editingMaterialId ? updatedMaterial : material)));
+      resetForm(event.currentTarget);
+
+      if (isPrivateApiMode() && !editingMaterialId.startsWith("local-")) {
+        try {
+          setStatus("正在同步资料修改...");
+          const data = await putPrivateApi<LearningMaterial>(
+            `/api/private/materials?materialId=${encodeURIComponent(editingMaterialId)}`,
+            updatedMaterial
+          );
+          setMaterials((current) =>
+            current.map((material) =>
+              material.id === editingMaterialId
+                ? {
+                    ...data,
+                    localBlobId: material.localBlobId
+                  }
+                : material
+            )
+          );
+          setStatus("资料修改已同步到数据库。");
+        } catch (error) {
+          setMaterials(previousMaterials);
+          setStatus(error instanceof Error ? `资料修改失败，已恢复：${error.message}` : "资料修改失败，已恢复。");
+        }
+      }
       return;
     }
 
@@ -204,10 +274,8 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
       };
 
       setMaterials((current) => [nextMaterial, ...current]);
-      setForm(createInitialForm(childProfiles));
-      setFile(null);
       setStatus("已保存资料。");
-      event.currentTarget.reset();
+      resetForm(event.currentTarget);
       localSaved = true;
 
       if (!isPrivateApiMode()) return;
@@ -311,8 +379,17 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <form onSubmit={addMaterial} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveMaterial} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
+            {editingMaterialId && (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                正在编辑资料索引
+                <button type="button" onClick={() => resetForm()} className="inline-flex items-center gap-1 text-xs font-medium">
+                  <X className="h-3.5 w-3.5" />
+                  取消
+                </button>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>孩子</Label>
@@ -352,7 +429,8 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="material-file">上传文件</Label>
-              <Input id="material-file" type="file" onChange={handleFileChange} />
+              <Input id="material-file" type="file" onChange={handleFileChange} disabled={Boolean(editingMaterialId)} />
+              {editingMaterialId && <p className="text-xs text-muted-foreground">编辑模式暂不替换文件；需要换文件时请删除后重新上传。</p>}
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -403,7 +481,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             </div>
             <Button type="submit" disabled={!form.title.trim() || !form.subject.trim()}>
               <UploadCloud className="mr-2 h-4 w-4" />
-              保存资料
+              {editingMaterialId ? "保存资料修改" : "保存资料"}
             </Button>
             {status && <p className="text-xs text-muted-foreground">{status}</p>}
           </div>
@@ -428,6 +506,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                   <div className="flex shrink-0 gap-1">
                     <Button type="button" variant="ghost" size="icon" onClick={() => downloadMaterial(material)} aria-label="打开资料">
                       <Download className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => editMaterial(material)} aria-label="编辑资料">
+                      <Pencil className="h-4 w-4 text-muted-foreground" />
                     </Button>
                     <Button type="button" variant="ghost" size="icon" onClick={() => deleteMaterial(material)} aria-label="删除资料">
                       <Trash2 className="h-4 w-4 text-muted-foreground" />

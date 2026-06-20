@@ -100,10 +100,10 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - `GET /api/private/snapshot`：读取家庭、孩子、日程、学习记录、目标、资源。
 - `PUT /api/private/intake`：保存家长现场补充资料。
 - `POST /api/private/events` / `PUT /api/private/events` / `DELETE /api/private/events`：新增、编辑和删除日程。
-- `POST /api/private/learning-records` / `DELETE /api/private/learning-records`：新增和删除学习记录。
-- `POST /api/private/materials` / `DELETE /api/private/materials`：保存和删除学习资料索引。
-- `POST /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：保存和删除孩子自评。
-- `POST /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：保存和删除家教反馈。
+- `POST /api/private/learning-records` / `PUT /api/private/learning-records` / `DELETE /api/private/learning-records`：新增、编辑和删除学习记录。
+- `POST /api/private/materials` / `PUT /api/private/materials` / `DELETE /api/private/materials`：保存、编辑和删除学习资料索引。
+- `GET /api/private/self-evaluations` / `POST /api/private/self-evaluations` / `PUT /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：读取、新增、编辑和删除孩子自评。
+- `GET /api/private/tutor-feedback` / `POST /api/private/tutor-feedback` / `PUT /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：读取、新增、编辑和删除家教反馈。
 - `GET /api/private/export`：导出 Supabase 数据库元数据备份，文件本体仍保留在私有 Storage。
 
 学习资料文件本体通过 `learning-materials` 私有 Storage bucket 保存；下载时服务端生成短期 signed URL。

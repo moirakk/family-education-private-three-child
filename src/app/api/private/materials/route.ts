@@ -190,6 +190,39 @@ export async function GET(request: Request) {
   }
 }
 
+export async function PUT(request: Request) {
+  try {
+    const { familyId, supabase } = getPrivateWriteContext();
+    const materialId = new URL(request.url).searchParams.get("materialId");
+    const payload = (await request.json()) as MaterialPayload;
+    const title = requireString(payload.title, "title");
+    const subject = requireString(payload.subject, "subject");
+
+    if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from("learning_materials")
+      .update({
+        child_id: payload.childId ?? null,
+        title,
+        subject,
+        kind: payload.kind ?? "file",
+        external_url: optionalString(payload.externalUrl),
+        notes: optionalString(payload.notes),
+        tags: payload.tags ?? []
+      })
+      .eq("family_id", familyId)
+      .eq("id", materialId)
+      .select("id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at")
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ data: mapMaterialRow(data) });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const { familyId, supabase } = getPrivateWriteContext();
