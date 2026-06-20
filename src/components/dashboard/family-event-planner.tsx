@@ -112,7 +112,7 @@ export function FamilyEventPlanner({
   }
 
   return (
-    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="event-planner" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>

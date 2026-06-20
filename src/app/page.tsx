@@ -68,8 +68,12 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">导出周报</Button>
-            <Button>新增事项</Button>
+            <Button asChild variant="outline">
+              <a href="#weekly-report">导出周报</a>
+            </Button>
+            <Button asChild>
+              <a href="#event-planner">新增事项</a>
+            </Button>
           </div>
         </section>
 
