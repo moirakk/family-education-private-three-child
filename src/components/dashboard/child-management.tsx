@@ -111,7 +111,7 @@ export function ChildManagement({
   }
 
   return (
-    <Card id="children" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="children" className="min-w-0 border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -138,8 +138,8 @@ export function ChildManagement({
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+      <CardContent className="min-w-0">
+        <div className="flex w-full max-w-full gap-3 overflow-x-auto pb-2">
           {childProfiles.map((child) => (
             <div
               role="button"

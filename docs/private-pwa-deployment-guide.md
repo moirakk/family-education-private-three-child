@@ -65,11 +65,12 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=local
 1. 创建 Supabase project。
 2. 打开 SQL Editor。
 3. 运行 `docs/private-supabase-schema.sql`。
-4. 创建一个家长 auth user，拿到 `auth.users.id`。
-5. 复制 `docs/private-pilot-seed-template.sql`。
-6. 替换 `owner_user_id`。
-7. 运行 seed。
-8. 把 `family_id` 设置到 Vercel 的 `NEXT_PUBLIC_PRIVATE_FAMILY_ID`。
+4. 创建 Supabase Storage bucket：`learning-materials`，用于保存试卷、讲义、错题照片等文件本体。
+5. 创建一个家长 auth user，拿到 `auth.users.id`。
+6. 复制 `docs/private-pilot-seed-template.sql`。
+7. 替换 `owner_user_id`。
+8. 运行 seed。
+9. 把 `family_id` 设置到 Vercel 的 `NEXT_PUBLIC_PRIVATE_FAMILY_ID`。
 
 ## 数据库长期稳定规则
 
@@ -77,6 +78,8 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=local
 - 不要手动修改已分配的 `family_id`、`child_id`、`calendar_token`，这些会影响数据关联和 iOS 订阅。
 - 新增真实日程必须保证结束时间晚于开始时间。
 - 分数类数据只使用 0-100。
+- 学习资料文件本体放 Supabase Storage，`learning_materials` 表只存索引、路径和元数据。
+- 自我评价与家教反馈独立成表，避免混进普通学习记录。
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
 

@@ -184,6 +184,71 @@ create table if not exists public.resources (
   )
 );
 
+create table if not exists public.learning_materials (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.families(id) on delete cascade,
+  child_id uuid references public.children(id) on delete set null,
+  title text not null,
+  subject text not null,
+  kind public.resource_kind not null default 'file',
+  file_name text,
+  file_size bigint,
+  mime_type text,
+  storage_path text,
+  external_url text,
+  notes text,
+  tags text[] not null default '{}',
+  uploaded_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint learning_materials_title_not_blank check (length(trim(title)) > 0),
+  constraint learning_materials_subject_not_blank check (length(trim(subject)) > 0),
+  constraint learning_materials_file_size_positive check (file_size is null or file_size >= 0),
+  constraint learning_materials_has_source check (
+    storage_path is not null or external_url is not null or file_name is not null or notes is not null
+  )
+);
+
+create table if not exists public.self_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.families(id) on delete cascade,
+  child_id uuid not null references public.children(id) on delete cascade,
+  evaluation_date date not null default current_date,
+  subject text not null,
+  mood integer not null default 3 check (mood between 1 and 5),
+  effort integer not null default 3 check (effort between 1 and 5),
+  confidence integer not null default 3 check (confidence between 1 and 5),
+  reflection text not null,
+  next_step text,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint self_evaluations_subject_not_blank check (length(trim(subject)) > 0),
+  constraint self_evaluations_reflection_not_blank check (length(trim(reflection)) > 0)
+);
+
+create table if not exists public.tutor_feedback (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.families(id) on delete cascade,
+  child_id uuid not null references public.children(id) on delete cascade,
+  tutor_name text not null,
+  subject text not null,
+  session_date date not null default current_date,
+  duration_minutes integer,
+  focus text not null,
+  performance text,
+  homework text,
+  next_focus text,
+  rating integer not null default 3 check (rating between 1 and 5),
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint tutor_feedback_tutor_name_not_blank check (length(trim(tutor_name)) > 0),
+  constraint tutor_feedback_subject_not_blank check (length(trim(subject)) > 0),
+  constraint tutor_feedback_focus_not_blank check (length(trim(focus)) > 0),
+  constraint tutor_feedback_duration_positive check (duration_minutes is null or duration_minutes >= 0)
+);
+
 create index if not exists family_members_family_user_idx on public.family_members(family_id, user_id);
 create index if not exists children_family_id_idx on public.children(family_id);
 create index if not exists calendar_events_family_starts_idx on public.calendar_events(family_id, starts_at);
@@ -193,6 +258,10 @@ create index if not exists education_goals_child_status_idx on public.education_
 create index if not exists resources_family_child_idx on public.resources(family_id, child_id);
 create unique index if not exists resources_family_child_title_kind_idx
 on public.resources(family_id, coalesce(child_id, '00000000-0000-0000-0000-000000000000'::uuid), title, kind);
+create index if not exists learning_materials_family_child_idx on public.learning_materials(family_id, child_id);
+create index if not exists learning_materials_family_subject_idx on public.learning_materials(family_id, subject);
+create index if not exists self_evaluations_child_date_idx on public.self_evaluations(child_id, evaluation_date desc);
+create index if not exists tutor_feedback_child_date_idx on public.tutor_feedback(child_id, session_date desc);
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -244,6 +313,21 @@ create trigger set_resources_updated_at
 before update on public.resources
 for each row execute function public.set_updated_at();
 
+drop trigger if exists set_learning_materials_updated_at on public.learning_materials;
+create trigger set_learning_materials_updated_at
+before update on public.learning_materials
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_self_evaluations_updated_at on public.self_evaluations;
+create trigger set_self_evaluations_updated_at
+before update on public.self_evaluations
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_tutor_feedback_updated_at on public.tutor_feedback;
+create trigger set_tutor_feedback_updated_at
+before update on public.tutor_feedback
+for each row execute function public.set_updated_at();
+
 alter table public.families enable row level security;
 alter table public.family_settings enable row level security;
 alter table public.family_members enable row level security;
@@ -255,6 +339,9 @@ alter table public.learning_records enable row level security;
 alter table public.education_goals enable row level security;
 alter table public.milestones enable row level security;
 alter table public.resources enable row level security;
+alter table public.learning_materials enable row level security;
+alter table public.self_evaluations enable row level security;
+alter table public.tutor_feedback enable row level security;
 
 create or replace function public.is_family_member(target_family_id uuid)
 returns boolean
@@ -345,6 +432,12 @@ drop policy if exists "milestones select through goal" on public.milestones;
 drop policy if exists "milestones write through goal" on public.milestones;
 drop policy if exists "resources select member" on public.resources;
 drop policy if exists "resources write editor" on public.resources;
+drop policy if exists "learning materials select member" on public.learning_materials;
+drop policy if exists "learning materials write editor" on public.learning_materials;
+drop policy if exists "self evaluations select member" on public.self_evaluations;
+drop policy if exists "self evaluations write editor" on public.self_evaluations;
+drop policy if exists "tutor feedback select member" on public.tutor_feedback;
+drop policy if exists "tutor feedback write editor" on public.tutor_feedback;
 
 create policy "families select member"
 on public.families for select
@@ -495,5 +588,32 @@ using (public.is_family_member(family_id));
 
 create policy "resources write editor"
 on public.resources for all
+using (public.can_edit_family(family_id))
+with check (public.can_edit_family(family_id));
+
+create policy "learning materials select member"
+on public.learning_materials for select
+using (public.is_family_member(family_id));
+
+create policy "learning materials write editor"
+on public.learning_materials for all
+using (public.can_edit_family(family_id))
+with check (public.can_edit_family(family_id));
+
+create policy "self evaluations select member"
+on public.self_evaluations for select
+using (public.is_family_member(family_id));
+
+create policy "self evaluations write editor"
+on public.self_evaluations for all
+using (public.can_edit_family(family_id))
+with check (public.can_edit_family(family_id));
+
+create policy "tutor feedback select member"
+on public.tutor_feedback for select
+using (public.is_family_member(family_id));
+
+create policy "tutor feedback write editor"
+on public.tutor_feedback for all
 using (public.can_edit_family(family_id))
 with check (public.can_edit_family(family_id));

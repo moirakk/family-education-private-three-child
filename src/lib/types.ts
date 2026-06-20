@@ -61,3 +61,49 @@ export type Resource = {
   tags: string[];
   updatedAt: string;
 };
+
+export type LearningMaterial = {
+  id: string;
+  childId?: string;
+  title: string;
+  subject: string;
+  kind: Resource["kind"];
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  localBlobId?: string;
+  storagePath?: string;
+  externalUrl?: string;
+  notes?: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SelfEvaluation = {
+  id: string;
+  childId: string;
+  evaluationDate: string;
+  subject: string;
+  mood: number;
+  effort: number;
+  confidence: number;
+  reflection: string;
+  nextStep: string;
+  createdAt: string;
+};
+
+export type TutorFeedback = {
+  id: string;
+  childId: string;
+  tutorName: string;
+  subject: string;
+  sessionDate: string;
+  durationMinutes: number;
+  focus: string;
+  performance: string;
+  homework: string;
+  nextFocus: string;
+  rating: number;
+  createdAt: string;
+};

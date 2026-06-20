@@ -122,10 +122,19 @@ API 会优先通过 Supabase RPC `get_calendar_feed_by_token` 读取真实日程
 ### 教育成长
 
 - learning records
+- learning materials
+- child self evaluations
+- tutor feedback
 - goals
 - milestones
 - monthly reports
 - resources
+
+### 学习资料与反馈闭环
+
+- `learning_materials`：长期保存试卷、讲义、错题照片、阅读材料、链接和资料备注。今天版本用当前浏览器 IndexedDB 保存文件本体，正式在线版使用 Supabase Storage。
+- `self_evaluations`：孩子自己记录学习状态，包含心情、投入、掌握程度、反思和下一步。
+- `tutor_feedback`：家教老师每次课后反馈，包含本次重点、孩子表现、课后任务、下次方向和效果评分。
 
 ## Repository 边界
 

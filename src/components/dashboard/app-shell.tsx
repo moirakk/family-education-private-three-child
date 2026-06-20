@@ -1,6 +1,19 @@
 "use client";
 
-import { BookOpen, CalendarDays, ClipboardList, FileText, GraduationCap, LayoutDashboard, LineChart, Map, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  LayoutDashboard,
+  LibraryBig,
+  LineChart,
+  Map,
+  MessageSquareText,
+  SmilePlus,
+  Sparkles
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -12,6 +25,9 @@ const navItems = [
   { href: "#calendar", label: "统一日历", icon: CalendarDays },
   { href: "#calendar-sync", label: "iOS 同步", icon: CalendarDays },
   { href: "#learning-records", label: "学习记录", icon: BookOpen },
+  { href: "#materials", label: "资料库", icon: LibraryBig },
+  { href: "#self-evaluation", label: "自我评价", icon: SmilePlus },
+  { href: "#tutor-feedback", label: "家教反馈", icon: MessageSquareText },
   { href: "#growth", label: "成长记录", icon: LineChart },
   { href: "#roadmap", label: "教育路线", icon: Map },
   { href: "#resources", label: "资源中心", icon: FileText }

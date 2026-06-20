@@ -11,12 +11,15 @@ import { FamilyEventPlanner } from "@/components/dashboard/family-event-planner"
 import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-workspace";
 import { GrowthSummary } from "@/components/dashboard/growth-summary";
 import { LearningRecordPlanner } from "@/components/dashboard/learning-record-planner";
+import { LearningMaterialsVault } from "@/components/dashboard/learning-materials-vault";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
 import { ParentHandoffPlan } from "@/components/dashboard/parent-handoff-plan";
 import { PwaInstallCard } from "@/components/dashboard/pwa-install-card";
 import { ResourceCenter } from "@/components/dashboard/resource-center";
+import { SelfEvaluationBoard } from "@/components/dashboard/self-evaluation-board";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
+import { TutorFeedbackBoard } from "@/components/dashboard/tutor-feedback-board";
 import { UnifiedCalendar } from "@/components/dashboard/unified-calendar";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
@@ -102,6 +105,12 @@ export default function Home() {
         <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={learningRecords} />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
         <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
+        <LearningMaterialsVault childProfiles={managedChildren} />
+
+        <div className="grid gap-5 xl:grid-cols-2">
+          <SelfEvaluationBoard childProfiles={managedChildren} />
+          <TutorFeedbackBoard childProfiles={managedChildren} />
+        </div>
 
         <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
           <ChildProfile child={selectedChild} records={learningRecords} goals={pilotEducationGoals} />
