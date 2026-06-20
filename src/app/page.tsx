@@ -14,7 +14,6 @@ import { LearningRecordPlanner } from "@/components/dashboard/learning-record-pl
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
 import { ParentHandoffPlan } from "@/components/dashboard/parent-handoff-plan";
-import { ProductTrackSplit } from "@/components/dashboard/product-track-split";
 import { PwaInstallCard } from "@/components/dashboard/pwa-install-card";
 import { ResourceCenter } from "@/components/dashboard/resource-center";
 import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
@@ -23,7 +22,6 @@ import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
 import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   childOperatingPlans,
   parentActions,
@@ -32,8 +30,7 @@ import {
   pilotEducationGoals,
   pilotFamilyName,
   pilotLearningRecords,
-  pilotResources,
-  productTracks
+  pilotResources
 } from "@/lib/pilot-data";
 
 export default function Home() {
@@ -60,23 +57,25 @@ export default function Home() {
   return (
     <AppShell>
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-sm font-medium text-primary">{pilotFamilyName}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              伯仲叔三人教育管理系统
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              今日现场使用的家庭定制版：把三位孩子的学校事项、课外安排、学习记录、资源材料和长期路线图放进一个家长可执行的中枢。
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <a href="#weekly-report">导出周报</a>
-            </Button>
-            <Button asChild>
-              <a href="#event-planner">新增事项</a>
-            </Button>
+        <section id="dashboard" className="rounded-lg border border-white/70 bg-white/80 p-5 shadow-sm backdrop-blur">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-medium text-primary">{pilotFamilyName}</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                伯仲叔三人教育管理系统
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                今日现场使用：先补信息、排日程、看周报，再沉淀为长期私有 PWA。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline">
+                <a href="#weekly-report">导出周报</a>
+              </Button>
+              <Button asChild>
+                <a href="#event-planner">新增事项</a>
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -84,66 +83,50 @@ export default function Home() {
           <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
           <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
           <MetricCard title="教育目标" value={String(pilotEducationGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
-          <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯 / 仲 / 叔 定制版" icon={GraduationCap} tone="rose" />
+          <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
         </section>
 
-        <ProductTrackSplit tracks={productTracks} />
-        <ParentHandoffPlan />
-        <PwaInstallCard />
-        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={learningRecords} />
-        <ParentActionBoard actions={parentActions} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
-        <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
         <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
-        <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
 
         <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
           <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
           <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
-
-        <ChildManagement
-          childProfiles={managedChildren}
-          setChildren={setManagedChildren}
-          selectedChildId={selectedChildId}
-          onSelectChild={setSelectedChildId}
-        />
-
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid h-auto w-full grid-cols-2 sm:inline-flex sm:w-auto">
-            <TabsTrigger value="profile">孩子档案</TabsTrigger>
-            <TabsTrigger value="calendar">统一日历</TabsTrigger>
-            <TabsTrigger value="growth">成长记录</TabsTrigger>
-            <TabsTrigger value="roadmap">教育路线</TabsTrigger>
-            <TabsTrigger value="resources">资源中心</TabsTrigger>
-          </TabsList>
-          <TabsContent value="profile">
-            <ChildProfile child={selectedChild} records={learningRecords} goals={pilotEducationGoals} />
-          </TabsContent>
-          <TabsContent value="calendar">
-            <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
-          </TabsContent>
-          <TabsContent value="growth">
-            <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={pilotEducationGoals} />
-          </TabsContent>
-          <TabsContent value="roadmap">
-            <EducationRoadmap goals={pilotEducationGoals} childProfiles={managedChildren} />
-          </TabsContent>
-          <TabsContent value="resources">
-            <ResourceCenter resources={pilotResources} childProfiles={managedChildren} />
-          </TabsContent>
-        </Tabs>
-
-        <div className="grid gap-5 xl:grid-cols-2">
-          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={pilotEducationGoals} />
-          <ChildProfile child={selectedChild} records={learningRecords} goals={pilotEducationGoals} />
+        <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
+          <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
+          <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
-        <EducationRoadmap goals={pilotEducationGoals} childProfiles={managedChildren} />
+        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={learningRecords} />
+        <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+        <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
+
+        <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
+          <ChildProfile child={selectedChild} records={learningRecords} goals={pilotEducationGoals} />
+          <ChildManagement
+            childProfiles={managedChildren}
+            setChildren={setManagedChildren}
+            selectedChildId={selectedChildId}
+            onSelectChild={setSelectedChildId}
+          />
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
+          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={pilotEducationGoals} />
+          <EducationRoadmap goals={pilotEducationGoals} childProfiles={managedChildren} />
+        </div>
+
         <ResourceCenter resources={pilotResources} childProfiles={managedChildren} />
+
+        <div className="grid gap-5 xl:grid-cols-2">
+          <ParentActionBoard actions={parentActions} />
+          <ParentHandoffPlan />
+        </div>
+
+        <PwaInstallCard />
+
       </div>
     </AppShell>
   );
