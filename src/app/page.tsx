@@ -7,6 +7,7 @@ import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
+import { ExportPreviewCenter } from "@/components/dashboard/export-preview-center";
 import { FamilyEventPlanner } from "@/components/dashboard/family-event-planner";
 import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-workspace";
 import { GrowthSummary } from "@/components/dashboard/growth-summary";
@@ -103,6 +104,13 @@ export default function Home() {
         </div>
 
         <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={learningRecords} />
+        <ExportPreviewCenter
+          childProfiles={managedChildren}
+          events={calendarEvents}
+          goals={pilotEducationGoals}
+          records={learningRecords}
+          resources={pilotResources}
+        />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
         <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
         <LearningMaterialsVault childProfiles={managedChildren} />
