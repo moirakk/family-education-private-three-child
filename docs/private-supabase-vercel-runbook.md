@@ -75,6 +75,14 @@ Expected:
 }
 ```
 
+You can also open the dashboard section:
+
+```text
+http://127.0.0.1:3000/#deploy-status
+```
+
+It shows the same readiness checks inside the app UI.
+
 Then open:
 
 ```text

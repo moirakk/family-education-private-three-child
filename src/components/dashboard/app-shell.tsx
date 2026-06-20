@@ -12,6 +12,7 @@ import {
   LineChart,
   Map,
   MessageSquareText,
+  ServerCog,
   SmilePlus,
   Sparkles
 } from "lucide-react";
@@ -32,6 +33,7 @@ const navItems = [
   { href: "#growth", label: "成长记录", icon: LineChart },
   { href: "#roadmap", label: "教育路线", icon: Map },
   { href: "#calendar-sync", label: "iOS 同步", icon: CalendarDays },
+  { href: "#deploy-status", label: "部署状态", icon: ServerCog },
   { href: "#resources", label: "资源中心", icon: FileText }
 ];
 

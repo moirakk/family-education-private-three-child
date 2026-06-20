@@ -6,6 +6,7 @@ import { AppShell } from "@/components/dashboard/app-shell";
 import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
+import { DeploymentStatusCard } from "@/components/dashboard/deployment-status-card";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
 import { ExportPreviewCenter } from "@/components/dashboard/export-preview-center";
 import { FamilyEventPlanner } from "@/components/dashboard/family-event-planner";
@@ -179,6 +180,7 @@ export default function Home() {
           <ParentHandoffPlan />
         </div>
 
+        <DeploymentStatusCard />
         <PwaInstallCard />
 
       </div>
