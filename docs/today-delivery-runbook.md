@@ -46,3 +46,4 @@
 1. 把现场补充内容整理进私有数据。
 2. 决定是否上私有 Vercel。
 3. 如需长期使用，接 Supabase 无登录私有写入和 iOS token 日历订阅。
+4. 部署时按 `docs/private-pwa-deployment-guide.md` 执行。
