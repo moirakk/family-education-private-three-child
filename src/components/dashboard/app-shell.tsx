@@ -11,6 +11,7 @@ const navItems = [
   { href: "#children", label: "孩子档案", icon: GraduationCap },
   { href: "#calendar", label: "统一日历", icon: CalendarDays },
   { href: "#calendar-sync", label: "iOS 同步", icon: CalendarDays },
+  { href: "#learning-records", label: "学习记录", icon: BookOpen },
   { href: "#growth", label: "成长记录", icon: LineChart },
   { href: "#roadmap", label: "教育路线", icon: Map },
   { href: "#resources", label: "资源中心", icon: FileText }
