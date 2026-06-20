@@ -71,6 +71,15 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=local
 7. 运行 seed。
 8. 把 `family_id` 设置到 Vercel 的 `NEXT_PUBLIC_PRIVATE_FAMILY_ID`。
 
+## 数据库长期稳定规则
+
+- `docs/private-supabase-schema.sql` 可以重复运行，policies 和 triggers 会先 drop 再创建。
+- 不要手动修改已分配的 `family_id`、`child_id`、`calendar_token`，这些会影响数据关联和 iOS 订阅。
+- 新增真实日程必须保证结束时间晚于开始时间。
+- 分数类数据只使用 0-100。
+- iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
+- 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
+
 ## 部署后自检
 
 本地生产验证建议先清理构建产物：

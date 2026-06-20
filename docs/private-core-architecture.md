@@ -73,6 +73,17 @@
 
 API 会优先通过 Supabase RPC `get_calendar_feed_by_token` 读取真实日程；如果没有配置 Supabase 或没有 token，则回退到当前 pilot 数据，保证明天版本不被后端阻塞。
 
+## 数据库稳定性规则
+
+- 所有长期实体使用 UUID 主键。
+- 关键表开启 RLS。
+- `updated_at` 由数据库 trigger 自动维护，不依赖前端时间。
+- 日程强制 `ends_at > starts_at`。
+- 学习记录强制分数 0-100、信心值 1-5。
+- 日历 token 至少 32 位，并且唯一。
+- 资源用 `(family_id, child_id, title, kind)` 去重，避免 seed 重复插入。
+- ICS 订阅源默认只返回过去 18 个月到未来 36 个月的数据，避免无限膨胀。
+
 ## 数据核心
 
 ### 家庭

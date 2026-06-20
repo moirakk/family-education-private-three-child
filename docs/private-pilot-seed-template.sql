@@ -5,7 +5,7 @@
 do $$
 declare
   owner_user_id uuid := '00000000-0000-0000-0000-000000000000';
-  family_id uuid := '11111111-1111-1111-1111-111111111111';
+  target_family_id uuid := '11111111-1111-1111-1111-111111111111';
   boyang_id uuid := '22222222-2222-2222-2222-222222222222';
   zhongyang_id uuid := '33333333-3333-3333-3333-333333333333';
   shuyang_id uuid := '44444444-4444-4444-4444-444444444444';
@@ -18,7 +18,7 @@ begin
   end if;
 
   insert into public.families (id, name, timezone, locale)
-  values (family_id, '伯仲叔教育管理中枢', 'Asia/Tokyo', 'zh-CN')
+  values (target_family_id, '伯仲叔教育管理中枢', 'Asia/Tokyo', 'zh-CN')
   on conflict (id) do update set
     name = excluded.name,
     timezone = excluded.timezone,
@@ -26,13 +26,13 @@ begin
     updated_at = now();
 
   insert into public.family_settings (family_id, calendar_name)
-  values (family_id, '伯仲叔教育日历')
+  values (target_family_id, '伯仲叔教育日历')
   on conflict (family_id) do update set
     calendar_name = excluded.calendar_name,
     updated_at = now();
 
   insert into public.family_members (family_id, user_id, role, display_name)
-  values (family_id, owner_user_id, 'owner', '家长')
+  values (target_family_id, owner_user_id, 'owner', '家长')
   on conflict (family_id, user_id) do update set
     role = excluded.role,
     display_name = excluded.display_name;
@@ -53,7 +53,7 @@ begin
   values
     (
       boyang_id,
-      family_id,
+      target_family_id,
       '伯杨',
       12,
       '马上升初一 / 小升初衔接期',
@@ -66,7 +66,7 @@ begin
     ),
     (
       zhongyang_id,
-      family_id,
+      target_family_id,
       '仲杨',
       10,
       '马上升五年级 / 高年级准备期',
@@ -79,7 +79,7 @@ begin
     ),
     (
       shuyang_id,
-      family_id,
+      target_family_id,
       '叔杨',
       7,
       '马上升二年级 / 低年级习惯成型期',
@@ -113,11 +113,11 @@ begin
 
   insert into public.calendar_events (id, family_id, title, category, source, starts_at, ends_at, location, created_by)
   values
-    ('88888888-8888-8888-8888-888888888801', family_id, '周一校内事项确认', 'school', 'system', '2026-06-22 08:00:00+09', '2026-06-22 08:20:00+09', '家庭晨间检查', owner_user_id),
-    ('88888888-8888-8888-8888-888888888802', family_id, '伯杨：数学错题复盘', 'tutoring', 'system', '2026-06-22 19:00:00+09', '2026-06-22 19:45:00+09', '家庭学习桌', owner_user_id),
-    ('88888888-8888-8888-8888-888888888803', family_id, '仲杨：阅读打卡 + 口头复述', 'family', 'system', '2026-06-23 19:30:00+09', '2026-06-23 20:00:00+09', '客厅阅读角', owner_user_id),
-    ('88888888-8888-8888-8888-888888888804', family_id, '叔杨：拼读小游戏', 'activity', 'system', '2026-06-24 18:30:00+09', '2026-06-24 18:50:00+09', '家庭互动区', owner_user_id),
-    ('88888888-8888-8888-8888-888888888805', family_id, '三人周复盘', 'exam', 'system', '2026-06-28 10:00:00+09', '2026-06-28 11:00:00+09', '家庭会议', owner_user_id)
+    ('88888888-8888-8888-8888-888888888801', target_family_id, '周一校内事项确认', 'school', 'system', '2026-06-22 08:00:00+09', '2026-06-22 08:20:00+09', '家庭晨间检查', owner_user_id),
+    ('88888888-8888-8888-8888-888888888802', target_family_id, '伯杨：数学错题复盘', 'tutoring', 'system', '2026-06-22 19:00:00+09', '2026-06-22 19:45:00+09', '家庭学习桌', owner_user_id),
+    ('88888888-8888-8888-8888-888888888803', target_family_id, '仲杨：阅读打卡 + 口头复述', 'family', 'system', '2026-06-23 19:30:00+09', '2026-06-23 20:00:00+09', '客厅阅读角', owner_user_id),
+    ('88888888-8888-8888-8888-888888888804', target_family_id, '叔杨：拼读小游戏', 'activity', 'system', '2026-06-24 18:30:00+09', '2026-06-24 18:50:00+09', '家庭互动区', owner_user_id),
+    ('88888888-8888-8888-8888-888888888805', target_family_id, '三人周复盘', 'exam', 'system', '2026-06-28 10:00:00+09', '2026-06-28 11:00:00+09', '家庭会议', owner_user_id)
   on conflict (id) do update set
     title = excluded.title,
     category = excluded.category,
@@ -141,9 +141,9 @@ begin
 
   insert into public.education_goals (id, family_id, child_id, title, subject, target_date, status, progress, created_by)
   values
-    (goal_boyang_id, family_id, boyang_id, '建立小升初衔接节奏', '综合规划', '2026-11-30', 'in_progress', 58, owner_user_id),
-    (goal_zhongyang_id, family_id, zhongyang_id, '形成五年级前的自主学习习惯', '习惯培养', '2026-09-30', 'in_progress', 46, owner_user_id),
-    (goal_shuyang_id, family_id, shuyang_id, '完成二年级学习流程衔接', '启蒙衔接', '2026-08-31', 'planned', 32, owner_user_id)
+    (goal_boyang_id, target_family_id, boyang_id, '建立小升初衔接节奏', '综合规划', '2026-11-30', 'in_progress', 58, owner_user_id),
+    (goal_zhongyang_id, target_family_id, zhongyang_id, '形成五年级前的自主学习习惯', '习惯培养', '2026-09-30', 'in_progress', 46, owner_user_id),
+    (goal_shuyang_id, target_family_id, shuyang_id, '完成二年级学习流程衔接', '启蒙衔接', '2026-08-31', 'planned', 32, owner_user_id)
   on conflict (id) do update set
     title = excluded.title,
     subject = excluded.subject,
@@ -152,10 +152,19 @@ begin
     progress = excluded.progress,
     updated_at = now();
 
+  delete from public.resources
+  where family_id = target_family_id
+    and title in (
+      '伯杨：小升初衔接观察记录',
+      '仲杨：阅读复述模板',
+      '叔杨：拼读练习包',
+      '家庭教育周复盘模板'
+    );
+
   insert into public.resources (family_id, child_id, kind, title, subject, tags, created_by)
   values
-    (family_id, boyang_id, 'note', '伯杨：小升初衔接观察记录', '规划', array['升学', '复盘', '数学'], owner_user_id),
-    (family_id, zhongyang_id, 'worksheet', '仲杨：阅读复述模板', '阅读', array['阅读', '习惯', '表达'], owner_user_id),
-    (family_id, shuyang_id, 'worksheet', '叔杨：拼读练习包', '拼读', array['启蒙', '拼读', '游戏'], owner_user_id),
-    (family_id, null, 'note', '家庭教育周复盘模板', '家庭管理', array['周复盘', '家长', '路线图'], owner_user_id);
+    (target_family_id, boyang_id, 'note', '伯杨：小升初衔接观察记录', '规划', array['升学', '复盘', '数学'], owner_user_id),
+    (target_family_id, zhongyang_id, 'worksheet', '仲杨：阅读复述模板', '阅读', array['阅读', '习惯', '表达'], owner_user_id),
+    (target_family_id, shuyang_id, 'worksheet', '叔杨：拼读练习包', '拼读', array['启蒙', '拼读', '游戏'], owner_user_id),
+    (target_family_id, null, 'note', '家庭教育周复盘模板', '家庭管理', array['周复盘', '家长', '路线图'], owner_user_id);
 end $$;

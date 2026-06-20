@@ -45,10 +45,11 @@ create table if not exists public.families (
 create table if not exists public.family_settings (
   family_id uuid primary key references public.families(id) on delete cascade,
   calendar_name text not null default '家庭教育日历',
-  calendar_token text unique default encode(gen_random_bytes(24), 'hex'),
+  calendar_token text not null unique default encode(gen_random_bytes(24), 'hex'),
   access_note text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint family_settings_calendar_token_length check (length(calendar_token) >= 32)
 );
 
 create table if not exists public.family_members (
@@ -77,7 +78,9 @@ create table if not exists public.children (
   focus_areas text[] not null default '{}',
   notes text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint children_age_reasonable check (age is null or age between 0 and 30),
+  constraint children_first_name_not_blank check (length(trim(first_name)) > 0)
 );
 
 create table if not exists public.child_intake_profiles (
@@ -105,7 +108,9 @@ create table if not exists public.calendar_events (
   recurrence_rule text,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint calendar_events_title_not_blank check (length(trim(title)) > 0),
+  constraint calendar_events_time_order check (ends_at is null or ends_at > starts_at)
 );
 
 create table if not exists public.calendar_event_children (
@@ -127,7 +132,10 @@ create table if not exists public.learning_records (
   notes text,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint learning_records_duration_positive check (duration_minutes is null or duration_minutes >= 0),
+  constraint learning_records_score_range check (score is null or score between 0 and 100),
+  constraint learning_records_title_not_blank check (length(trim(title)) > 0)
 );
 
 create table if not exists public.education_goals (
@@ -142,7 +150,8 @@ create table if not exists public.education_goals (
   progress integer not null default 0 check (progress between 0 and 100),
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint education_goals_title_not_blank check (length(trim(title)) > 0)
 );
 
 create table if not exists public.milestones (
@@ -151,7 +160,8 @@ create table if not exists public.milestones (
   title text not null,
   due_date date,
   completed_at timestamptz,
-  sort_order integer not null default 0
+  sort_order integer not null default 0,
+  constraint milestones_title_not_blank check (length(trim(title)) > 0)
 );
 
 create table if not exists public.resources (
@@ -167,7 +177,11 @@ create table if not exists public.resources (
   tags text[] not null default '{}',
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint resources_title_not_blank check (length(trim(title)) > 0),
+  constraint resources_url_or_storage_or_note check (
+    url is not null or storage_path is not null or description is not null or kind in ('note', 'worksheet', 'book', 'video')
+  )
 );
 
 create index if not exists family_members_family_user_idx on public.family_members(family_id, user_id);
@@ -177,6 +191,58 @@ create index if not exists calendar_event_children_child_idx on public.calendar_
 create index if not exists learning_records_child_date_idx on public.learning_records(child_id, record_date desc);
 create index if not exists education_goals_child_status_idx on public.education_goals(child_id, status);
 create index if not exists resources_family_child_idx on public.resources(family_id, child_id);
+create unique index if not exists resources_family_child_title_kind_idx
+on public.resources(family_id, coalesce(child_id, '00000000-0000-0000-0000-000000000000'::uuid), title, kind);
+
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists set_families_updated_at on public.families;
+create trigger set_families_updated_at
+before update on public.families
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_family_settings_updated_at on public.family_settings;
+create trigger set_family_settings_updated_at
+before update on public.family_settings
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_children_updated_at on public.children;
+create trigger set_children_updated_at
+before update on public.children
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_child_intake_profiles_updated_at on public.child_intake_profiles;
+create trigger set_child_intake_profiles_updated_at
+before update on public.child_intake_profiles
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_calendar_events_updated_at on public.calendar_events;
+create trigger set_calendar_events_updated_at
+before update on public.calendar_events
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_learning_records_updated_at on public.learning_records;
+create trigger set_learning_records_updated_at
+before update on public.learning_records
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_education_goals_updated_at on public.education_goals;
+create trigger set_education_goals_updated_at
+before update on public.education_goals
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_resources_updated_at on public.resources;
+create trigger set_resources_updated_at
+before update on public.resources
+for each row execute function public.set_updated_at();
 
 alter table public.families enable row level security;
 alter table public.family_settings enable row level security;
@@ -251,6 +317,8 @@ as $$
   left join public.calendar_event_children ec on ec.event_id = e.id
   left join public.children c on c.id = ec.child_id
   where fs.calendar_token = feed_token
+    and e.starts_at >= now() - interval '18 months'
+    and e.starts_at <= now() + interval '36 months'
   group by e.id, e.title, e.category, e.starts_at, e.ends_at, e.location
   order by e.starts_at;
 $$;
