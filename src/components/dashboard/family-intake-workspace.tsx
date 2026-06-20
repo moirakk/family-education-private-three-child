@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, ClipboardList, Copy, Download, Save, Upload } from "lucide-react";
+import { CheckCircle2, ClipboardList, Copy, Database, Download, Save, Upload } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { isPrivateApiMode, putPrivateApi } from "@/lib/private-api-client";
 import type { Child } from "@/lib/types";
 
 type IntakeEntry = {
@@ -51,6 +52,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
   const [intake, setIntake] = useState<IntakeState>(() => buildInitialState(childProfiles));
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -133,6 +135,34 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
     setIntake({ ...buildInitialState(childProfiles), ...payload.intake });
   }
 
+  async function syncIntakeToDatabase() {
+    if (!isPrivateApiMode()) {
+      setSyncStatus("当前是本机模式。部署时设置 NEXT_PUBLIC_FAMILY_DATA_MODE=private-api 后可同步数据库。");
+      return;
+    }
+
+    try {
+      setSyncStatus("正在同步到数据库...");
+      await Promise.all(
+        childProfiles.map((child) => {
+          const entry = intake[child.id] ?? createEmptyEntry();
+          return putPrivateApi("/api/private/intake", {
+            childId: child.id,
+            schoolDetail: entry.school,
+            weeklySchedule: entry.weeklySchedule,
+            importantDates: entry.importantDates,
+            currentGoals: entry.currentGoals,
+            parentConcerns: entry.parentConcerns,
+            privateNotes: entry.notes
+          });
+        })
+      );
+      setSyncStatus("已同步到数据库。");
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? `数据库同步失败：${error.message}` : "数据库同步失败。");
+    }
+  }
+
   return (
     <Card id="intake" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
@@ -159,6 +189,10 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
               <Upload className="mr-2 h-4 w-4" />
               导入资料
             </Button>
+            <Button variant="outline" size="sm" onClick={syncIntakeToDatabase}>
+              <Database className="mr-2 h-4 w-4" />
+              同步数据库
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -175,6 +209,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
             </Button>
           </div>
         </div>
+        {syncStatus && <p className="mt-3 text-xs text-muted-foreground">{syncStatus}</p>}
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={childProfiles[0]?.id} className="grid gap-4 xl:grid-cols-[280px_1fr]">

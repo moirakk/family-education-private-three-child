@@ -60,6 +60,14 @@ PRIVATE_CALENDAR_TOKEN
 NEXT_PUBLIC_FAMILY_DATA_MODE=local
 ```
 
+长期私有在线版使用：
+
+```text
+NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
+```
+
+此模式下，浏览器不会直接持有 `SUPABASE_SERVICE_ROLE_KEY`。所有写入都通过 Vercel 服务端的 `/api/private/*` 接口完成。
+
 ## Supabase 步骤
 
 1. 创建 Supabase project。
@@ -82,6 +90,20 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=local
 - 自我评价与家教反馈独立成表，避免混进普通学习记录。
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
+
+## 当前已接入数据库的模块
+
+私有在线模式 `private-api` 已支持：
+
+- `GET /api/private/snapshot`：读取家庭、孩子、日程、学习记录、目标、资源。
+- `PUT /api/private/intake`：保存家长现场补充资料。
+- `POST /api/private/events` / `DELETE /api/private/events`：新增和删除日程。
+- `POST /api/private/learning-records` / `DELETE /api/private/learning-records`：新增和删除学习记录。
+- `POST /api/private/materials` / `DELETE /api/private/materials`：保存和删除学习资料索引。
+- `POST /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：保存和删除孩子自评。
+- `POST /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：保存和删除家教反馈。
+
+学习资料文件本体下一步接 `learning-materials` Storage bucket；当前数据库先保存文件名、大小、类型、外部链接、备注和标签。
 
 ## 部署后自检
 

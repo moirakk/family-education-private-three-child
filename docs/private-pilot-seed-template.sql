@@ -18,7 +18,7 @@ begin
   end if;
 
   insert into public.families (id, name, timezone, locale)
-  values (target_family_id, '伯仲叔教育管理中枢', 'Asia/Tokyo', 'zh-CN')
+  values (target_family_id, 'Family Education Management System', 'Asia/Tokyo', 'zh-CN')
   on conflict (id) do update set
     name = excluded.name,
     timezone = excluded.timezone,
@@ -26,7 +26,7 @@ begin
     updated_at = now();
 
   insert into public.family_settings (family_id, calendar_name)
-  values (target_family_id, '伯仲叔教育日历')
+  values (target_family_id, 'Family Education Calendar')
   on conflict (family_id) do update set
     calendar_name = excluded.calendar_name,
     updated_at = now();

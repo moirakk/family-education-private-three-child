@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import { getPrivateWriteContext, jsonError, numberOrNull, requireString, scoreOneToFive } from "@/app/api/private/_utils";
+
+type LearningRecordPayload = {
+  childId?: string;
+  subject?: string;
+  title?: string;
+  date?: string;
+  durationMinutes?: number;
+  score?: number;
+  confidence?: number;
+};
+
+export async function POST(request: Request) {
+  try {
+    const { familyId, supabase } = getPrivateWriteContext();
+    const payload = (await request.json()) as LearningRecordPayload;
+    const childId = requireString(payload.childId, "childId");
+    const subject = requireString(payload.subject, "subject");
+    const title = requireString(payload.title, "title");
+
+    const { data, error } = await supabase
+      .from("learning_records")
+      .insert({
+        family_id: familyId,
+        child_id: childId,
+        subject,
+        title,
+        record_date: payload.date || new Date().toISOString().slice(0, 10),
+        duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
+        score: numberOrNull(payload.score),
+        confidence: scoreOneToFive(payload.confidence)
+      })
+      .select("id,child_id,subject,title,record_date,duration_minutes,score,confidence,created_at")
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ data }, { status: 201 });
+  } catch (error) {
+    return jsonError(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { familyId, supabase } = getPrivateWriteContext();
+    const recordId = new URL(request.url).searchParams.get("recordId");
+    if (!recordId) return NextResponse.json({ error: "recordId is required" }, { status: 400 });
+
+    const { error } = await supabase.from("learning_records").delete().eq("family_id", familyId).eq("id", recordId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return jsonError(error);
+  }
+}

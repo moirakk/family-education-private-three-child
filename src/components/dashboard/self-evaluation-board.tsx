@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
 import type { Child, SelfEvaluation } from "@/lib/types";
 
 type EvaluationFormState = {
@@ -48,6 +49,7 @@ function createInitialForm(childProfiles: Child[]): EvaluationFormState {
 export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] }) {
   const [evaluations, setEvaluations] = useState<SelfEvaluation[]>([]);
   const [form, setForm] = useState<EvaluationFormState>(() => createInitialForm(childProfiles));
+  const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -66,7 +68,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  function addEvaluation(event: FormEvent<HTMLFormElement>) {
+  async function addEvaluation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.childId || !form.subject.trim() || !form.reflection.trim()) return;
 
@@ -85,10 +87,53 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
 
     setEvaluations((current) => [nextEvaluation, ...current]);
     setForm(createInitialForm(childProfiles));
+
+    if (!isPrivateApiMode()) return;
+
+    try {
+      setSyncStatus("正在同步到数据库...");
+      const data = await postPrivateApi<{
+        id: string;
+        child_id: string;
+        evaluation_date: string;
+        subject: string;
+        mood: number;
+        effort: number;
+        confidence: number;
+        reflection: string;
+        next_step: string | null;
+        created_at: string;
+      }>("/api/private/self-evaluations", nextEvaluation);
+
+      setEvaluations((current) =>
+        current.map((evaluation) =>
+          evaluation.id === nextEvaluation.id
+            ? {
+                id: data.id,
+                childId: data.child_id,
+                evaluationDate: data.evaluation_date,
+                subject: data.subject,
+                mood: data.mood,
+                effort: data.effort,
+                confidence: data.confidence,
+                reflection: data.reflection,
+                nextStep: data.next_step ?? "",
+                createdAt: data.created_at
+              }
+            : evaluation
+        )
+      );
+      setSyncStatus("已同步到数据库。");
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
+    }
   }
 
-  function deleteEvaluation(evaluationId: string) {
+  async function deleteEvaluation(evaluationId: string) {
     setEvaluations((current) => current.filter((evaluation) => evaluation.id !== evaluationId));
+    if (isPrivateApiMode() && !evaluationId.startsWith("local-")) {
+      await deletePrivateApi(`/api/private/self-evaluations?evaluationId=${encodeURIComponent(evaluationId)}`);
+    }
   }
 
   return (
@@ -199,6 +244,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
             <Button type="submit" disabled={!form.childId || !form.subject.trim() || !form.reflection.trim()}>
               保存自评
             </Button>
+            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
         </form>
 

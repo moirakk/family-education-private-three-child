@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
 import type { Child, TutorFeedback } from "@/lib/types";
 
 type TutorFeedbackFormState = {
@@ -52,6 +53,7 @@ function createInitialForm(childProfiles: Child[]): TutorFeedbackFormState {
 export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }) {
   const [feedbackItems, setFeedbackItems] = useState<TutorFeedback[]>([]);
   const [form, setForm] = useState<TutorFeedbackFormState>(() => createInitialForm(childProfiles));
+  const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -70,7 +72,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  function addFeedback(event: FormEvent<HTMLFormElement>) {
+  async function addFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()) return;
 
@@ -91,10 +93,57 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
 
     setFeedbackItems((current) => [nextFeedback, ...current]);
     setForm(createInitialForm(childProfiles));
+
+    if (!isPrivateApiMode()) return;
+
+    try {
+      setSyncStatus("正在同步到数据库...");
+      const data = await postPrivateApi<{
+        id: string;
+        child_id: string;
+        tutor_name: string;
+        subject: string;
+        session_date: string;
+        duration_minutes: number | null;
+        focus: string;
+        performance: string | null;
+        homework: string | null;
+        next_focus: string | null;
+        rating: number;
+        created_at: string;
+      }>("/api/private/tutor-feedback", nextFeedback);
+
+      setFeedbackItems((current) =>
+        current.map((feedback) =>
+          feedback.id === nextFeedback.id
+            ? {
+                id: data.id,
+                childId: data.child_id,
+                tutorName: data.tutor_name,
+                subject: data.subject,
+                sessionDate: data.session_date,
+                durationMinutes: data.duration_minutes ?? 0,
+                focus: data.focus,
+                performance: data.performance ?? "",
+                homework: data.homework ?? "",
+                nextFocus: data.next_focus ?? "",
+                rating: data.rating,
+                createdAt: data.created_at
+              }
+            : feedback
+        )
+      );
+      setSyncStatus("已同步到数据库。");
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
+    }
   }
 
-  function deleteFeedback(feedbackId: string) {
+  async function deleteFeedback(feedbackId: string) {
     setFeedbackItems((current) => current.filter((feedback) => feedback.id !== feedbackId));
+    if (isPrivateApiMode() && !feedbackId.startsWith("local-")) {
+      await deletePrivateApi(`/api/private/tutor-feedback?feedbackId=${encodeURIComponent(feedbackId)}`);
+    }
   }
 
   return (
@@ -222,6 +271,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
             <Button type="submit" disabled={!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()}>
               保存反馈
             </Button>
+            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
         </form>
 

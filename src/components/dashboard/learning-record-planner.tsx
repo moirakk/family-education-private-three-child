@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isPrivateApiMode, postPrivateApi, deletePrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningRecord } from "@/lib/types";
 
 type RecordFormState = {
@@ -47,6 +48,7 @@ export function LearningRecordPlanner({
 }) {
   const [records, setRecords] = useState<LearningRecord[]>([]);
   const [form, setForm] = useState<RecordFormState>(() => createInitialForm(childProfiles));
+  const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -69,7 +71,7 @@ export function LearningRecordPlanner({
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  function addRecord(event: FormEvent<HTMLFormElement>) {
+  async function addRecord(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.childId || !form.subject.trim() || !form.title.trim()) return;
 
@@ -86,10 +88,49 @@ export function LearningRecordPlanner({
 
     setRecords((current) => [nextRecord, ...current]);
     setForm(createInitialForm(childProfiles));
+
+    if (!isPrivateApiMode()) return;
+
+    try {
+      setSyncStatus("正在同步到数据库...");
+      const data = await postPrivateApi<{
+        id: string;
+        child_id: string;
+        subject: string;
+        title: string;
+        record_date: string;
+        duration_minutes: number | null;
+        score: number | null;
+        confidence: number | null;
+      }>("/api/private/learning-records", nextRecord);
+
+      setRecords((current) =>
+        current.map((record) =>
+          record.id === nextRecord.id
+            ? {
+                id: data.id,
+                childId: data.child_id,
+                subject: data.subject,
+                title: data.title,
+                date: data.record_date,
+                durationMinutes: data.duration_minutes ?? 0,
+                score: data.score ?? undefined,
+                confidence: data.confidence ?? 3
+              }
+            : record
+        )
+      );
+      setSyncStatus("已同步到数据库。");
+    } catch (error) {
+      setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
+    }
   }
 
-  function deleteRecord(recordId: string) {
+  async function deleteRecord(recordId: string) {
     setRecords((current) => current.filter((record) => record.id !== recordId));
+    if (isPrivateApiMode() && !recordId.startsWith("local-")) {
+      await deletePrivateApi(`/api/private/learning-records?recordId=${encodeURIComponent(recordId)}`);
+    }
   }
 
   return (
@@ -193,6 +234,7 @@ export function LearningRecordPlanner({
             <Button type="submit" disabled={!form.childId || !form.subject.trim() || !form.title.trim()}>
               新增学习记录
             </Button>
+            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
         </form>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck2, Clock3, GraduationCap, Target } from "lucide-react";
 import { AppShell } from "@/components/dashboard/app-shell";
 import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
@@ -27,6 +27,8 @@ import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
 import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
 import { Button } from "@/components/ui/button";
+import type { FamilySnapshot } from "@/lib/core-types";
+import { isPrivateApiMode } from "@/lib/private-api-client";
 import {
   childOperatingPlans,
   parentActions,
@@ -43,21 +45,54 @@ export default function Home() {
   const [selectedChildId, setSelectedChildId] = useState(pilotChildren[0].id);
   const [localCalendarEvents, setLocalCalendarEvents] = useState<typeof pilotCalendarEvents>([]);
   const [localLearningRecords, setLocalLearningRecords] = useState<typeof pilotLearningRecords>([]);
+  const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
+
+  useEffect(() => {
+    if (!isPrivateApiMode()) return;
+
+    let isMounted = true;
+    fetch("/api/private/snapshot")
+      .then(async (response) => {
+        const payload = (await response.json()) as { data?: FamilySnapshot; error?: string };
+        if (!response.ok || !payload.data) throw new Error(payload.error ?? "Load private snapshot failed");
+        return payload.data;
+      })
+      .then((snapshot) => {
+        if (!isMounted) return;
+        setRemoteSnapshot(snapshot);
+        setManagedChildren(snapshot.children.length > 0 ? snapshot.children : pilotChildren);
+        setSelectedChildId(snapshot.children[0]?.id ?? pilotChildren[0].id);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setRemoteSnapshot(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const selectedChild = useMemo(
     () => managedChildren.find((child) => child.id === selectedChildId) ?? managedChildren[0],
     [managedChildren, selectedChildId]
   );
 
-  const learningRecords = useMemo(() => [...localLearningRecords, ...pilotLearningRecords], [localLearningRecords]);
+  const baseCalendarEvents = remoteSnapshot?.calendarEvents ?? pilotCalendarEvents;
+  const baseLearningRecords = remoteSnapshot?.learningRecords ?? pilotLearningRecords;
+  const baseEducationGoals = remoteSnapshot?.educationGoals ?? pilotEducationGoals;
+  const baseResources = remoteSnapshot?.resources ?? pilotResources;
+
+  const learningRecords = useMemo(() => [...localLearningRecords, ...baseLearningRecords], [baseLearningRecords, localLearningRecords]);
   const totalMinutes = learningRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
   const calendarEvents = useMemo(
-    () => [...pilotCalendarEvents, ...localCalendarEvents].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
-    [localCalendarEvents]
+    () => [...baseCalendarEvents, ...localCalendarEvents].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
+    [baseCalendarEvents, localCalendarEvents]
   );
-  const averageGoalProgress = Math.round(
-    pilotEducationGoals.reduce((sum, goal) => sum + goal.progress, 0) / pilotEducationGoals.length
-  );
+  const averageGoalProgress =
+    baseEducationGoals.length > 0
+      ? Math.round(baseEducationGoals.reduce((sum, goal) => sum + goal.progress, 0) / baseEducationGoals.length)
+      : 0;
 
   return (
     <AppShell>
@@ -105,13 +140,13 @@ export default function Home() {
           <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={pilotEducationGoals} records={learningRecords} />
+        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={baseEducationGoals} records={learningRecords} />
         <ExportPreviewCenter
           childProfiles={managedChildren}
           events={calendarEvents}
-          goals={pilotEducationGoals}
+          goals={baseEducationGoals}
           records={learningRecords}
-          resources={pilotResources}
+          resources={baseResources}
         />
         <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
         <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
@@ -123,7 +158,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-          <ChildProfile child={selectedChild} records={learningRecords} goals={pilotEducationGoals} />
+          <ChildProfile child={selectedChild} records={learningRecords} goals={baseEducationGoals} />
           <ChildManagement
             childProfiles={managedChildren}
             setChildren={setManagedChildren}
@@ -133,11 +168,11 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={pilotEducationGoals} />
-          <EducationRoadmap goals={pilotEducationGoals} childProfiles={managedChildren} />
+          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={baseEducationGoals} />
+          <EducationRoadmap goals={baseEducationGoals} childProfiles={managedChildren} />
         </div>
 
-        <ResourceCenter resources={pilotResources} childProfiles={managedChildren} />
+        <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
 
         <div className="grid gap-5 xl:grid-cols-2">
           <ParentActionBoard actions={parentActions} />

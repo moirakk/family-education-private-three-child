@@ -46,6 +46,11 @@
 - `PUT /api/private/intake`
 - `POST /api/private/events`
 - `DELETE /api/private/events?eventId=...`
+- `GET /api/private/snapshot`
+- `POST /api/private/learning-records`
+- `POST /api/private/materials`
+- `POST /api/private/self-evaluations`
+- `POST /api/private/tutor-feedback`
 
 这些 API 只在配置 `PRIVATE_ACCESS_CODE`、`NEXT_PUBLIC_PRIVATE_FAMILY_ID`、`SUPABASE_SERVICE_ROLE_KEY` 后启用。service role key 只能存在服务端环境变量里，不能暴露到浏览器。
 

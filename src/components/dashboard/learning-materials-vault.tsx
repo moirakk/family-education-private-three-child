@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
 
 type MaterialFormState = {
@@ -162,6 +163,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
 
     const id = `local-material-${Date.now()}`;
     const localBlobId = file ? `${id}-${file.name}` : undefined;
+    let localSaved = false;
 
     try {
       if (file && localBlobId) {
@@ -191,8 +193,52 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
       setFile(null);
       setStatus("已保存资料。");
       event.currentTarget.reset();
+      localSaved = true;
+
+      if (!isPrivateApiMode()) return;
+
+      setStatus("本机已保存，正在同步资料索引到数据库...");
+      const data = await postPrivateApi<{
+        id: string;
+        child_id: string | null;
+        title: string;
+        subject: string;
+        kind: LearningMaterial["kind"];
+        file_name: string | null;
+        file_size: number | null;
+        mime_type: string | null;
+        external_url: string | null;
+        notes: string | null;
+        tags: string[] | null;
+        created_at: string;
+        updated_at: string;
+      }>("/api/private/materials", nextMaterial);
+
+      setMaterials((current) =>
+        current.map((material) =>
+          material.id === nextMaterial.id
+            ? {
+                id: data.id,
+                childId: data.child_id ?? undefined,
+                title: data.title,
+                subject: data.subject,
+                kind: data.kind,
+                fileName: data.file_name ?? undefined,
+                fileSize: data.file_size ?? undefined,
+                mimeType: data.mime_type ?? undefined,
+                localBlobId: material.localBlobId,
+                externalUrl: data.external_url ?? undefined,
+                notes: data.notes ?? undefined,
+                tags: data.tags ?? [],
+                createdAt: data.created_at,
+                updatedAt: data.updated_at
+              }
+            : material
+        )
+      );
+      setStatus("资料索引已同步到数据库。文件本体下一步迁移到 Supabase Storage。");
     } catch {
-      setStatus("文件保存失败，请换一个文件重试。");
+      setStatus(localSaved && isPrivateApiMode() ? "本机已保存，数据库同步失败。请检查 Supabase 配置。" : "文件保存失败，请换一个文件重试。");
     }
   }
 
@@ -222,6 +268,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
       await deleteLocalFile(material.localBlobId);
     }
     setMaterials((current) => current.filter((item) => item.id !== material.id));
+    if (isPrivateApiMode() && !material.id.startsWith("local-")) {
+      await deletePrivateApi(`/api/private/materials?materialId=${encodeURIComponent(material.id)}`);
+    }
   }
 
   return (
