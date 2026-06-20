@@ -104,6 +104,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - `POST /api/private/materials` / `DELETE /api/private/materials`：保存和删除学习资料索引。
 - `POST /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：保存和删除孩子自评。
 - `POST /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：保存和删除家教反馈。
+- `GET /api/private/export`：导出 Supabase 数据库元数据备份，文件本体仍保留在私有 Storage。
 
 学习资料文件本体通过 `learning-materials` 私有 Storage bucket 保存；下载时服务端生成短期 signed URL。
 

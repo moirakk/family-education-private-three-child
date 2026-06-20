@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Production-ready MVP for managing education across multi-child households.",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -46,6 +49,6 @@
     "typescript": "^5.7.2"
   },
   "optionalDependencies": {
-    "@next/swc-darwin-arm64": "^15.5.19"
+    "@next/swc-darwin-arm64": "15.5.19"
   }
 }

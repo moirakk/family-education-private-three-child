@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildEducationCalendarIcs } from "@/lib/ics";
+import { getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { CalendarEvent, Child, EducationGoal, LearningRecord, Resource } from "@/lib/types";
 
 type LocalExportData = {
@@ -79,6 +80,10 @@ export function ExportPreviewCenter({
     tutorFeedback: null
   });
   const [copied, setCopied] = useState<string | null>(null);
+  const [databaseBackup, setDatabaseBackup] = useState<unknown | null>(null);
+  const [backupStatus, setBackupStatus] = useState<"local" | "loading" | "database" | "failed">(
+    isPrivateApiMode() ? "loading" : "local"
+  );
 
   useEffect(() => {
     setLocalData({
@@ -89,6 +94,27 @@ export function ExportPreviewCenter({
       selfEvaluations: readJsonStorage(localStorageKeys.selfEvaluations),
       tutorFeedback: readJsonStorage(localStorageKeys.tutorFeedback)
     });
+  }, []);
+
+  useEffect(() => {
+    if (!isPrivateApiMode()) return;
+
+    let isActive = true;
+
+    getPrivateApi<unknown>("/api/private/export")
+      .then((data) => {
+        if (!isActive) return;
+        setDatabaseBackup(data);
+        setBackupStatus("database");
+      })
+      .catch(() => {
+        if (!isActive) return;
+        setBackupStatus("failed");
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const reportText = useMemo(() => {
@@ -121,6 +147,10 @@ export function ExportPreviewCenter({
   }, [childProfiles, events, goals, records]);
 
   const backupJson = useMemo(() => {
+    if (databaseBackup) {
+      return JSON.stringify(databaseBackup, null, 2);
+    }
+
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -135,7 +165,21 @@ export function ExportPreviewCenter({
     };
 
     return JSON.stringify(payload, null, 2);
-  }, [childProfiles, events, goals, localData, records, resources]);
+  }, [childProfiles, databaseBackup, events, goals, localData, records, resources]);
+
+  const backupModeLabel =
+    backupStatus === "database"
+      ? "数据库备份已连接"
+      : backupStatus === "loading"
+        ? "正在读取数据库备份"
+        : backupStatus === "failed"
+          ? "数据库备份读取失败，当前显示本机备份"
+          : "当前显示本机备份";
+  const backupDescription =
+    backupStatus === "database"
+      ? "来自 Supabase PostgreSQL 的全量元数据备份，包含资料库、自评、家教反馈和 Storage 文件路径。"
+      : "当前为浏览器本机备份，适合 demo 和离线留档；部署数据库后会自动切换为 Supabase 备份。";
+  const backupFileName = databaseBackup ? "family-education-database-backup.json" : "family-education-local-backup.json";
 
   const calendarIcs = useMemo(
     () =>
@@ -220,15 +264,18 @@ export function ExportPreviewCenter({
                   <FileJson className="h-4 w-4 text-primary" />
                   完整备份包
                 </p>
+                <Badge variant={backupStatus === "database" ? "default" : "secondary"} className="mt-3">
+                  {backupModeLabel}
+                </Badge>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  包含孩子档案、日程、学习记录、目标、资源，以及本机新增的资料库、自评和家教反馈索引。
+                  {backupDescription}
                 </p>
                 <div className="mt-4 grid gap-2">
                   <Button variant="outline" onClick={() => copyText("backup", backupJson)}>
                     {copied === "backup" ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
                     {copied === "backup" ? "已复制" : "复制 JSON"}
                   </Button>
-                  <Button onClick={() => downloadTextFile("boyang-zhongyang-shuyang-backup.json", backupJson, "application/json;charset=utf-8")}>
+                  <Button onClick={() => downloadTextFile(backupFileName, backupJson, "application/json;charset=utf-8")}>
                     <Download className="mr-2 h-4 w-4" />
                     下载 JSON 备份
                   </Button>

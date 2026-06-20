@@ -110,6 +110,21 @@ Verify records appear in Supabase tables:
 - `child_intake_profiles`
 - `storage.objects` where `bucket_id = 'learning-materials'`
 
+Then open:
+
+```text
+http://127.0.0.1:3000/api/private/export
+```
+
+Expected JSON includes:
+
+```text
+"source":"supabase-private-api"
+"learning_materials"
+"self_evaluations"
+"tutor_feedback"
+```
+
 ## 5. iOS Calendar Test
 
 Open:
@@ -167,7 +182,11 @@ Persisted to Supabase Storage:
 - Learning material file bodies in the private `learning-materials` bucket
 - Download access through short-lived signed URLs
 
+Backup/export:
+
+- `GET /api/private/export` returns a database-backed JSON metadata backup.
+- Learning material file bodies remain in private Storage; the export includes storage paths and metadata.
+
 Still next step:
 
-- Add backup/export from database, not only browser state.
 - Add richer file management such as replace file, folder grouping, and preview thumbnails.
