@@ -220,6 +220,13 @@ npm run build
 /api/calendar/ios
 ```
 
+如果本地 demo 热更新后出现 500，通常是 Next dev 缓存问题。执行：
+
+```bash
+rm -rf .next
+env NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=/Users/moira/Documents/family/node_modules/@next/swc-wasm-nodejs npm run dev -- --hostname 127.0.0.1 --port 3000
+```
+
 ## 会后下一步
 
 1. 整理现场补充资料。
