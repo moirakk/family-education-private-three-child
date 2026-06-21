@@ -10,6 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child } from "@/lib/types";
 
 type ChildFormState = {
@@ -41,6 +42,7 @@ export function ChildManagement({
 }) {
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [form, setForm] = useState<ChildFormState>(emptyForm);
+  const [syncStatus, setSyncStatus] = useState("");
 
   const selectedChild = useMemo(
     () => childProfiles.find((child) => child.id === selectedChildId) ?? childProfiles[0],
@@ -63,50 +65,82 @@ export function ChildManagement({
     });
   }
 
-  function saveChild() {
+  function buildChildFromForm(id: string, base?: Child): Child {
+    return {
+      id,
+      firstName: form.firstName.trim(),
+      lastName: base?.lastName ?? "",
+      age: base?.age ?? 0,
+      grade: form.grade.trim() || "阶段待补充",
+      schoolName: form.schoolName.trim() || "学校待补充",
+      schoolProgram: form.schoolProgram.trim() || "课程组合待补充",
+      avatarColor: base?.avatarColor ?? "#7c3aed",
+      interests: base?.interests ?? [],
+      focusAreas: form.focusAreas.split(/[,，]/).map((item) => item.trim()).filter(Boolean)
+    };
+  }
+
+  async function saveChild() {
     if (!form.firstName.trim()) {
       return;
     }
 
     if (editingChild) {
+      const previousChildren = childProfiles;
+      const updatedChild = buildChildFromForm(editingChild.id, editingChild);
       setChildren((current) =>
-        current.map((child) =>
-          child.id === editingChild.id
-            ? {
-                ...child,
-                firstName: form.firstName,
-                grade: form.grade,
-                schoolName: form.schoolName,
-                schoolProgram: form.schoolProgram,
-                focusAreas: form.focusAreas.split(",").map((item) => item.trim()).filter(Boolean)
-              }
-            : child
-        )
+        current.map((child) => (child.id === editingChild.id ? updatedChild : child))
       );
+
+      if (isPrivateApiMode() && !editingChild.id.startsWith("local-")) {
+        try {
+          setSyncStatus("正在同步孩子档案修改...");
+          const savedChild = await putPrivateApi<Child>(`/api/private/children?childId=${encodeURIComponent(editingChild.id)}`, updatedChild);
+          setChildren((current) => current.map((child) => (child.id === editingChild.id ? savedChild : child)));
+          setSyncStatus("孩子档案修改已同步到数据库。");
+        } catch (error) {
+          setChildren(previousChildren);
+          setSyncStatus(error instanceof Error ? `孩子档案修改失败，已恢复：${error.message}` : "孩子档案修改失败，已恢复。");
+        }
+      }
       return;
     }
 
-    const newChild: Child = {
-      id: crypto.randomUUID(),
-      firstName: form.firstName,
-      lastName: "Tanaka",
-      age: 0,
-      grade: form.grade || "New student",
-      schoolName: form.schoolName || "School pending",
-      schoolProgram: form.schoolProgram || "Program pending",
-      avatarColor: "#7c3aed",
-      interests: [],
-      focusAreas: form.focusAreas.split(",").map((item) => item.trim()).filter(Boolean)
-    };
+    const localId = `local-child-${crypto.randomUUID()}`;
+    const newChild = buildChildFromForm(localId);
     setChildren((current) => [...current, newChild]);
     onSelectChild(newChild.id);
+
+    if (isPrivateApiMode()) {
+      try {
+        setSyncStatus("正在同步新增孩子档案...");
+        const savedChild = await postPrivateApi<Child>("/api/private/children", newChild);
+        setChildren((current) => current.map((child) => (child.id === localId ? savedChild : child)));
+        onSelectChild(savedChild.id);
+        setSyncStatus("新增孩子档案已同步到数据库。");
+      } catch (error) {
+        setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
+      }
+    }
   }
 
-  function deleteChild(childId: string) {
+  async function deleteChild(childId: string) {
+    const previousChildren = childProfiles;
     setChildren((current) => current.filter((child) => child.id !== childId));
     if (selectedChildId === childId) {
       const fallback = childProfiles.find((child) => child.id !== childId);
       if (fallback) onSelectChild(fallback.id);
+    }
+
+    if (isPrivateApiMode() && !childId.startsWith("local-")) {
+      try {
+        setSyncStatus("正在从数据库删除孩子档案...");
+        await deletePrivateApi(`/api/private/children?childId=${encodeURIComponent(childId)}`);
+        setSyncStatus("孩子档案已从数据库删除。");
+      } catch (error) {
+        setChildren(previousChildren);
+        setSyncStatus(error instanceof Error ? `删除失败，已恢复：${error.message}` : "删除失败，已恢复。");
+      }
     }
   }
 
@@ -139,6 +173,7 @@ export function ChildManagement({
         </div>
       </CardHeader>
       <CardContent className="min-w-0">
+        {syncStatus && <p className="mb-3 rounded-md bg-slate-50 px-3 py-2 text-xs text-muted-foreground">{syncStatus}</p>}
         <div className="flex w-full max-w-full gap-3 overflow-x-auto pb-2">
           {childProfiles.map((child) => (
             <div

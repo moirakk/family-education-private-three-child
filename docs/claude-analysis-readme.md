@@ -287,6 +287,9 @@ flowchart LR
 当前已接入或规划中的私有接口：
 
 - `GET /api/private/snapshot`
+- `POST /api/private/children`
+- `PUT /api/private/children`
+- `DELETE /api/private/children`
 - `PUT /api/private/intake`
 - `POST /api/private/events`
 - `PUT /api/private/events`
@@ -437,7 +440,7 @@ flowchart TD
 
 中期，形成长期系统：
 
-1. 补齐孩子档案、教育路线图等低频模块的完整 CRUD。
+1. 补齐教育路线图等低频模块的完整 CRUD。
 2. 数据恢复。
 3. 将家教轻量提交入口扩展为按老师/孩子授权。
 4. 月报生成。

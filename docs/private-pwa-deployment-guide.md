@@ -113,6 +113,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 私有在线模式 `private-api` 已支持：
 
 - `GET /api/private/snapshot`：读取家庭、孩子、日程、学习记录、目标、资源。
+- `POST /api/private/children` / `PUT /api/private/children` / `DELETE /api/private/children`：新增、编辑和删除孩子档案。
 - `PUT /api/private/intake`：保存家长现场补充资料。
 - `POST /api/private/events` / `PUT /api/private/events` / `DELETE /api/private/events`：新增、编辑和删除日程。
 - `POST /api/private/learning-records` / `PUT /api/private/learning-records` / `DELETE /api/private/learning-records`：新增、编辑和删除学习记录。

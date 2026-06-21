@@ -105,6 +105,7 @@ http://127.0.0.1:3000
 
 Test these writes:
 
+- Add/edit child profile.
 - Add calendar event.
 - Add learning record.
 - Upload a learning material file.
