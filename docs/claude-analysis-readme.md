@@ -39,6 +39,7 @@ Family Education Management System 是一个面向多孩家庭的教育管理系
 - 不公开到 GitHub。
 - 不以复杂登录为第一优先级。
 - 使用私有访问码保护页面。
+- 访问码通过 `POST /api/access` 提交，登录后使用签名 httpOnly session cookie，不把原始访问码放进 URL。
 - 数据进入 Supabase PostgreSQL。
 - 文件进入 Supabase Storage。
 - 支持 PWA，家长可在 iPhone 添加到主屏幕。

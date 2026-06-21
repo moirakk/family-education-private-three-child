@@ -1,36 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  accessSessionCookieName,
+  getConfiguredAccessCodes,
+  resolveRoleByCode,
+  verifyAccessSession,
+  type AccessRole
+} from "@/lib/private-access";
 
-const accessCookieName = "family_private_access";
-const accessRoleCookieName = "family_private_role";
+const legacyAccessCookieName = "family_private_access";
+const legacyRoleCookieName = "family_private_role";
 const dashboardRoles = new Set(["parent", "caregiver"]);
 const tutorApiRoles = new Set(["parent", "caregiver", "tutor"]);
-
-type AccessRole = "parent" | "caregiver" | "tutor" | "viewer";
 
 function isPublicAsset(pathname: string) {
   return pathname.startsWith("/_next") || pathname === "/favicon.ico";
 }
 
-function getConfiguredAccessCodes() {
-  return [
-    { role: "parent" as const, code: process.env.PRIVATE_PARENT_ACCESS_CODE || process.env.PRIVATE_ACCESS_CODE },
-    { role: "caregiver" as const, code: process.env.PRIVATE_CAREGIVER_ACCESS_CODE },
-    { role: "tutor" as const, code: process.env.PRIVATE_TUTOR_ACCESS_CODE },
-    { role: "viewer" as const, code: process.env.PRIVATE_VIEWER_ACCESS_CODE }
-  ].filter((entry) => Boolean(entry.code?.trim()));
-}
+async function getCookieRole(request: NextRequest): Promise<AccessRole | null> {
+  const sessionRole = await verifyAccessSession(request.cookies.get(accessSessionCookieName)?.value);
+  if (sessionRole) return sessionRole;
 
-function resolveRoleByCode(code: string | null): AccessRole | null {
-  if (!code) return null;
-  return getConfiguredAccessCodes().find((entry) => entry.code === code)?.role ?? null;
-}
-
-function getCookieRole(request: NextRequest): AccessRole | null {
-  const role = request.cookies.get(accessRoleCookieName)?.value;
+  const role = request.cookies.get(legacyRoleCookieName)?.value;
   if (role === "parent" || role === "caregiver" || role === "tutor" || role === "viewer") return role;
 
   // Backward compatibility for older local sessions that stored the raw access code.
-  return resolveRoleByCode(request.cookies.get(accessCookieName)?.value ?? null);
+  return resolveRoleByCode(request.cookies.get(legacyAccessCookieName)?.value ?? null);
 }
 
 function hasDashboardAccess(role: AccessRole | null) {
@@ -43,11 +37,15 @@ function hasPrivateApiAccess(pathname: string, role: AccessRole | null) {
   return dashboardRoles.has(role);
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const hasAccessConfig = getConfiguredAccessCodes().length > 0;
-  const cookieRole = getCookieRole(request);
+  const cookieRole = await getCookieRole(request);
 
   if (!hasAccessConfig || isPublicAsset(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
+  if (request.nextUrl.pathname === "/api/access") {
     return NextResponse.next();
   }
 
@@ -80,31 +78,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname === "/access") {
-    const submittedCode = request.nextUrl.searchParams.get("code");
-    const role = resolveRoleByCode(submittedCode);
-
-    if (role && (hasDashboardAccess(role) || role === "tutor")) {
+    if (request.method === "GET" && cookieRole) {
       const requestedNextPath = request.nextUrl.searchParams.get("next") || "/";
-      const nextPath = role === "tutor" ? "/tutor-feedback" : requestedNextPath;
-      const redirectUrl = new URL(nextPath.startsWith("/") ? nextPath : "/", request.url);
-      const response = NextResponse.redirect(redirectUrl);
-
-      response.cookies.set(accessCookieName, "granted", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: request.nextUrl.protocol === "https:",
-        maxAge: 60 * 60 * 12,
-        path: "/"
-      });
-      response.cookies.set(accessRoleCookieName, role, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: request.nextUrl.protocol === "https:",
-        maxAge: 60 * 60 * 12,
-        path: "/"
-      });
-
-      return response;
+      const nextPath = cookieRole === "tutor" ? "/tutor-feedback" : requestedNextPath;
+      return NextResponse.redirect(new URL(nextPath.startsWith("/") ? nextPath : "/", request.url));
     }
 
     return NextResponse.next();

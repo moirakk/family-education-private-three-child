@@ -15,6 +15,7 @@ const parentCode = randomAccessCode("PARENT");
 const caregiverCode = randomAccessCode("CARE");
 const tutorCode = randomAccessCode("TUTOR");
 const viewerCode = randomAccessCode("VIEW");
+const sessionSecret = randomToken(32);
 const calendarToken = randomToken(24);
 
 console.log("Private access codes for .env.local / Vercel:");
@@ -23,6 +24,7 @@ console.log(`PRIVATE_PARENT_ACCESS_CODE="${parentCode}"`);
 console.log(`PRIVATE_CAREGIVER_ACCESS_CODE="${caregiverCode}"`);
 console.log(`PRIVATE_TUTOR_ACCESS_CODE="${tutorCode}"`);
 console.log(`PRIVATE_VIEWER_ACCESS_CODE="${viewerCode}"`);
+console.log(`PRIVATE_SESSION_SECRET="${sessionSecret}"`);
 console.log("");
 console.log("Calendar token rotation SQL for Supabase:");
 console.log("");

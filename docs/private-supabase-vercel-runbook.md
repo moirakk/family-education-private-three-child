@@ -54,6 +54,7 @@ PRIVATE_PARENT_ACCESS_CODE="choose-a-parent-access-code"
 PRIVATE_CAREGIVER_ACCESS_CODE="choose-a-caregiver-access-code"
 PRIVATE_TUTOR_ACCESS_CODE="choose-a-tutor-access-code"
 PRIVATE_VIEWER_ACCESS_CODE="choose-a-viewer-access-code"
+PRIVATE_SESSION_SECRET="generate-with-npm-run-private-secrets"
 SUPABASE_LEARNING_MATERIALS_BUCKET="learning-materials"
 ```
 
@@ -178,6 +179,7 @@ Add the same values from `.env.local` to Vercel:
 - `PRIVATE_CAREGIVER_ACCESS_CODE`
 - `PRIVATE_TUTOR_ACCESS_CODE`
 - `PRIVATE_VIEWER_ACCESS_CODE`
+- `PRIVATE_SESSION_SECRET`
 - `SUPABASE_LEARNING_MATERIALS_BUCKET`
 
 Deploy from the private branch/repo that contains this private version.
@@ -207,7 +209,8 @@ Persisted to Supabase Storage:
 Backup/export:
 
 - `GET /api/private/export` returns a database-backed JSON metadata backup.
-- Learning material file bodies remain in private Storage; the export includes storage paths and metadata.
+- `npm run private:backup-storage -- --out ./family-education-storage-backup` downloads private Storage file bodies and writes `storage-manifest.json`.
+- Learning material database export includes storage paths and metadata; file bodies are backed up by the Storage script.
 
 Restore smoke test:
 
@@ -223,7 +226,7 @@ SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
 npm run private:restore -- --file ./family-education-database-backup.json
 ```
 
-This restores database metadata only. File bodies remain in Supabase Storage and must be migrated separately if the Storage project changes.
+This restores database metadata only. If the Storage project changes, restore the files from the `private:backup-storage` output before validating signed downloads.
 
 Still next step:
 

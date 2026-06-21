@@ -7,11 +7,16 @@ import { Label } from "@/components/ui/label";
 export default async function AccessPage({
   searchParams
 }: {
-  searchParams: Promise<{ next?: string; code?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const next = params.next ?? "/";
-  const hasWrongCode = Boolean(params.code);
+  const errorMessage =
+    params.error === "locked"
+      ? "尝试次数过多，请稍后再试。"
+      : params.error
+        ? "访问码不正确，请重新输入。"
+        : "";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
@@ -29,12 +34,12 @@ export default async function AccessPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action="/access" method="get" className="grid gap-4">
+          <form action="/api/access" method="post" className="grid gap-4">
             <input type="hidden" name="next" value={next} />
             <div className="space-y-1.5">
               <Label htmlFor="code">访问码</Label>
               <Input id="code" name="code" type="password" autoComplete="current-password" autoFocus />
-              {hasWrongCode && <p className="text-xs text-destructive">访问码不正确，请重新输入。</p>}
+              {errorMessage && <p className="text-xs text-destructive">{errorMessage}</p>}
             </div>
             <Button type="submit">进入私有工作台</Button>
           </form>

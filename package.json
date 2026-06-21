@@ -12,6 +12,7 @@
     "build:clean": "rm -rf .next && next build",
     "start": "next start",
     "lint": "eslint .",
+    "private:backup-storage": "node scripts/private-backup-storage.mjs",
     "private:check-env": "node scripts/private-check-env.mjs",
     "private:restore": "node scripts/private-restore-backup.mjs",
     "private:secrets": "node scripts/private-generate-secrets.mjs",

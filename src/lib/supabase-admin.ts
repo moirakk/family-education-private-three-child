@@ -17,8 +17,8 @@ export function getSupabaseAdminClient() {
 }
 
 export function assertPrivateWriteConfigured() {
-  if (!process.env.PRIVATE_ACCESS_CODE) {
-    throw new Error("PRIVATE_ACCESS_CODE is required before enabling no-login private writes.");
+  if (!process.env.PRIVATE_PARENT_ACCESS_CODE && !process.env.PRIVATE_ACCESS_CODE) {
+    throw new Error("PRIVATE_PARENT_ACCESS_CODE is required before enabling no-login private writes.");
   }
 
   if (!process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID) {

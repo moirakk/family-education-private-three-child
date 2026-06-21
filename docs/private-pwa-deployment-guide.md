@@ -59,9 +59,11 @@ PRIVATE_PARENT_ACCESS_CODE
 PRIVATE_CAREGIVER_ACCESS_CODE
 PRIVATE_TUTOR_ACCESS_CODE
 PRIVATE_VIEWER_ACCESS_CODE
+PRIVATE_SESSION_SECRET
 ```
 
 `PRIVATE_PARENT_ACCESS_CODE` 是必须项。`PRIVATE_CAREGIVER_ACCESS_CODE`、`PRIVATE_TUTOR_ACCESS_CODE`、`PRIVATE_VIEWER_ACCESS_CODE` 可按需配置。
+`PRIVATE_SESSION_SECRET` 用于签名私有访问会话 cookie，应使用 `npm run private:secrets` 生成的高熵值。
 `PRIVATE_ACCESS_CODE` 只作为旧部署兼容项。
 
 iOS 日历订阅 token 不再放在 Vercel env，主来源是 `family_settings.calendar_token`。
@@ -106,6 +108,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
 - 完整 Dashboard 只允许 parent/caregiver 访问码进入；tutor/viewer code 预留给后续更窄的提交入口。
 - 家教访问码只能进入 `/tutor-feedback` 课后反馈入口，不能进入完整工作台。
+- 访问码通过 `POST /api/access` 提交，不进入 URL；登录后签发 httpOnly、sameSite=lax、有过期时间的签名 session cookie。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
 
 ## 当前已接入数据库的模块
@@ -139,6 +142,12 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 npm run private:restore -- --file ./family-education-database-backup.json --dry-run
 ```
 
+Storage 文件本体备份：
+
+```bash
+npm run private:backup-storage -- --out ./family-education-storage-backup
+```
+
 实际恢复：
 
 ```bash
@@ -147,7 +156,7 @@ SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
 npm run private:restore -- --file ./family-education-database-backup.json
 ```
 
-当前 restore 是数据库 metadata upsert。学习资料文件本体仍依赖 Supabase Storage 中已有对象；如果换 Supabase 项目，需要单独迁移 Storage 文件。
+当前 restore 是数据库 metadata upsert。学习资料文件本体需配合 `private:backup-storage` 导出的文件夹迁移；如果换 Supabase 项目，需要先恢复 Storage 文件，再验证数据库里的 `storage_path` 可下载。
 
 ## 部署后自检
 
