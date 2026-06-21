@@ -113,6 +113,7 @@ npm run private:smoke -- --base-url http://127.0.0.1:3000 --parent-code "$PRIVAT
 Test these writes:
 
 - Add/edit child profile.
+- Verify deleting a child profile with linked data is blocked with a clear error.
 - Add calendar event.
 - Add learning record.
 - Add/edit education roadmap goal and milestone.

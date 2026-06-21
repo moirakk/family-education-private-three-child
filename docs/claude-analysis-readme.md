@@ -111,6 +111,7 @@ Family Education Management System 是一个面向多孩家庭的教育管理系
 - 本机新增日程
 - private-api 模式下新增、编辑、删除会同步 Supabase 数据库
 - 数据库写入 API
+- 孩子档案删除带后端保护：已有长期数据的档案不能直接删除，避免级联误删。
 - iOS Calendar ICS 订阅接口
 
 ### 5.4 学习记录

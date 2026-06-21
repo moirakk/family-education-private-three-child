@@ -125,6 +125,10 @@ export function ChildManagement({
   }
 
   async function deleteChild(childId: string) {
+    const child = childProfiles.find((item) => item.id === childId);
+    const confirmed = window.confirm(`确认删除${child?.firstName ? `「${child.firstName}」` : "这个孩子档案"}？只有空档案建议删除；已有记录的档案会被数据库保护。`);
+    if (!confirmed) return;
+
     const previousChildren = childProfiles;
     setChildren((current) => current.filter((child) => child.id !== childId));
     if (selectedChildId === childId) {

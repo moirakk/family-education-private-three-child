@@ -34,6 +34,34 @@ function mapChildRow(data: {
   };
 }
 
+async function countRows(
+  supabase: ReturnType<typeof getPrivateWriteContext>["supabase"],
+  table: string,
+  childId: string
+) {
+  const { count, error } = await supabase.from(table).select("child_id", { count: "exact", head: true }).eq("child_id", childId);
+  if (error) throw new Error(`${table}: ${error.message}`);
+  return count ?? 0;
+}
+
+async function getChildDependencyCount(
+  supabase: ReturnType<typeof getPrivateWriteContext>["supabase"],
+  childId: string
+) {
+  const counts = await Promise.all([
+    countRows(supabase, "child_intake_profiles", childId),
+    countRows(supabase, "calendar_event_children", childId),
+    countRows(supabase, "learning_records", childId),
+    countRows(supabase, "education_goals", childId),
+    countRows(supabase, "resources", childId),
+    countRows(supabase, "learning_materials", childId),
+    countRows(supabase, "self_evaluations", childId),
+    countRows(supabase, "tutor_feedback", childId)
+  ]);
+
+  return counts.reduce((sum, count) => sum + count, 0);
+}
+
 export async function POST(request: Request) {
   try {
     const { familyId, supabase } = getPrivateWriteContext();
@@ -111,6 +139,27 @@ export async function DELETE(request: Request) {
 
     if (countError) return NextResponse.json({ error: countError.message }, { status: 500 });
     if ((count ?? 0) <= 1) return NextResponse.json({ error: "At least one child profile is required" }, { status: 400 });
+
+    const { data: child, error: childError } = await supabase
+      .from("children")
+      .select("id")
+      .eq("family_id", familyId)
+      .eq("id", childId)
+      .maybeSingle();
+
+    if (childError) return NextResponse.json({ error: childError.message }, { status: 500 });
+    if (!child) return NextResponse.json({ error: "Child profile not found" }, { status: 404 });
+
+    const dependencyCount = await getChildDependencyCount(supabase, childId);
+    if (dependencyCount > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This child profile has linked education data and cannot be deleted. Edit the profile instead, or export a backup before manual database maintenance."
+        },
+        { status: 409 }
+      );
+    }
 
     const { error } = await supabase.from("children").delete().eq("family_id", familyId).eq("id", childId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
