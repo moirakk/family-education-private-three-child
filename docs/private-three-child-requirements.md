@@ -46,8 +46,8 @@
 ### 私有访问保护
 
 - 本地开发默认不启用访问码。
-- 私有部署时设置 `PRIVATE_ACCESS_CODE`，页面会先进入 `/access`。
-- iOS 日历订阅可额外设置 `PRIVATE_CALENDAR_TOKEN`，用 token 化订阅链接保护日历源。
+- 私有部署时设置 `PRIVATE_PARENT_ACCESS_CODE`，页面会先进入 `/access`。
+- iOS 日历订阅使用数据库里的 `family_settings.calendar_token`，可通过轮换该字段撤销旧订阅链接。
 - 伯仲叔特制版不强制登录，访问码就是正式私有入口。
 - 大众商业版再使用 Supabase Auth、家庭成员角色和更完整权限。
 

@@ -25,7 +25,7 @@ export default async function AccessPage({
             Family Education 私有访问
           </CardTitle>
           <CardDescription>
-            请输入访问码。这个入口用于私有部署时给家长安全查看和编辑。
+            请输入家长或照护人访问码。完整工作台只开放给可编辑家庭数据的角色。
           </CardDescription>
         </CardHeader>
         <CardContent>

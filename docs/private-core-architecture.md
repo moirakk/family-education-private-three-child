@@ -35,8 +35,8 @@
 ### Phase 2: 伯仲叔私有在线版
 
 - 部署到私有 Vercel 项目。
-- 设置访问码 `PRIVATE_ACCESS_CODE`。
-- 设置 iOS 日历 token `PRIVATE_CALENDAR_TOKEN`。
+- 设置家长访问码 `PRIVATE_PARENT_ACCESS_CODE`，可选设置 caregiver/tutor/viewer code。
+- iOS 日历 token 来自 `family_settings.calendar_token`，不放在 Vercel env。
 - 家长通过私有链接访问。
 - 不要求家长注册账号，不做登录流程。
 - 写入数据通过服务端私有 API 完成，由访问码/私有链接保护。
@@ -52,7 +52,7 @@
 - `POST /api/private/self-evaluations`
 - `POST /api/private/tutor-feedback`
 
-这些 API 只在配置 `PRIVATE_ACCESS_CODE`、`NEXT_PUBLIC_PRIVATE_FAMILY_ID`、`SUPABASE_SERVICE_ROLE_KEY` 后启用。service role key 只能存在服务端环境变量里，不能暴露到浏览器。
+这些 API 只在配置 `PRIVATE_PARENT_ACCESS_CODE` 或旧版 `PRIVATE_ACCESS_CODE`、`NEXT_PUBLIC_PRIVATE_FAMILY_ID`、`SUPABASE_SERVICE_ROLE_KEY` 后启用。service role key 只能存在服务端环境变量里，不能暴露到浏览器。
 
 前端数据模式：
 

@@ -371,13 +371,13 @@ flowchart TD
 - owner / parent / tutor / child roles
 - RLS 与应用权限一致性
 
-### 12.3 数据恢复还只是备份，不是完整 restore
+### 12.3 数据恢复已有最小脚本，但还不是完整灾备
 
 当前 `GET /api/private/export` 可以导出数据库元数据备份。
+当前 `npm run private:restore -- --file ./backup.json` 可以把导出的数据库 metadata upsert 回 Supabase。
 
-尚未实现：
+仍未实现：
 
-- 从 JSON restore 到数据库
 - 文件本体批量导出
 - 文件本体迁移
 - 版本化 migration restore

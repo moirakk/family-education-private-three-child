@@ -14,7 +14,7 @@
 网页在 Vercel
 数据在 Supabase
 访问靠访问码
-日历靠 token
+日历靠数据库 token
 你的电脑只负责开发和维护
 ```
 
@@ -50,9 +50,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 NEXT_PUBLIC_PRIVATE_FAMILY_ID
 NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
-PRIVATE_ACCESS_CODE
-PRIVATE_CALENDAR_TOKEN
+PRIVATE_PARENT_ACCESS_CODE
+PRIVATE_CAREGIVER_ACCESS_CODE
+PRIVATE_TUTOR_ACCESS_CODE
+PRIVATE_VIEWER_ACCESS_CODE
 ```
+
+`PRIVATE_PARENT_ACCESS_CODE` 是必须项。`PRIVATE_CAREGIVER_ACCESS_CODE`、`PRIVATE_TUTOR_ACCESS_CODE`、`PRIVATE_VIEWER_ACCESS_CODE` 可按需配置。
+`PRIVATE_ACCESS_CODE` 只作为旧部署兼容项。
+
+iOS 日历订阅 token 不再放在 Vercel env，主来源是 `family_settings.calendar_token`。
+需要撤销或轮换时，更新数据库里的 `calendar_token`，旧 `webcal` 链接会失效。
 
 本地演示可以保持：
 
@@ -85,12 +93,13 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 ## 数据库长期稳定规则
 
 - `docs/private-supabase-schema.sql` 可以重复运行，policies 和 triggers 会先 drop 再创建。
-- 不要手动修改已分配的 `family_id`、`child_id`、`calendar_token`，这些会影响数据关联和 iOS 订阅。
+- 不要手动修改已分配的 `family_id`、`child_id`。`calendar_token` 可以在需要撤销旧 iOS 订阅链接时轮换。
 - 新增真实日程必须保证结束时间晚于开始时间。
 - 分数类数据只使用 0-100。
 - 学习资料文件本体放 Supabase Storage，`learning_materials` 表存索引、路径和元数据。
 - 自我评价与家教反馈独立成表，避免混进普通学习记录。
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
+- 完整 Dashboard 只允许 parent/caregiver 访问码进入；tutor/viewer code 预留给后续更窄的提交入口。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
 
 ## 当前已接入数据库的模块
@@ -107,6 +116,30 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - `GET /api/private/export`：导出 Supabase 数据库元数据备份，文件本体仍保留在私有 Storage。
 
 学习资料文件本体通过 `learning-materials` 私有 Storage bucket 保存；下载时服务端生成短期 signed URL。
+
+## 备份与恢复
+
+导出：
+
+```text
+/api/private/export
+```
+
+恢复演练：
+
+```bash
+npm run private:restore -- --file ./family-education-database-backup.json --dry-run
+```
+
+实际恢复：
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
+npm run private:restore -- --file ./family-education-database-backup.json
+```
+
+当前 restore 是数据库 metadata upsert。学习资料文件本体仍依赖 Supabase Storage 中已有对象；如果换 Supabase 项目，需要单独迁移 Storage 文件。
 
 ## 部署后自检
 
@@ -134,7 +167,7 @@ readyForPrivateDeploy: true
 /manifest.webmanifest
 /icon
 /sw.js
-/api/calendar/ios?token=<PRIVATE_CALENDAR_TOKEN>
+/api/calendar/ios?token=<family_settings.calendar_token>
 ```
 
 ## 发给家长的话术
@@ -156,4 +189,6 @@ readyForPrivateDeploy: true
 
 - 不把伯仲叔特制数据推到公开 GitHub。
 - `SUPABASE_SERVICE_ROLE_KEY` 只能放 Vercel 服务端环境变量。
-- 访问码适合伯仲叔特制版；大众商业版未来再做登录和家庭成员权限。
+- 访问码适合伯仲叔特制版；当前完整工作台只发 parent/caregiver code。
+- iOS 日历 token 泄露时，直接轮换 `family_settings.calendar_token` 并让家长重新订阅。
+- 大众商业版未来再做正式登录、家庭成员权限和审计日志。

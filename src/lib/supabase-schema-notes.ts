@@ -4,8 +4,7 @@ export const requiredSupabaseEnv = [
 ] as const;
 
 export const privateDeploymentEnv = [
-  "PRIVATE_ACCESS_CODE",
-  "PRIVATE_CALENDAR_TOKEN",
+  "PRIVATE_PARENT_ACCESS_CODE",
   "SUPABASE_SERVICE_ROLE_KEY",
   "NEXT_PUBLIC_FAMILY_DATA_MODE"
 ] as const;

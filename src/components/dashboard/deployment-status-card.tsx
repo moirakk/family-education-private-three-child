@@ -15,8 +15,11 @@ type HealthResponse = {
     supabaseAnonKey: boolean;
     supabaseServiceRole: boolean;
     privateFamilyId: boolean;
-    privateAccessCode: boolean;
-    privateCalendarToken: boolean;
+    privateParentAccessCode: boolean;
+    privateCaregiverAccessCode: boolean;
+    privateTutorAccessCode: boolean;
+    privateViewerAccessCode: boolean;
+    calendarTokenSource: string;
     learningMaterialsBucket: boolean;
     dataMode: string;
   };
@@ -27,8 +30,7 @@ const labels: Array<{ key: keyof HealthResponse["checks"]; label: string }> = [
   { key: "supabaseAnonKey", label: "Anon Key" },
   { key: "supabaseServiceRole", label: "Service Role" },
   { key: "privateFamilyId", label: "Family ID" },
-  { key: "privateAccessCode", label: "访问码" },
-  { key: "privateCalendarToken", label: "日历 Token" },
+  { key: "privateParentAccessCode", label: "家长访问码" },
   { key: "learningMaterialsBucket", label: "Storage Bucket" }
 ];
 
@@ -70,7 +72,7 @@ export function DeploymentStatusCard() {
               <DatabaseZap className="h-4 w-4 text-primary" />
               长期部署状态
             </CardTitle>
-            <CardDescription>检查数据库、访问码、iOS 日历和资料 Storage 是否已准备好。</CardDescription>
+            <CardDescription>检查数据库、家长访问码、iOS 日历 token 来源和资料 Storage 是否已准备好。</CardDescription>
           </div>
           <Badge variant={health?.readyForPrivateDeploy ? "success" : "warning"} className="gap-1">
             {health?.readyForPrivateDeploy ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
@@ -84,6 +86,7 @@ export function DeploymentStatusCard() {
             <div>
               <p className="text-sm font-semibold">环境变量检查</p>
               <p className="mt-1 text-xs text-muted-foreground">当前数据模式：{health?.checks.dataMode ?? "读取中"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">日历 token：{health?.checks.calendarTokenSource ?? "读取中"}</p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => void loadHealth()} disabled={loading}>
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -102,6 +105,13 @@ export function DeploymentStatusCard() {
               );
             })}
           </div>
+          {health && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              可选角色码：照护人 {health.checks.privateCaregiverAccessCode ? "已配置" : "未配置"}，
+              家教 {health.checks.privateTutorAccessCode ? "已配置" : "未配置"}，
+              只读 {health.checks.privateViewerAccessCode ? "已配置" : "未配置"}。
+            </p>
+          )}
           {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
         </div>
 

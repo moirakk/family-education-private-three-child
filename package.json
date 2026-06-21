@@ -12,6 +12,7 @@
     "build:clean": "rm -rf .next && next build",
     "start": "next start",
     "lint": "eslint .",
+    "private:restore": "node scripts/private-restore-backup.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

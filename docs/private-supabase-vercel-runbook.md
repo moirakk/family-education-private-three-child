@@ -44,8 +44,10 @@ NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 SUPABASE_SERVICE_ROLE_KEY="server-only-service-role-key"
 NEXT_PUBLIC_PRIVATE_FAMILY_ID="11111111-1111-1111-1111-111111111111"
-PRIVATE_ACCESS_CODE="choose-a-family-access-code"
-PRIVATE_CALENDAR_TOKEN="choose-a-long-random-calendar-token"
+PRIVATE_PARENT_ACCESS_CODE="choose-a-parent-access-code"
+PRIVATE_CAREGIVER_ACCESS_CODE="choose-a-caregiver-access-code"
+PRIVATE_TUTOR_ACCESS_CODE="choose-a-tutor-access-code"
+PRIVATE_VIEWER_ACCESS_CODE="choose-a-viewer-access-code"
 SUPABASE_LEARNING_MATERIALS_BUCKET="learning-materials"
 ```
 
@@ -130,7 +132,7 @@ Expected JSON includes:
 Open:
 
 ```text
-http://127.0.0.1:3000/api/calendar/ios?token=<PRIVATE_CALENDAR_TOKEN>
+http://127.0.0.1:3000/api/calendar/ios?token=<family_settings.calendar_token>
 ```
 
 Expected content includes:
@@ -143,7 +145,7 @@ X-WR-CALNAME:Family Education Calendar
 For Vercel deployment, subscribe on iPhone with:
 
 ```text
-webcal://<your-domain>/api/calendar/ios?token=<PRIVATE_CALENDAR_TOKEN>
+webcal://<your-domain>/api/calendar/ios?token=<family_settings.calendar_token>
 ```
 
 ## 6. Vercel Environment Variables
@@ -155,8 +157,10 @@ Add the same values from `.env.local` to Vercel:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_PRIVATE_FAMILY_ID`
-- `PRIVATE_ACCESS_CODE`
-- `PRIVATE_CALENDAR_TOKEN`
+- `PRIVATE_PARENT_ACCESS_CODE`
+- `PRIVATE_CAREGIVER_ACCESS_CODE`
+- `PRIVATE_TUTOR_ACCESS_CODE`
+- `PRIVATE_VIEWER_ACCESS_CODE`
 - `SUPABASE_LEARNING_MATERIALS_BUCKET`
 
 Deploy from the private branch/repo that contains this private version.
@@ -186,6 +190,22 @@ Backup/export:
 
 - `GET /api/private/export` returns a database-backed JSON metadata backup.
 - Learning material file bodies remain in private Storage; the export includes storage paths and metadata.
+
+Restore smoke test:
+
+```bash
+npm run private:restore -- --file ./family-education-database-backup.json --dry-run
+```
+
+Actual restore/upsert:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
+npm run private:restore -- --file ./family-education-database-backup.json
+```
+
+This restores database metadata only. File bodies remain in Supabase Storage and must be migrated separately if the Storage project changes.
 
 Still next step:
 
