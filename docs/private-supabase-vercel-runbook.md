@@ -36,6 +36,12 @@ The default private family id is:
 
 ## 3. Local `.env.local`
 
+Generate private access codes and the calendar-token rotation SQL:
+
+```bash
+npm run private:secrets
+```
+
 Create `.env.local` from `.env.example`:
 
 ```text
@@ -49,6 +55,12 @@ PRIVATE_CAREGIVER_ACCESS_CODE="choose-a-caregiver-access-code"
 PRIVATE_TUTOR_ACCESS_CODE="choose-a-tutor-access-code"
 PRIVATE_VIEWER_ACCESS_CODE="choose-a-viewer-access-code"
 SUPABASE_LEARNING_MATERIALS_BUCKET="learning-materials"
+```
+
+Check local readiness:
+
+```bash
+npm run private:check-env
 ```
 
 Then run:
