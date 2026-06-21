@@ -108,6 +108,7 @@ Test these writes:
 - Add/edit child profile.
 - Add calendar event.
 - Add learning record.
+- Add/edit education roadmap goal and milestone.
 - Upload a learning material file.
 - Add learning material external link metadata.
 - Add child self-evaluation.
@@ -120,6 +121,8 @@ Verify records appear in Supabase tables:
 - `calendar_events`
 - `calendar_event_children`
 - `learning_records`
+- `education_goals`
+- `milestones`
 - `learning_materials`
 - `self_evaluations`
 - `tutor_feedback`
@@ -188,6 +191,7 @@ Persisted to PostgreSQL:
 - Intake profiles
 - Calendar events
 - Learning records
+- Education goals and milestones
 - Learning material metadata
 - Self-evaluations
 - Tutor feedback

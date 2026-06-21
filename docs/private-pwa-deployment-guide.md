@@ -117,6 +117,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - `PUT /api/private/intake`：保存家长现场补充资料。
 - `POST /api/private/events` / `PUT /api/private/events` / `DELETE /api/private/events`：新增、编辑和删除日程。
 - `POST /api/private/learning-records` / `PUT /api/private/learning-records` / `DELETE /api/private/learning-records`：新增、编辑和删除学习记录。
+- `POST /api/private/roadmap` / `PUT /api/private/roadmap` / `DELETE /api/private/roadmap`：新增、编辑和删除教育目标及里程碑。
 - `POST /api/private/materials` / `PUT /api/private/materials` / `DELETE /api/private/materials`：保存、编辑和删除学习资料索引。
 - `GET /api/private/self-evaluations` / `POST /api/private/self-evaluations` / `PUT /api/private/self-evaluations` / `DELETE /api/private/self-evaluations`：读取、新增、编辑和删除孩子自评。
 - `GET /api/private/tutor-feedback` / `POST /api/private/tutor-feedback` / `PUT /api/private/tutor-feedback` / `DELETE /api/private/tutor-feedback`：读取、新增、编辑和删除家教反馈。

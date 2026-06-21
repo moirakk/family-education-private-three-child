@@ -297,6 +297,9 @@ flowchart LR
 - `POST /api/private/learning-records`
 - `PUT /api/private/learning-records`
 - `DELETE /api/private/learning-records`
+- `POST /api/private/roadmap`
+- `PUT /api/private/roadmap`
+- `DELETE /api/private/roadmap`
 - `POST /api/private/materials`
 - `PUT /api/private/materials`
 - `DELETE /api/private/materials`
@@ -440,12 +443,11 @@ flowchart TD
 
 中期，形成长期系统：
 
-1. 补齐教育路线图等低频模块的完整 CRUD。
-2. 数据恢复。
-3. 将家教轻量提交入口扩展为按老师/孩子授权。
-4. 月报生成。
-5. 搜索和资料分类。
-6. 权限与审计。
+1. 将家教轻量提交入口扩展为按老师/孩子授权。
+2. 月报生成。
+3. 搜索和资料分类。
+4. 更细的权限与审计。
+5. 文件替换、文件夹分组和预览缩略图。
 
 长期，走向商业化：
 

@@ -70,12 +70,18 @@
 - 移动端可用。
 - 定制数据只保留在私有分支或私有部署，不进入公开 GitHub。
 
-### P1 可随后增强
+### 已接入长期版能力
 
 - Supabase 持久化，伯仲叔版通过私有服务端 API 写入，不要求家长登录。
 - 家长现场补充日程实时进入 iOS 订阅源。
-- 大众商业版登录和家庭权限。
 - 学习资料文件迁移到 Supabase Storage，支持多设备长期访问。
+- 孩子档案、日程、学习记录、路线图、学习资料、自评和家教反馈支持数据库增删改。
+- JSON 导出和命令行恢复演练。
+- iOS 日历 token 可在数据库轮换。
+
+### P1 可随后增强
+
+- 大众商业版登录和家庭权限。
 - 月报导出。
 - AI 学习建议。
 - Vercel 私有部署。
@@ -90,6 +96,7 @@
 - `src/lib/local-family-repository.ts`：明天可用的本机数据仓库边界，后续替换为 Supabase repository。
 - `src/app/api/private/intake/route.ts`：伯仲叔无登录版本的现场补充资料写入 API。
 - `src/app/api/private/events/route.ts`：伯仲叔无登录版本的日程写入 API。
+- `src/app/api/private/roadmap/route.ts`：教育路线图目标和里程碑写入 API。
 
 ## 需要继续补充的信息
 

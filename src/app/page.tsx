@@ -46,6 +46,7 @@ export default function Home() {
   const [selectedChildId, setSelectedChildId] = useState(pilotChildren[0].id);
   const [localCalendarEvents, setLocalCalendarEvents] = useState<typeof pilotCalendarEvents>([]);
   const [localLearningRecords, setLocalLearningRecords] = useState<typeof pilotLearningRecords>([]);
+  const [roadmapGoals, setRoadmapGoals] = useState<typeof pilotEducationGoals>(pilotEducationGoals);
   const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
 
   useEffect(() => {
@@ -84,6 +85,10 @@ export default function Home() {
   const baseEducationGoals = remoteSnapshot?.educationGoals ?? pilotEducationGoals;
   const baseResources = remoteSnapshot?.resources ?? pilotResources;
 
+  useEffect(() => {
+    setRoadmapGoals(baseEducationGoals);
+  }, [baseEducationGoals]);
+
   const learningRecords = useMemo(() => [...localLearningRecords, ...baseLearningRecords], [baseLearningRecords, localLearningRecords]);
   const totalMinutes = learningRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
   const calendarEvents = useMemo(
@@ -91,8 +96,8 @@ export default function Home() {
     [baseCalendarEvents, localCalendarEvents]
   );
   const averageGoalProgress =
-    baseEducationGoals.length > 0
-      ? Math.round(baseEducationGoals.reduce((sum, goal) => sum + goal.progress, 0) / baseEducationGoals.length)
+    roadmapGoals.length > 0
+      ? Math.round(roadmapGoals.reduce((sum, goal) => sum + goal.progress, 0) / roadmapGoals.length)
       : 0;
 
   return (
@@ -123,7 +128,7 @@ export default function Home() {
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
           <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
-          <MetricCard title="教育目标" value={String(pilotEducationGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
+          <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
           <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
         </section>
 
@@ -141,11 +146,11 @@ export default function Home() {
           <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={baseEducationGoals} records={learningRecords} />
+        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
         <ExportPreviewCenter
           childProfiles={managedChildren}
           events={calendarEvents}
-          goals={baseEducationGoals}
+          goals={roadmapGoals}
           records={learningRecords}
           resources={baseResources}
         />
@@ -159,7 +164,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-          <ChildProfile child={selectedChild} records={learningRecords} goals={baseEducationGoals} />
+          <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
           <ChildManagement
             childProfiles={managedChildren}
             setChildren={setManagedChildren}
@@ -169,8 +174,8 @@ export default function Home() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={baseEducationGoals} />
-          <EducationRoadmap goals={baseEducationGoals} childProfiles={managedChildren} />
+          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
+          <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
         </div>
 
         <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
