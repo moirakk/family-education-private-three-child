@@ -104,6 +104,12 @@ Then open:
 http://127.0.0.1:3000
 ```
 
+You can run the automated smoke checks against local dev:
+
+```bash
+npm run private:smoke -- --base-url http://127.0.0.1:3000 --parent-code "$PRIVATE_PARENT_ACCESS_CODE"
+```
+
 Test these writes:
 
 - Add/edit child profile.
@@ -183,6 +189,19 @@ Add the same values from `.env.local` to Vercel:
 - `SUPABASE_LEARNING_MATERIALS_BUCKET`
 
 Deploy from the private branch/repo that contains this private version.
+
+After deployment, run:
+
+```bash
+npm run private:smoke -- \
+  --base-url https://your-private-domain.vercel.app \
+  --parent-code "$PRIVATE_PARENT_ACCESS_CODE" \
+  --calendar-token "<family_settings.calendar_token>" \
+  --expect-ready \
+  --deep-private
+```
+
+This checks health, access session cookies, PWA assets, iOS Calendar, and the database export endpoint.
 
 ## 7. Current Persistence Status
 

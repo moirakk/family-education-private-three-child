@@ -201,6 +201,19 @@ readyForPrivateDeploy: true
 /api/calendar/ios?token=<family_settings.calendar_token>
 ```
 
+自动化 smoke：
+
+```bash
+npm run private:smoke -- \
+  --base-url <私有链接> \
+  --parent-code "<PRIVATE_PARENT_ACCESS_CODE>" \
+  --calendar-token "<family_settings.calendar_token>" \
+  --expect-ready \
+  --deep-private
+```
+
+该命令会检查 health、访问码会话 cookie、PWA manifest/icon/service worker/offline page、iOS 日历和数据库导出。
+
 ## 发给家长的话术
 
 ```text

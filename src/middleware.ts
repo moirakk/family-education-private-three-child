@@ -13,7 +13,14 @@ const dashboardRoles = new Set(["parent", "caregiver"]);
 const tutorApiRoles = new Set(["parent", "caregiver", "tutor"]);
 
 function isPublicAsset(pathname: string) {
-  return pathname.startsWith("/_next") || pathname === "/favicon.ico";
+  return (
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
+    pathname === "/icon" ||
+    pathname === "/apple-icon" ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/api/health"
+  );
 }
 
 async function getCookieRole(request: NextRequest): Promise<AccessRole | null> {

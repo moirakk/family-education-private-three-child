@@ -364,6 +364,7 @@ Storage：
 最近验证通过：
 
 ```bash
+npm run private:smoke -- --help
 npm run typecheck
 npm run lint
 npm run build
@@ -421,6 +422,7 @@ SUPABASE_LEARNING_MATERIALS_BUCKET
 - 真实上传文件到 Storage
 - 真实导出 JSON
 - 真实 dry-run restore
+- 真实 `npm run private:smoke -- --base-url <private-url> --parent-code <code> --calendar-token <token> --expect-ready --deep-private`
 - 真实 iPhone PWA
 - 真实 iOS Calendar 订阅
 
