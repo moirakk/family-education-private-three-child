@@ -210,6 +210,7 @@ Backup/export:
 
 - `GET /api/private/export` returns a database-backed JSON metadata backup.
 - `npm run private:backup-storage -- --out ./family-education-storage-backup` downloads private Storage file bodies and writes `storage-manifest.json`.
+- `npm run private:restore-storage -- --dir ./family-education-storage-backup --dry-run` validates the Storage restore plan.
 - Learning material database export includes storage paths and metadata; file bodies are backed up by the Storage script.
 
 Restore smoke test:
@@ -227,6 +228,14 @@ npm run private:restore -- --file ./family-education-database-backup.json
 ```
 
 This restores database metadata only. If the Storage project changes, restore the files from the `private:backup-storage` output before validating signed downloads.
+
+Storage restore/upsert:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
+npm run private:restore-storage -- --dir ./family-education-storage-backup
+```
 
 Still next step:
 

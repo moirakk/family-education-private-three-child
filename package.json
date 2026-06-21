@@ -15,6 +15,7 @@
     "private:backup-storage": "node scripts/private-backup-storage.mjs",
     "private:check-env": "node scripts/private-check-env.mjs",
     "private:restore": "node scripts/private-restore-backup.mjs",
+    "private:restore-storage": "node scripts/private-restore-storage.mjs",
     "private:secrets": "node scripts/private-generate-secrets.mjs",
     "typecheck": "tsc --noEmit"
   },

@@ -148,6 +148,12 @@ Storage 文件本体备份：
 npm run private:backup-storage -- --out ./family-education-storage-backup
 ```
 
+Storage 文件本体恢复演练：
+
+```bash
+npm run private:restore-storage -- --dir ./family-education-storage-backup --dry-run
+```
+
 实际恢复：
 
 ```bash
@@ -156,7 +162,15 @@ SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
 npm run private:restore -- --file ./family-education-database-backup.json
 ```
 
-当前 restore 是数据库 metadata upsert。学习资料文件本体需配合 `private:backup-storage` 导出的文件夹迁移；如果换 Supabase 项目，需要先恢复 Storage 文件，再验证数据库里的 `storage_path` 可下载。
+Storage 实际恢复：
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
+npm run private:restore-storage -- --dir ./family-education-storage-backup
+```
+
+当前数据库 restore 是 metadata upsert。学习资料文件本体需配合 `private:backup-storage` / `private:restore-storage` 迁移；如果换 Supabase 项目，需要先恢复 Storage 文件，再验证数据库里的 `storage_path` 可下载。
 
 ## 部署后自检
 

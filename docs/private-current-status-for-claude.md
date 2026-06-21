@@ -235,6 +235,7 @@ f39ba5c Persist private calendar edits
 
 - `GET /api/private/export` 导出数据库 metadata JSON
 - `npm run private:backup-storage -- --out ./family-education-storage-backup` 下载 Supabase Storage 文件本体
+- `npm run private:restore-storage -- --dir ./family-education-storage-backup --dry-run` 演练 Storage 文件恢复
 - `npm run private:restore -- --file ./backup.json --dry-run` 恢复演练
 - `npm run private:restore -- --file ./backup.json` 实际 upsert 恢复
 
@@ -257,8 +258,8 @@ f39ba5c Persist private calendar edits
 限制：
 
 - 当前 restore 只恢复数据库 metadata。
-- Storage 文件本体已有下载备份脚本，但还没有自动上传恢复脚本。
-- 如果换 Supabase 项目，需要先恢复 Storage 文件，再验证 `storage_path` 是否仍可下载。
+- Storage 文件本体已有下载备份脚本和上传恢复脚本。
+- 如果换 Supabase 项目，需要先恢复 Storage 文件，再恢复数据库 metadata，最后验证 `storage_path` 是否仍可下载。
 
 ## 5. 权限与访问控制现状
 
@@ -436,9 +437,9 @@ SUPABASE_LEARNING_MATERIALS_BUCKET
 - 审计日志
 - token 轮换后台
 
-### 10.3 Storage 文件恢复仍需补上传路径
+### 10.3 Storage 文件恢复仍需真实云端演练
 
-当前 JSON restore 只恢复数据库 metadata，不恢复文件本体。文件下载备份脚本已经有了，但还缺“上传到新 bucket 并验证路径”的自动化脚本。
+当前 JSON restore 只恢复数据库 metadata，不恢复文件本体。文件下载和上传恢复脚本已经有了，但还没有在真实新 Supabase 项目里完整演练过。
 
 上线前至少需要一份人工 runbook：
 

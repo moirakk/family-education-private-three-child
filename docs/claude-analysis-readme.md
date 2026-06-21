@@ -383,6 +383,7 @@ flowchart TD
 
 当前 `GET /api/private/export` 可以导出数据库元数据备份。
 当前 `npm run private:restore -- --file ./backup.json` 可以把导出的数据库 metadata upsert 回 Supabase。
+当前 `npm run private:backup-storage` / `npm run private:restore-storage` 可以下载并恢复 Supabase Storage 文件本体。
 
 仍未实现：
 
