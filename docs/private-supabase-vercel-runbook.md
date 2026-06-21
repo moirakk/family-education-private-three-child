@@ -20,13 +20,15 @@ Open Supabase SQL Editor and run:
 2. `docs/private-supabase-storage.sql`
 3. `docs/private-pilot-seed-template.sql`
 
-Before running the seed file, replace:
+For the fastest private access-code version, you can run the seed file as-is.
+
+If you have already created a Supabase Auth parent user, optionally replace:
 
 ```sql
-owner_user_id uuid := '00000000-0000-0000-0000-000000000000';
+owner_user_id uuid := null;
 ```
 
-with the real Supabase Auth user id.
+with the real Supabase Auth user id. If left as `null`, `family_members` is skipped and can be added later when the commercial/authenticated version starts.
 
 The default private family id is:
 

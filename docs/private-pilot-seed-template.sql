@@ -1,10 +1,11 @@
 -- 伯仲叔私有版 Supabase seed template
 -- 先运行 docs/private-supabase-schema.sql，再运行本文件。
--- 使用前请把 owner_user_id 替换成 Supabase Auth 里家长账号的 user id。
+-- 如果已经创建 Supabase Auth 家长账号，可把 owner_user_id 替换成真实 auth.users.id。
+-- 私用访问码版本可以先保持 null，之后接正式登录时再补 family_members。
 
 do $$
 declare
-  owner_user_id uuid := '00000000-0000-0000-0000-000000000000';
+  owner_user_id uuid := null;
   target_family_id uuid := '11111111-1111-1111-1111-111111111111';
   boyang_id uuid := '22222222-2222-2222-2222-222222222222';
   zhongyang_id uuid := '33333333-3333-3333-3333-333333333333';
@@ -13,10 +14,6 @@ declare
   goal_zhongyang_id uuid := '66666666-6666-6666-6666-666666666666';
   goal_shuyang_id uuid := '77777777-7777-7777-7777-777777777777';
 begin
-  if owner_user_id = '00000000-0000-0000-0000-000000000000' then
-    raise exception 'Replace owner_user_id with a real Supabase auth.users.id before running this seed.';
-  end if;
-
   insert into public.families (id, name, timezone, locale)
   values (target_family_id, 'Family Education Management System', 'Asia/Tokyo', 'zh-CN')
   on conflict (id) do update set
@@ -31,11 +28,13 @@ begin
     calendar_name = excluded.calendar_name,
     updated_at = now();
 
-  insert into public.family_members (family_id, user_id, role, display_name)
-  values (target_family_id, owner_user_id, 'owner', '家长')
-  on conflict (family_id, user_id) do update set
-    role = excluded.role,
-    display_name = excluded.display_name;
+  if owner_user_id is not null then
+    insert into public.family_members (family_id, user_id, role, display_name)
+    values (target_family_id, owner_user_id, 'owner', '家长')
+    on conflict (family_id, user_id) do update set
+      role = excluded.role,
+      display_name = excluded.display_name;
+  end if;
 
   insert into public.children (
     id,

@@ -387,7 +387,7 @@ npm run private:restore -- --file /private/tmp/family-backup-test.json --dry-run
 1. 在 Supabase 创建私用项目。
 2. 运行 schema SQL。
 3. 创建 Storage private bucket。
-4. 运行 seed。
+4. 运行 seed；私用访问码版可以先不创建 Supabase Auth user，`owner_user_id` 可保持 `null`。
 5. 在 Vercel 配置环境变量。
 6. 部署私有链接。
 7. 家长 Safari 打开链接。
