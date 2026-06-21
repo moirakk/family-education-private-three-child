@@ -111,6 +111,7 @@ Test these writes:
 - Add learning material external link metadata.
 - Add child self-evaluation.
 - Add tutor feedback.
+- Open `/tutor-feedback` with tutor access code and submit a tutor feedback item.
 - Click `同步数据库` in parent intake workspace.
 
 Verify records appear in Supabase tables:

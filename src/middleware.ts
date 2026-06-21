@@ -39,7 +39,7 @@ function hasDashboardAccess(role: AccessRole | null) {
 
 function hasPrivateApiAccess(pathname: string, role: AccessRole | null) {
   if (!role) return false;
-  if (pathname.startsWith("/api/private/tutor-feedback")) return tutorApiRoles.has(role);
+  if (pathname.startsWith("/api/private/tutor-feedback") || pathname.startsWith("/api/private/tutor-context")) return tutorApiRoles.has(role);
   return dashboardRoles.has(role);
 }
 
@@ -69,12 +69,23 @@ export function middleware(request: NextRequest) {
     return new NextResponse("Private API requires an authorized access role.", { status: 403 });
   }
 
+  if (request.nextUrl.pathname === "/tutor-feedback") {
+    if (cookieRole && tutorApiRoles.has(cookieRole)) {
+      return NextResponse.next();
+    }
+
+    const accessUrl = new URL("/access", request.url);
+    accessUrl.searchParams.set("next", "/tutor-feedback");
+    return NextResponse.redirect(accessUrl);
+  }
+
   if (request.nextUrl.pathname === "/access") {
     const submittedCode = request.nextUrl.searchParams.get("code");
     const role = resolveRoleByCode(submittedCode);
 
-    if (role && hasDashboardAccess(role)) {
-      const nextPath = request.nextUrl.searchParams.get("next") || "/";
+    if (role && (hasDashboardAccess(role) || role === "tutor")) {
+      const requestedNextPath = request.nextUrl.searchParams.get("next") || "/";
+      const nextPath = role === "tutor" ? "/tutor-feedback" : requestedNextPath;
       const redirectUrl = new URL(nextPath.startsWith("/") ? nextPath : "/", request.url);
       const response = NextResponse.redirect(redirectUrl);
 

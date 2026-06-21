@@ -10,6 +10,11 @@
 2. 访问码。
 3. iOS 日历订阅链接。
 
+家教老师只拿到：
+
+1. 课后反馈链接：`/tutor-feedback`
+2. 家教访问码：`PRIVATE_TUTOR_ACCESS_CODE`
+
 ```text
 网页在 Vercel
 数据在 Supabase
@@ -100,6 +105,7 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 - 自我评价与家教反馈独立成表，避免混进普通学习记录。
 - iOS 日历订阅只依赖 `family_settings.calendar_token`，不要把访问码当日历 token 使用。
 - 完整 Dashboard 只允许 parent/caregiver 访问码进入；tutor/viewer code 预留给后续更窄的提交入口。
+- 家教访问码只能进入 `/tutor-feedback` 课后反馈入口，不能进入完整工作台。
 - 后续如果要改表结构，新增 migration 文件，不要直接覆盖已经上线数据库里的历史语义。
 
 ## 当前已接入数据库的模块
@@ -183,6 +189,18 @@ readyForPrivateDeploy: true
 
 第一次用 iPhone Safari 打开，输入访问码后，点分享按钮，选择“添加到主屏幕”。
 以后就可以像 App 一样从桌面打开。
+```
+
+## 发给家教的话术
+
+```text
+这是课后反馈提交入口，只用于填写本次课程反馈。
+
+链接：
+<私有链接>/tutor-feedback
+
+家教访问码：
+<PRIVATE_TUTOR_ACCESS_CODE>
 ```
 
 ## 注意

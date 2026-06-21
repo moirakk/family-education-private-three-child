@@ -305,6 +305,7 @@ flowchart LR
 - `POST /api/private/tutor-feedback`
 - `PUT /api/private/tutor-feedback`
 - `DELETE /api/private/tutor-feedback`
+- `GET /api/private/tutor-context`
 - `GET /api/private/export`
 - `GET /api/calendar/ios`
 - `GET /api/health`
@@ -438,7 +439,7 @@ flowchart TD
 
 1. 补齐孩子档案、教育路线图等低频模块的完整 CRUD。
 2. 数据恢复。
-3. 家教账号或轻量提交入口。
+3. 将家教轻量提交入口扩展为按老师/孩子授权。
 4. 月报生成。
 5. 搜索和资料分类。
 6. 权限与审计。
