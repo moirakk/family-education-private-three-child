@@ -36,7 +36,5 @@ on conflict (id) do update set
 
 -- Private no-login version uploads through server-side API using service role.
 -- Keep the bucket private. Do not add anon upload policies for this pilot.
-
-create index if not exists objects_learning_materials_owner_path_idx
-on storage.objects(bucket_id, owner, name)
-where bucket_id = 'learning-materials';
+-- Do not create indexes on storage.objects in Supabase hosted SQL Editor;
+-- that system table is owned by Supabase internals.
