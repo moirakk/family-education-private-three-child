@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildrenBelongToFamily, getPrivateWriteContext, jsonError, optionalString, requireString } from "@/app/api/private/_utils";
 import type { EventCategory } from "@/lib/types";
 
 type EventPayload = {
@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     if (!childIds.length) {
       return NextResponse.json({ error: "title, category, startsAt and childIds are required" }, { status: 400 });
     }
+    await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
     const { data, error } = await supabase
       .from("calendar_events")
@@ -94,6 +95,7 @@ export async function PUT(request: Request) {
 
     if (!eventId) return NextResponse.json({ error: "eventId is required" }, { status: 400 });
     if (!childIds.length) return NextResponse.json({ error: "childIds is required" }, { status: 400 });
+    await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
     const { data, error } = await supabase
       .from("calendar_events")

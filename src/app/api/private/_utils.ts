@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { assertPrivateWriteConfigured, getSupabaseAdminClient } from "@/lib/supabase-admin";
+import type { AccessRole } from "@/lib/private-access";
+
+type PrivateSupabaseClient = ReturnType<typeof getSupabaseAdminClient>;
 
 export function getPrivateWriteContext() {
   assertPrivateWriteConfigured();
@@ -17,6 +20,39 @@ export function getPrivateWriteContext() {
 
 export function jsonError(error: unknown, status = 500) {
   return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status });
+}
+
+export function getAccessRoleFromRequest(request: Request): AccessRole | null {
+  const role = request.headers.get("x-family-access-role");
+  return role === "parent" || role === "caregiver" || role === "tutor" || role === "viewer" ? role : null;
+}
+
+export async function assertChildBelongsToFamily(supabase: PrivateSupabaseClient, familyId: string, childId: string) {
+  const { data, error } = await supabase
+    .from("children")
+    .select("id")
+    .eq("family_id", familyId)
+    .eq("id", childId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Invalid child for this family.");
+}
+
+export async function assertChildrenBelongToFamily(supabase: PrivateSupabaseClient, familyId: string, childIds: string[]) {
+  const uniqueChildIds = [...new Set(childIds)];
+  if (uniqueChildIds.length === 0) throw new Error("childIds is required");
+
+  const { data, error } = await supabase
+    .from("children")
+    .select("id")
+    .eq("family_id", familyId)
+    .in("id", uniqueChildIds);
+
+  if (error) throw new Error(error.message);
+  if ((data ?? []).length !== uniqueChildIds.length) {
+    throw new Error("One or more children do not belong to this family.");
+  }
 }
 
 export function requireString(value: unknown, field: string) {

@@ -19,6 +19,10 @@ function mapChild(row: {
 export async function GET() {
   try {
     if (process.env.NEXT_PUBLIC_FAMILY_DATA_MODE !== "private-api") {
+      if (process.env.NODE_ENV === "production") {
+        return NextResponse.json({ error: "NEXT_PUBLIC_FAMILY_DATA_MODE must be private-api in production." }, { status: 500 });
+      }
+
       return NextResponse.json({
         data: {
           children: pilotChildren.map((child) => ({

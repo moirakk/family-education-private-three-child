@@ -84,7 +84,7 @@ export async function middleware(request: NextRequest) {
       return nextWithAccessRole(request, cookieRole);
     }
 
-    return new NextResponse("Private API requires an authorized access role.", { status: 403 });
+    return NextResponse.json({ error: "Private API requires an authorized access role." }, { status: 403 });
   }
 
   if (request.nextUrl.pathname === "/tutor-feedback") {

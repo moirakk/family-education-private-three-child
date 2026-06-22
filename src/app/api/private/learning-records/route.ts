@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, requireString, scoreOneToFive } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, requireString, scoreOneToFive } from "@/app/api/private/_utils";
 
 type LearningRecordPayload = {
   childId?: string;
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const subject = requireString(payload.subject, "subject");
     const title = requireString(payload.title, "title");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
       .from("learning_records")
@@ -49,6 +50,7 @@ export async function PUT(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const subject = requireString(payload.subject, "subject");
     const title = requireString(payload.title, "title");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!recordId) return NextResponse.json({ error: "recordId is required" }, { status: 400 });
 

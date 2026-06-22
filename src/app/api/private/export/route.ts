@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError } from "@/app/api/private/_utils";
+import { getAccessRoleFromRequest, getPrivateWriteContext, jsonError } from "@/app/api/private/_utils";
+
+export const maxDuration = 60;
 
 type QueryError = {
   message: string;
@@ -18,8 +20,13 @@ function assertQuery<T>(result: QueryResult<T>) {
   return result.data ?? [];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const role = getAccessRoleFromRequest(request);
+    if (role === "tutor" || role === "viewer") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { familyId, supabase } = getPrivateWriteContext();
     const [
       familyResult,

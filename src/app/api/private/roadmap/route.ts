@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
 import type { EducationGoal, GoalStatus } from "@/lib/types";
 
 type MilestonePayload = {
@@ -122,6 +122,7 @@ export async function POST(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const title = requireString(payload.title, "title");
     const milestones = cleanMilestones(payload.milestones);
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
       .from("education_goals")
@@ -167,6 +168,7 @@ export async function PUT(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const title = requireString(payload.title, "title");
     const milestones = cleanMilestones(payload.milestones);
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!goalId) return NextResponse.json({ error: "goalId is required" }, { status: 400 });
 

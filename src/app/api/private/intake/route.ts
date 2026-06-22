@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertPrivateWriteConfigured, getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, requireString } from "@/app/api/private/_utils";
 
 type IntakePayload = {
   childId?: string;
@@ -13,18 +13,16 @@ type IntakePayload = {
 
 export async function PUT(request: Request) {
   try {
-    assertPrivateWriteConfigured();
+    const { familyId, supabase } = getPrivateWriteContext();
     const payload = (await request.json()) as IntakePayload;
+    const childId = requireString(payload.childId, "childId");
 
-    if (!payload.childId) {
-      return NextResponse.json({ error: "childId is required" }, { status: 400 });
-    }
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
-    const supabase = getSupabaseAdminClient();
     const { data, error } = await supabase
       .from("child_intake_profiles")
       .upsert({
-        child_id: payload.childId,
+        child_id: childId,
         school_detail: payload.schoolDetail ?? "",
         weekly_schedule: payload.weeklySchedule ?? "",
         important_dates: payload.importantDates ?? "",
@@ -42,6 +40,6 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+    return jsonError(error);
   }
 }

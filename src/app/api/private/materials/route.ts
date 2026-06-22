@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
 import type { LearningMaterial } from "@/lib/types";
 
 type MaterialPayload = Partial<LearningMaterial>;
@@ -67,6 +67,7 @@ async function handleMultipartUpload(request: Request) {
   const externalUrl = optionalString(formData.get("externalUrl"));
   const tags = optionalString(formData.get("tags"))?.split(",").map((tag) => tag.trim()).filter(Boolean) ?? [];
   const fileName = file.name || `${title}.bin`;
+  if (childId) await assertChildBelongsToFamily(supabase, familyId, childId);
   const storagePath = [
     familyId,
     childId ?? "family",
@@ -120,6 +121,7 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as MaterialPayload;
     const title = requireString(payload.title, "title");
     const subject = requireString(payload.subject, "subject");
+    if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
     const { data, error } = await supabase
       .from("learning_materials")
@@ -199,6 +201,7 @@ export async function PUT(request: Request) {
     const subject = requireString(payload.subject, "subject");
 
     if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
+    if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
     const { data, error } = await supabase
       .from("learning_materials")

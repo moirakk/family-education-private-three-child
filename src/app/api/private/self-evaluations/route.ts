@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
 import type { SelfEvaluation } from "@/lib/types";
 
 type SelfEvaluationPayload = Partial<SelfEvaluation>;
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const subject = requireString(payload.subject, "subject");
     const reflection = requireString(payload.reflection, "reflection");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
       .from("self_evaluations")
@@ -85,6 +86,7 @@ export async function PUT(request: Request) {
     const childId = requireString(payload.childId, "childId");
     const subject = requireString(payload.subject, "subject");
     const reflection = requireString(payload.reflection, "reflection");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!evaluationId) return NextResponse.json({ error: "evaluationId is required" }, { status: 400 });
 

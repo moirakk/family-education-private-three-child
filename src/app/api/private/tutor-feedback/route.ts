@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
 import type { TutorFeedback } from "@/lib/types";
 
 type TutorFeedbackPayload = Partial<TutorFeedback>;
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     const tutorName = requireString(payload.tutorName, "tutorName");
     const subject = requireString(payload.subject, "subject");
     const focus = requireString(payload.focus, "focus");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
       .from("tutor_feedback")
@@ -93,6 +94,7 @@ export async function PUT(request: Request) {
     const tutorName = requireString(payload.tutorName, "tutorName");
     const subject = requireString(payload.subject, "subject");
     const focus = requireString(payload.focus, "focus");
+    await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!feedbackId) return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
 
