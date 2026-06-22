@@ -38,10 +38,23 @@ function hasDashboardAccess(role: AccessRole | null) {
   return Boolean(role && dashboardRoles.has(role));
 }
 
-function hasPrivateApiAccess(pathname: string, role: AccessRole | null) {
+function hasPrivateApiAccess(pathname: string, method: string, role: AccessRole | null) {
   if (!role) return false;
-  if (pathname.startsWith("/api/private/tutor-feedback") || pathname.startsWith("/api/private/tutor-context")) return tutorApiRoles.has(role);
-  return dashboardRoles.has(role);
+  if (dashboardRoles.has(role)) return true;
+
+  if (role === "tutor") {
+    if (pathname === "/api/private/tutor-context") return method === "GET";
+    if (pathname === "/api/private/tutor-feedback") return method === "POST";
+  }
+
+  return false;
+}
+
+function nextWithAccessRole(request: NextRequest, role: AccessRole | null) {
+  const headers = new Headers(request.headers);
+  if (role) headers.set("x-family-access-role", role);
+  else headers.delete("x-family-access-role");
+  return NextResponse.next({ request: { headers } });
 }
 
 export async function middleware(request: NextRequest) {
@@ -49,26 +62,26 @@ export async function middleware(request: NextRequest) {
   const cookieRole = await getCookieRole(request);
 
   if (!hasAccessConfig || isPublicAsset(request.nextUrl.pathname)) {
-    return NextResponse.next();
+    return nextWithAccessRole(request, cookieRole);
   }
 
   if (request.nextUrl.pathname === "/api/access") {
-    return NextResponse.next();
+    return nextWithAccessRole(request, cookieRole);
   }
 
   if (request.nextUrl.pathname === "/api/calendar/ios") {
     const token = request.nextUrl.searchParams.get("token");
 
     if (token || hasDashboardAccess(cookieRole)) {
-      return NextResponse.next();
+      return nextWithAccessRole(request, cookieRole);
     }
 
     return new NextResponse("Calendar feed requires private access.", { status: 401 });
   }
 
   if (request.nextUrl.pathname.startsWith("/api/private")) {
-    if (hasPrivateApiAccess(request.nextUrl.pathname, cookieRole)) {
-      return NextResponse.next();
+    if (hasPrivateApiAccess(request.nextUrl.pathname, request.method, cookieRole)) {
+      return nextWithAccessRole(request, cookieRole);
     }
 
     return new NextResponse("Private API requires an authorized access role.", { status: 403 });
@@ -76,7 +89,7 @@ export async function middleware(request: NextRequest) {
 
   if (request.nextUrl.pathname === "/tutor-feedback") {
     if (cookieRole && tutorApiRoles.has(cookieRole)) {
-      return NextResponse.next();
+      return nextWithAccessRole(request, cookieRole);
     }
 
     const accessUrl = new URL("/access", request.url);
@@ -91,11 +104,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(nextPath.startsWith("/") ? nextPath : "/", request.url));
     }
 
-    return NextResponse.next();
+    return nextWithAccessRole(request, cookieRole);
   }
 
   if (hasDashboardAccess(cookieRole)) {
-    return NextResponse.next();
+    return nextWithAccessRole(request, cookieRole);
   }
 
   const accessUrl = new URL("/access", request.url);

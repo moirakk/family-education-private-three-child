@@ -249,7 +249,7 @@ viewer
 | `POST/PUT/DELETE /api/private/materials` | 学习资料 | 已实现 |
 | `POST/PUT/DELETE /api/private/self-evaluations` | 自评 | 已实现 |
 | `POST/PUT/DELETE /api/private/tutor-feedback` | 家教反馈 | 已实现 |
-| `GET /api/private/tutor-context` | 家教入口上下文 | 已实现，权限仍可细化 |
+| `GET /api/private/tutor-context` | 家教入口上下文 | 已实现，tutor 仅可读取提交表单所需孩子列表 |
 | `POST/PUT/DELETE /api/private/roadmap` | 教育目标和里程碑 | 已实现 |
 | `PUT /api/private/intake` | 家长现场补资料 | 已实现 |
 | `GET /api/private/export` | JSON 导出 | 已实现 |
@@ -429,7 +429,7 @@ src/lib/
 ### P1：短期需要优化
 
 1. 首页继续简化，只突出“今天 / 本周 / 需要家长处理”。
-2. 家教权限细化到孩子 / 科目 / 老师。
+2. 家教权限已先收紧为：tutor 只能读取 `tutor-context` 和提交 `tutor-feedback`，不能读取完整反馈列表或导出；下一步再细化到孩子 / 科目 / 老师。
 3. viewer 角色现在定义存在，但体验和权限还未产品化。
 4. 文件资料库需要更好的手机端上传体验。
 5. 月报生成仍是后续增强，不是当前核心闭环。
@@ -487,4 +487,3 @@ scripts/private-backup-storage.mjs
 5. 上传一个测试文件，验证多设备下载和 Storage 备份。
 6. 做一次完整恢复演练。
 7. 再开始首页信息层级和视觉体验优化。
-

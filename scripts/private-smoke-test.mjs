@@ -24,6 +24,7 @@ function usage() {
   console.log("");
   console.log("Options:");
   console.log("- --parent-code <code>       Test private access login and protected dashboard.");
+  console.log("- --tutor-code <code>        Test tutor-limited access boundaries.");
   console.log("- --calendar-token <token>   Test real iOS webcal feed.");
   console.log("- --expect-ready             Require /api/health readyForPrivateDeploy=true.");
   console.log("- --deep-private             Test /api/private/export with the parent session cookie.");
@@ -31,17 +32,20 @@ function usage() {
   console.log("Env fallbacks:");
   console.log("- PRIVATE_SMOKE_BASE_URL");
   console.log("- PRIVATE_PARENT_ACCESS_CODE");
+  console.log("- PRIVATE_TUTOR_ACCESS_CODE");
   console.log("- PRIVATE_CALENDAR_TOKEN");
 }
 
 function createContext() {
   const baseUrl = new URL(getArgValue("--base-url") || process.env.PRIVATE_SMOKE_BASE_URL || defaultBaseUrl);
   const parentCode = getArgValue("--parent-code") || process.env.PRIVATE_PARENT_ACCESS_CODE || process.env.PRIVATE_ACCESS_CODE || "";
+  const tutorCode = getArgValue("--tutor-code") || process.env.PRIVATE_TUTOR_ACCESS_CODE || "";
   const calendarToken = getArgValue("--calendar-token") || process.env.PRIVATE_CALENDAR_TOKEN || "";
 
   return {
     baseUrl: baseUrl.origin,
     parentCode,
+    tutorCode,
     calendarToken,
     expectReady: hasArg("--expect-ready"),
     deepPrivate: hasArg("--deep-private"),
@@ -162,11 +166,70 @@ async function checkLogin(ctx) {
   return "session cookie issued";
 }
 
+async function loginWithCode(ctx, code, next = "/") {
+  const body = new URLSearchParams({
+    code,
+    next
+  });
+  const { response } = await fetchText(ctx, "/api/access", {
+    method: "POST",
+    body,
+    headers: {
+      "content-type": "application/x-www-form-urlencoded"
+    }
+  });
+
+  assert(response.status === 303 || response.status === 307, `expected redirect, got ${response.status}`);
+  const location = response.headers.get("location") || "";
+  assert(!location.includes(code), "redirect location leaked access code");
+  const cookie = collectCookies(response);
+  assert(cookie.includes("family_private_session="), "private session cookie missing");
+  return { cookie, location };
+}
+
 async function checkProtectedDashboard(ctx) {
   if (!ctx.parentCode) return "skipped; no parent code";
   const { response, text } = await fetchText(ctx, "/");
   assert(response.status === 200, `expected 200, got ${response.status}`);
   assert(text.includes("Family Education Management System"), "dashboard did not render expected title");
+}
+
+async function checkUnauthenticatedPrivateApi(ctx) {
+  const originalCookie = ctx.cookie;
+  ctx.cookie = "";
+
+  try {
+    const { response } = await fetchText(ctx, "/api/private/export");
+    assert(response.status === 403, `expected 403, got ${response.status}`);
+    return "private API rejects missing session";
+  } finally {
+    ctx.cookie = originalCookie;
+  }
+}
+
+async function checkTutorBoundaries(ctx) {
+  if (!ctx.tutorCode) return "skipped; no tutor code";
+
+  const originalCookie = ctx.cookie;
+  const { cookie, location } = await loginWithCode(ctx, ctx.tutorCode, "/");
+  assert(location.includes("/tutor-feedback"), "tutor login should redirect to tutor feedback");
+  ctx.cookie = cookie;
+
+  try {
+    const contextResult = await fetchJson(ctx, "/api/private/tutor-context");
+    assert(contextResult.response.status === 200, `tutor context expected 200, got ${contextResult.response.status}`);
+    assert(Array.isArray(contextResult.json.data?.children), "tutor context must return children array");
+
+    const feedbackResult = await fetchText(ctx, "/api/private/tutor-feedback");
+    assert(feedbackResult.response.status === 403, `tutor GET feedback expected 403, got ${feedbackResult.response.status}`);
+
+    const exportResult = await fetchText(ctx, "/api/private/export");
+    assert(exportResult.response.status === 403, `tutor export expected 403, got ${exportResult.response.status}`);
+
+    return "context allowed; feedback list/export denied";
+  } finally {
+    ctx.cookie = originalCookie;
+  }
 }
 
 async function checkCalendarWithSession(ctx) {
@@ -213,7 +276,9 @@ async function main() {
   results.push(await step("service worker", () => checkOkPath(ctx, "/sw.js", "CACHE_NAME")));
   results.push(await step("offline page", () => checkOkPath(ctx, "/offline.html", "离线")));
   results.push(await step("private access login", () => checkLogin(ctx)));
+  results.push(await step("unauthenticated private API", () => checkUnauthenticatedPrivateApi(ctx)));
   results.push(await step("protected dashboard", () => checkProtectedDashboard(ctx)));
+  results.push(await step("tutor access boundaries", () => checkTutorBoundaries(ctx)));
   results.push(await step("calendar with session", () => checkCalendarWithSession(ctx)));
   results.push(await step("calendar token", () => checkCalendarToken(ctx)));
   results.push(await step("private export", () => checkPrivateExport(ctx)));
