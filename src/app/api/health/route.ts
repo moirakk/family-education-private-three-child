@@ -5,6 +5,13 @@ function isConfigured(value: string | undefined) {
 }
 
 export async function GET() {
+  const configuredDataMode = process.env.NEXT_PUBLIC_FAMILY_DATA_MODE;
+  const dataMode =
+    configuredDataMode === "local" || configuredDataMode === "private-api" || configuredDataMode === "supabase"
+      ? configuredDataMode
+      : process.env.NODE_ENV === "production"
+        ? "misconfigured"
+        : "local";
   const checks = {
     app: true,
     supabaseUrl: isConfigured(process.env.NEXT_PUBLIC_SUPABASE_URL),
@@ -17,7 +24,7 @@ export async function GET() {
     privateViewerAccessCode: isConfigured(process.env.PRIVATE_VIEWER_ACCESS_CODE),
     calendarTokenSource: "family_settings.calendar_token",
     learningMaterialsBucket: isConfigured(process.env.SUPABASE_LEARNING_MATERIALS_BUCKET),
-    dataMode: process.env.NEXT_PUBLIC_FAMILY_DATA_MODE ?? "local"
+    dataMode
   };
 
   const readyForPrivateDeploy = Boolean(
@@ -26,6 +33,7 @@ export async function GET() {
       checks.supabaseServiceRole &&
       checks.privateFamilyId &&
       checks.privateParentAccessCode &&
+      checks.dataMode === "private-api" &&
       checks.learningMaterialsBucket
   );
 

@@ -112,6 +112,11 @@ function collectCookies(response) {
   return cookies.map((cookie) => cookie.split(";")[0]).join("; ");
 }
 
+function collectSetCookieHeaders(response) {
+  const getSetCookie = response.headers.getSetCookie?.bind(response.headers);
+  return getSetCookie ? getSetCookie() : [response.headers.get("set-cookie")].filter(Boolean);
+}
+
 async function checkHealth(ctx) {
   const { response, json } = await fetchJson(ctx, "/api/health");
   assert(response.status === 200, `expected 200, got ${response.status}`);
@@ -160,6 +165,10 @@ async function checkLogin(ctx) {
   assert(response.status === 303 || response.status === 307, `expected redirect, got ${response.status}`);
   const location = response.headers.get("location") || "";
   assert(!location.includes(ctx.parentCode), "redirect location leaked access code");
+  const setCookieHeaders = collectSetCookieHeaders(response);
+  const sessionCookie = setCookieHeaders.find((cookie) => cookie.startsWith("family_private_session=")) || "";
+  assert(sessionCookie.includes("HttpOnly"), "private session cookie must be HttpOnly");
+  assert(sessionCookie.toLowerCase().includes("samesite=strict"), "private session cookie must use SameSite=Strict");
   const cookie = collectCookies(response);
   assert(cookie.includes("family_private_session="), "private session cookie missing");
   ctx.cookie = cookie;

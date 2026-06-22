@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck2, Clock3, GraduationCap, Target } from "lucide-react";
-import { AppShell } from "@/components/dashboard/app-shell";
+import { AppShell, type DashboardMode } from "@/components/dashboard/app-shell";
 import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
@@ -29,7 +29,7 @@ import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report"
 import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
 import { Button } from "@/components/ui/button";
 import type { FamilySnapshot } from "@/lib/core-types";
-import { isPrivateApiMode } from "@/lib/private-api-client";
+import { isFamilyDataModeMisconfigured, isPrivateApiMode } from "@/lib/private-api-client";
 import {
   childOperatingPlans,
   parentActions,
@@ -42,12 +42,14 @@ import {
 } from "@/lib/pilot-data";
 
 export default function Home() {
+  const isMisconfigured = isFamilyDataModeMisconfigured();
   const [managedChildren, setManagedChildren] = useState(pilotChildren);
   const [selectedChildId, setSelectedChildId] = useState(pilotChildren[0].id);
   const [localCalendarEvents, setLocalCalendarEvents] = useState<typeof pilotCalendarEvents>([]);
   const [localLearningRecords, setLocalLearningRecords] = useState<typeof pilotLearningRecords>([]);
   const [roadmapGoals, setRoadmapGoals] = useState<typeof pilotEducationGoals>(pilotEducationGoals);
   const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
+  const [activeMode, setActiveMode] = useState<DashboardMode>("today");
 
   useEffect(() => {
     if (!isPrivateApiMode()) return;
@@ -100,8 +102,23 @@ export default function Home() {
       ? Math.round(roadmapGoals.reduce((sum, goal) => sum + goal.progress, 0) / roadmapGoals.length)
       : 0;
 
+  if (isMisconfigured) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <section className="w-full max-w-lg rounded-lg border border-red-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-semibold text-red-600">部署配置错误</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">数据模式未配置</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            生产环境必须设置 <code className="rounded bg-slate-100 px-1 py-0.5">NEXT_PUBLIC_FAMILY_DATA_MODE=private-api</code>。
+            系统已停止回退到本机示例数据，避免家长误以为资料已经保存到数据库。
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <AppShell>
+    <AppShell activeMode={activeMode} onModeChange={setActiveMode}>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
         <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -117,79 +134,98 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="outline">
-                <a href="#export-preview">看导出效果</a>
+              <Button variant="outline" onClick={() => setActiveMode("more")}>
+                看导出效果
               </Button>
-              <Button asChild>
-                <a href="#event-planner">新增事项</a>
+              <Button onClick={() => setActiveMode("week")}>
+                新增事项
               </Button>
             </div>
           </div>
         </section>
 
-        <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} records={learningRecords} />
+        {activeMode === "today" && (
+          <>
+            <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
 
-        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
-          <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
-          <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
-          <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
-        </section>
+            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
+              <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
+              <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
+              <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
+            </section>
 
-        <FamilyIntakeWorkspace childProfiles={managedChildren} />
-        <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
+            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+          </>
+        )}
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
-          <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
-        </div>
+        {activeMode === "week" && (
+          <>
+            <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
-          <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
-        </div>
+            <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
+              <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
+            </div>
 
-        <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
-        <ExportPreviewCenter
-          childProfiles={managedChildren}
-          events={calendarEvents}
-          goals={roadmapGoals}
-          records={learningRecords}
-          resources={baseResources}
-        />
-        <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
-        <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
-        <LearningMaterialsVault childProfiles={managedChildren} />
+            <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+              <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
+              <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
+            </div>
 
-        <div className="grid gap-5 xl:grid-cols-2">
-          <SelfEvaluationBoard childProfiles={managedChildren} />
-          <TutorFeedbackBoard childProfiles={managedChildren} />
-        </div>
+            <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
+          </>
+        )}
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-          <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
-          <ChildManagement
-            childProfiles={managedChildren}
-            setChildren={setManagedChildren}
-            selectedChildId={selectedChildId}
-            onSelectChild={setSelectedChildId}
-          />
-        </div>
+        {activeMode === "records" && (
+          <>
+            <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
+            <LearningMaterialsVault childProfiles={managedChildren} />
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-          <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
-          <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
-        </div>
+            <div className="grid gap-5 xl:grid-cols-2">
+              <SelfEvaluationBoard childProfiles={managedChildren} />
+              <TutorFeedbackBoard childProfiles={managedChildren} />
+            </div>
 
-        <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
+            <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+              <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
+              <ChildManagement
+                childProfiles={managedChildren}
+                setChildren={setManagedChildren}
+                selectedChildId={selectedChildId}
+                onSelectChild={setSelectedChildId}
+              />
+            </div>
 
-        <div className="grid gap-5 xl:grid-cols-2">
-          <ParentActionBoard actions={parentActions} />
-          <ParentHandoffPlan />
-        </div>
+            <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+              <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
+              <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
+            </div>
 
-        <DeploymentStatusCard />
-        <PwaInstallCard />
+            <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
+          </>
+        )}
+
+        {activeMode === "more" && (
+          <>
+            <FamilyIntakeWorkspace childProfiles={managedChildren} />
+            <ExportPreviewCenter
+              childProfiles={managedChildren}
+              events={calendarEvents}
+              goals={roadmapGoals}
+              records={learningRecords}
+              resources={baseResources}
+            />
+
+            <div className="grid gap-5 xl:grid-cols-2">
+              <ParentActionBoard actions={parentActions} />
+              <ParentHandoffPlan />
+            </div>
+
+            <DeploymentStatusCard />
+            <PwaInstallCard />
+          </>
+        )}
 
       </div>
     </AppShell>

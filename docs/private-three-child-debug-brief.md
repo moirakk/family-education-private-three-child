@@ -54,6 +54,9 @@ npm run private:smoke -- --base-url http://127.0.0.1:3000 --expect-ready --deep-
 - 私有版 smoke test 通过
 - 真实 Supabase 已接入本地 `.env.local`
 - 浏览器实测桌面和手机无页面级横向滚动
+- 访问码 cookie 使用 `HttpOnly + SameSite=Strict`
+- 未登录访问私有 API 返回 `403`
+- tutor 不能读取完整反馈列表或导出
 
 ## 3. 当前分支与隐私边界
 
@@ -230,10 +233,16 @@ viewer
 
 - 访问码提交到 `/api/access`
 - 服务端签发签名 cookie
-- cookie 应为 httpOnly，并带过期时间
+- cookie 使用 `HttpOnly + SameSite=Strict`，并带过期时间
+- `/api/access` 有浏览器 cookie 尝试次数限制和 IP/UA 内存级短窗口限制
 - middleware 根据 cookie role 放行或重定向
 
 当前用户看到 `/access` 是正常的，因为私有版启用了访问码保护。直接访问 `/api/access` 不应该作为页面入口。
+
+限制说明：
+
+- 当前 IP/UA 限流是私有版轻量防线，适合单家庭低流量场景。
+- 如果未来公开暴露给更多家庭，应改成 Upstash Redis / Vercel KV 这类跨实例持久限流。
 
 ## 8. API 结构
 
@@ -368,7 +377,8 @@ PWA：
 
 注意：
 
-- Service worker 不应缓存私有 API 数据。
+- Service worker 采用 allowlist 缓存：只缓存离线页、manifest、图标和 `_next/static` 静态资源。
+- `/api/*`、`/access`、`/tutor-feedback` 和动态页面不进入 Cache Storage。
 - 家长最佳使用方式是私有链接 + 添加到 iPhone 主屏幕。
 
 ## 12. 当前工程目录速览
@@ -425,6 +435,7 @@ src/lib/
 6. 文件上传、signed URL 下载、Storage 备份恢复至少跑通一次。
 7. JSON 导出 -> 全新 Supabase 恢复演练至少跑通一次。
 8. 真实 iPhone 上 PWA 添加主屏幕可用。
+9. 生产环境必须设置 `NEXT_PUBLIC_FAMILY_DATA_MODE=private-api`，否则页面显示配置错误，不回退 pilot 数据。
 
 ### P1：短期需要优化
 

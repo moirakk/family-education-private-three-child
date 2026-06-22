@@ -1,7 +1,23 @@
 "use client";
 
+export type FamilyDataMode = "local" | "private-api" | "supabase" | "misconfigured";
+
+export function getFamilyDataMode(): FamilyDataMode {
+  const configuredMode = process.env.NEXT_PUBLIC_FAMILY_DATA_MODE;
+
+  if (configuredMode === "local" || configuredMode === "private-api" || configuredMode === "supabase") {
+    return configuredMode;
+  }
+
+  return process.env.NODE_ENV === "production" ? "misconfigured" : "local";
+}
+
 export function isPrivateApiMode() {
-  return process.env.NEXT_PUBLIC_FAMILY_DATA_MODE === "private-api";
+  return getFamilyDataMode() === "private-api";
+}
+
+export function isFamilyDataModeMisconfigured() {
+  return getFamilyDataMode() === "misconfigured";
 }
 
 export async function postPrivateApi<T>(path: string, payload: unknown): Promise<T> {

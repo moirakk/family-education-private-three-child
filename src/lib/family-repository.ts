@@ -4,6 +4,7 @@ import type { FamilyRepository } from "@/lib/core-types";
 import { LocalFamilyRepository } from "@/lib/local-family-repository";
 import { PrivateApiFamilyRepository } from "@/lib/private-api-family-repository";
 import { SupabaseFamilyRepository } from "@/lib/supabase-family-repository";
+import { getFamilyDataMode } from "@/lib/private-api-client";
 
 type RepositoryMode = "local" | "private-api" | "supabase";
 
@@ -12,7 +13,13 @@ export function hasSupabaseBrowserConfig() {
 }
 
 export function createFamilyRepository(): FamilyRepository {
-  if (getRepositoryMode() === "private-api") {
+  const mode = getRepositoryMode();
+
+  if (mode === "misconfigured") {
+    throw new Error("NEXT_PUBLIC_FAMILY_DATA_MODE must be set in production.");
+  }
+
+  if (mode === "private-api") {
     return new PrivateApiFamilyRepository();
   }
 
@@ -24,11 +31,8 @@ export function createFamilyRepository(): FamilyRepository {
 }
 
 export function getRepositoryMode() {
-  const configuredMode = process.env.NEXT_PUBLIC_FAMILY_DATA_MODE;
+  const configuredMode = getFamilyDataMode();
+  if (configuredMode !== "misconfigured") return configuredMode satisfies RepositoryMode;
 
-  if (configuredMode === "private-api" || configuredMode === "supabase" || configuredMode === "local") {
-    return configuredMode satisfies RepositoryMode;
-  }
-
-  return hasSupabaseBrowserConfig() ? "supabase" : "local";
+  return "misconfigured";
 }

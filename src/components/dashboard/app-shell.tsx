@@ -3,54 +3,32 @@
 import {
   BookOpen,
   CalendarDays,
-  ClipboardList,
-  FileDown,
-  FileText,
-  GraduationCap,
   LayoutDashboard,
   LibraryBig,
-  LineChart,
-  Map,
-  MessageSquareText,
-  ServerCog,
-  SmilePlus,
   Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "#dashboard", label: "总览", icon: LayoutDashboard },
-  { href: "#intake", label: "补资料", icon: ClipboardList },
-  { href: "#calendar", label: "统一日历", icon: CalendarDays },
-  { href: "#learning-records", label: "学习记录", icon: BookOpen },
-  { href: "#export-preview", label: "导出预览", icon: FileDown },
-  { href: "#materials", label: "资料库", icon: LibraryBig },
-  { href: "#self-evaluation", label: "自我评价", icon: SmilePlus },
-  { href: "#tutor-feedback", label: "家教反馈", icon: MessageSquareText },
-  { href: "#children", label: "孩子档案", icon: GraduationCap },
-  { href: "#growth", label: "成长记录", icon: LineChart },
-  { href: "#roadmap", label: "教育路线", icon: Map },
-  { href: "#calendar-sync", label: "iOS 同步", icon: CalendarDays },
-  { href: "#deploy-status", label: "部署状态", icon: ServerCog },
-  { href: "#resources", label: "资源中心", icon: FileText }
+export type DashboardMode = "today" | "week" | "records" | "more";
+
+const modeItems = [
+  { mode: "today" as const, label: "今天", mobileLabel: "今天", description: "今日事项和下一步", icon: LayoutDashboard },
+  { mode: "week" as const, label: "本周", mobileLabel: "本周", description: "日程、周报和日历", icon: CalendarDays },
+  { mode: "records" as const, label: "记录", mobileLabel: "记录", description: "学习、资料、反馈和档案", icon: BookOpen },
+  { mode: "more" as const, label: "更多", mobileLabel: "更多", description: "补资料、导出和部署", icon: LibraryBig }
 ];
 
-const navGroups = [
-  { label: "每天使用", items: navItems.slice(0, 5) },
-  { label: "记录沉淀", items: navItems.slice(5, 9) },
-  { label: "长期规划", items: navItems.slice(9) }
-];
-
-const mobileNavItems = [
-  { ...navItems[0], label: "总览" },
-  { ...navItems[2], label: "日历" },
-  { ...navItems[3], label: "学习" },
-  { ...navItems[5], label: "资料" }
-];
-
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  activeMode,
+  children,
+  onModeChange
+}: {
+  activeMode: DashboardMode;
+  children: React.ReactNode;
+  onModeChange: (mode: DashboardMode) => void;
+}) {
   return (
     <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
       <aside className="hidden border-r bg-white/80 px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
@@ -64,26 +42,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <Separator className="my-5" />
-        <nav className="space-y-5">
-          {navGroups.map((group) => (
-            <div key={group.label}>
-              <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group.label}</p>
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950",
-                      item.href === "#dashboard" && "bg-slate-100 text-slate-950"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-            </div>
+        <nav className="space-y-1">
+          {modeItems.map((item) => (
+            <button
+              key={item.mode}
+              type="button"
+              onClick={() => onModeChange(item.mode)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950",
+                item.mode === activeMode && "bg-slate-100 text-slate-950"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              <span>
+                <span className="block">{item.label}</span>
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{item.description}</span>
+              </span>
+            </button>
           ))}
         </nav>
         <div className="mt-8 rounded-lg border bg-slate-950 p-4 text-white">
@@ -92,7 +67,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             月度报告
           </div>
           <p className="mt-2 text-xs leading-5 text-slate-300">定制版稳定后，生成面向家长的月度成长复盘。</p>
-          <Button size="sm" variant="secondary" className="mt-4 w-full">
+          <Button size="sm" variant="secondary" className="mt-4 w-full" onClick={() => onModeChange("more")}>
             预览
           </Button>
         </div>
@@ -109,23 +84,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="text-xs text-muted-foreground">今日工作台</p>
               </div>
             </div>
-            <Button asChild size="sm">
-              <a href="#event-planner">新增</a>
+            <Button size="sm" onClick={() => onModeChange("week")}>
+              新增
             </Button>
           </div>
         </header>
         <main className="min-w-0 overflow-x-hidden px-4 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
         <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
-            {mobileNavItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+            {modeItems.map((item) => (
+              <button
+                key={item.mode}
+                type="button"
+                onClick={() => onModeChange(item.mode)}
+                className={cn(
+                  "flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                  item.mode === activeMode && "bg-slate-100 text-slate-950"
+                )}
               >
                 <item.icon className="h-4 w-4" />
-                {item.label}
-              </a>
+                {item.mobileLabel}
+              </button>
             ))}
           </div>
         </nav>
