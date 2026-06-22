@@ -24,6 +24,7 @@ const placeholderPatterns = [
   /^$/,
   /your-/i,
   /choose-/i,
+  /paste_/i,
   /server-only-service-role-key/i
 ];
 
