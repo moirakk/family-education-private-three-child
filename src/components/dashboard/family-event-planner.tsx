@@ -232,7 +232,7 @@ export function FamilyEventPlanner({
           <Badge variant="outline">{events.length} 个本机新增事项</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
+      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
         <form onSubmit={saveEvent} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
             {editingEventId && (

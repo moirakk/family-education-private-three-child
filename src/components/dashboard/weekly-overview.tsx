@@ -16,7 +16,7 @@ export function WeeklyOverview({ events, childProfiles }: { events: CalendarEven
   const childById = new Map(childProfiles.map((child) => [child.id, child]));
 
   return (
-    <Card id="dashboard" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>

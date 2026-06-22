@@ -45,8 +45,8 @@ const navGroups = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[244px_1fr]">
-      <aside className="hidden border-r bg-white/80 px-4 py-5 backdrop-blur lg:block">
+    <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
+      <aside className="hidden border-r bg-white/80 px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
         <div className="flex items-center gap-3 px-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
             <BookOpen className="h-5 w-5" />
@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </aside>
-      <div className="flex min-w-0 flex-col">
+      <div className="flex min-w-0 flex-col overflow-x-hidden">
         <header className="sticky top-0 z-30 border-b bg-white/85 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="min-w-0 px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+        <main className="min-w-0 overflow-x-hidden px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
         <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
             {[navItems[0], navItems[2], navItems[3], navItems[5]].map((item) => (

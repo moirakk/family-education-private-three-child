@@ -60,7 +60,7 @@ export function PwaInstallCard() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+      <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="rounded-lg border bg-white p-4">
           <p className="text-sm font-semibold">iPhone 家长使用方式</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">

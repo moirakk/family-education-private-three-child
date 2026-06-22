@@ -223,7 +223,7 @@ export function EducationRoadmap({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[360px_1fr]">
+      <CardContent className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <form onSubmit={saveGoal} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
             {editingGoalId && (

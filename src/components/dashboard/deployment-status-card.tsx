@@ -80,7 +80,7 @@ export function DeploymentStatusCard() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 lg:grid-cols-[1fr_320px]">
+      <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="rounded-lg border bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <div>

@@ -199,7 +199,7 @@ export default function TutorFeedbackPage() {
                 />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
                 <div className="space-y-1.5">
                   <Label htmlFor="homework">课后任务</Label>
                   <Input

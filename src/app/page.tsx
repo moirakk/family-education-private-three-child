@@ -102,7 +102,7 @@ export default function Home() {
 
   return (
     <AppShell>
-      <div className="mx-auto flex max-w-7xl flex-col gap-5">
+      <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
         <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -136,12 +136,12 @@ export default function Home() {
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
           <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
           <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
           <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
         </div>
@@ -163,7 +163,7 @@ export default function Home() {
           <TutorFeedbackBoard childProfiles={managedChildren} />
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
           <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
           <ChildManagement
             childProfiles={managedChildren}
@@ -173,7 +173,7 @@ export default function Home() {
           />
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
           <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
           <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
         </div>

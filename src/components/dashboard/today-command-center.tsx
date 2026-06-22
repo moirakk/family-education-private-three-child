@@ -24,7 +24,7 @@ export function TodayCommandCenter({
   const nextEvents = events.slice(0, 3);
 
   return (
-    <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+    <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <div className="rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur">
         <div className="flex items-start justify-between gap-3">
           <div>

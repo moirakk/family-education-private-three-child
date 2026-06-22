@@ -225,7 +225,7 @@ export function ExportPreviewCenter({
           </TabsList>
 
           <TabsContent value="report">
-            <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-sm leading-6 text-slate-100">
                 {reportText}
               </pre>
@@ -255,7 +255,7 @@ export function ExportPreviewCenter({
           </TabsContent>
 
           <TabsContent value="backup">
-            <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
                 {backupJson}
               </pre>
@@ -285,7 +285,7 @@ export function ExportPreviewCenter({
           </TabsContent>
 
           <TabsContent value="calendar">
-            <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
                 {calendarIcs}
               </pre>

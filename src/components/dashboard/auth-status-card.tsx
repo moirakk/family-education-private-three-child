@@ -77,7 +77,7 @@ export function AuthStatusCard() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 lg:grid-cols-[1fr_1.1fr]">
+      <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="rounded-lg border bg-white p-4">
           <p className="text-sm font-semibold">当前状态</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">

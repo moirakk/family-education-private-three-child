@@ -192,7 +192,7 @@ export function LearningRecordPlanner({
           <Badge variant="outline">{records.length} 条本机新增记录</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
+      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
         <form onSubmit={saveRecord} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
             {editingRecordId && (

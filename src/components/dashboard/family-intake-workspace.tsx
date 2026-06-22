@@ -212,7 +212,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
         {syncStatus && <p className="mt-3 text-xs text-muted-foreground">{syncStatus}</p>}
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={childProfiles[0]?.id} className="grid gap-4 xl:grid-cols-[280px_1fr]">
+        <Tabs defaultValue={childProfiles[0]?.id} className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
           <TabsList className="flex h-auto flex-col items-stretch justify-start gap-2 bg-transparent p-0">
             {childProfiles.map((child) => {
               const entry = intake[child.id] ?? createEmptyEntry();

@@ -43,7 +43,7 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
             <CardTitle>资源中心</CardTitle>
             <CardDescription>管理文件、笔记、练习材料和家庭规划资料。</CardDescription>
           </div>
-          <div className="grid w-full gap-2 sm:grid-cols-[1fr_180px] lg:w-[520px]">
+          <div className="grid w-full min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_180px] lg:w-[min(520px,100%)]">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input className="pl-9" placeholder="搜索资源" value={query} onChange={(event) => setQuery(event.target.value)} />

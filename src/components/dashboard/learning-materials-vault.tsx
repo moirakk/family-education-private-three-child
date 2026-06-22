@@ -378,7 +378,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
           <Badge variant="outline">{materials.length} 份资料</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_1fr]">
+      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
         <form onSubmit={saveMaterial} className="rounded-lg border bg-white p-4">
           <div className="grid gap-3">
             {editingMaterialId && (
