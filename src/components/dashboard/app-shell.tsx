@@ -43,6 +43,13 @@ const navGroups = [
   { label: "长期规划", items: navItems.slice(9) }
 ];
 
+const mobileNavItems = [
+  { ...navItems[0], label: "总览" },
+  { ...navItems[2], label: "日历" },
+  { ...navItems[3], label: "学习" },
+  { ...navItems[5], label: "资料" }
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
@@ -91,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
-        <header className="sticky top-0 z-30 border-b bg-white/85 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b bg-white/85 px-4 py-2.5 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -99,7 +106,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
               <div>
                 <p className="text-sm font-semibold">Family Education</p>
-                <p className="text-xs text-muted-foreground">本周</p>
+                <p className="text-xs text-muted-foreground">今日工作台</p>
               </div>
             </div>
             <Button asChild size="sm">
@@ -107,10 +114,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="min-w-0 overflow-x-hidden px-4 py-5 pb-24 sm:px-6 lg:px-8 lg:pb-8">{children}</main>
+        <main className="min-w-0 overflow-x-hidden px-4 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
         <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
-            {[navItems[0], navItems[2], navItems[3], navItems[5]].map((item) => (
+            {mobileNavItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}

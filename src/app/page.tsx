@@ -103,15 +103,17 @@ export default function Home() {
   return (
     <AppShell>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
-        <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold text-primary">{pilotFamilyName}</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-                Family Education Management System
+              <p className="text-xs font-semibold text-primary sm:text-sm">{pilotFamilyName}</p>
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                <span className="sm:hidden">Family Education</span>
+                <span className="hidden sm:inline">Family Education Management System</span>
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-3">
+                <span className="sm:hidden">今天事项、日程和资料集中处理。</span>
+                <span className="hidden sm:inline">第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -125,14 +127,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} records={learningRecords} />
+
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
           <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
           <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
           <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
         </section>
 
-        <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} records={learningRecords} />
         <FamilyIntakeWorkspace childProfiles={managedChildren} />
         <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 

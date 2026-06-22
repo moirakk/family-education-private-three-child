@@ -20,14 +20,14 @@ const toneClass = {
 export function MetricCard({ title, value, detail, icon: Icon, tone = "blue" }: MetricCardProps) {
   return (
     <Card className="border-white/70 bg-white/80 shadow-sm backdrop-blur">
-      <CardContent className="flex items-start justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+      <CardContent className="flex items-start justify-between gap-2 p-3 sm:gap-3 sm:p-4">
+        <div className="min-w-0">
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">{title}</p>
+          <p className="mt-1 text-xl font-semibold tracking-tight sm:mt-2 sm:text-2xl">{value}</p>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground sm:text-xs">{detail}</p>
         </div>
-        <div className={cn("rounded-md p-2 ring-1", toneClass[tone])}>
-          <Icon className="h-4 w-4" />
+        <div className={cn("rounded-md p-1.5 ring-1 sm:p-2", toneClass[tone])}>
+          <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </div>
       </CardContent>
     </Card>
