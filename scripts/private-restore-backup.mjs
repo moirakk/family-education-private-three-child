@@ -2,6 +2,9 @@
 
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
+import { loadLocalEnv } from "./private-env.mjs";
+
+loadLocalEnv();
 
 const tableOrder = [
   ["families", "id"],

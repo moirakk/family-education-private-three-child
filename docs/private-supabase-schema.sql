@@ -412,6 +412,16 @@ $$;
 
 grant execute on function public.get_calendar_feed_by_token(text) to anon, authenticated;
 
+-- Supabase projects with "Automatically expose new tables" disabled need explicit API grants.
+-- Private server APIs use service_role only; browser clients should not receive direct table grants.
+grant usage on schema public to service_role;
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+grant execute on all functions in schema public to service_role;
+alter default privileges in schema public grant all privileges on tables to service_role;
+alter default privileges in schema public grant all privileges on sequences to service_role;
+alter default privileges in schema public grant execute on functions to service_role;
+
 drop policy if exists "families select member" on public.families;
 drop policy if exists "family settings select member" on public.family_settings;
 drop policy if exists "family settings update editor" on public.family_settings;

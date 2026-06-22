@@ -66,6 +66,8 @@ Check local readiness:
 npm run private:check-env
 ```
 
+Private helper scripts automatically read `.env.local`, so you do not need to manually `source` it before running smoke, backup, or restore commands.
+
 Then run:
 
 ```bash

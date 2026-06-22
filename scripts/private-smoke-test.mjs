@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import { loadLocalEnv } from "./private-env.mjs";
+
+loadLocalEnv();
+
 const defaultBaseUrl = "http://127.0.0.1:3000";
 
 function getArgValue(name) {

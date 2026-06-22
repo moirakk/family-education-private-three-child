@@ -3,6 +3,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { loadLocalEnv } from "./private-env.mjs";
+
+loadLocalEnv();
 
 function getArgValue(name) {
   const index = process.argv.indexOf(name);

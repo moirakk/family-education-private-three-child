@@ -140,6 +140,8 @@ NEXT_PUBLIC_FAMILY_DATA_MODE=private-api
 npm run private:restore -- --file ./family-education-database-backup.json --dry-run
 ```
 
+这些私有运维脚本会自动读取 `.env.local`。
+
 Storage 文件本体备份：
 
 ```bash
