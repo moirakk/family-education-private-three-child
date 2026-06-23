@@ -1,214 +1,247 @@
-# Family Education Dashboard
+# Family Education Management System
 
-Family Education Dashboard is a production-ready MVP for managing education across multi-child households. It helps parents coordinate school schedules, tutoring, extracurricular activities, exams, learning records, educational resources, and long-term planning from one calm, mobile-first workspace.
+Private three-child education operations workspace built with Next.js, TypeScript, Supabase, PostgreSQL, and Vercel.
 
-The current pilot experience is modeled around a family with three children, but the product architecture is designed to support any number of children and a future SaaS workspace model.
+This repository contains the private custom version for one family. It is intentionally separate from the future public/commercial product track.
 
-## Product Vision
+## Product Purpose
 
-Parents often manage each child's education across disconnected tools: school portals, messaging apps, paper calendars, tutoring notes, worksheets, exam deadlines, and scattered cloud folders. As the number of children grows, the operational burden grows quickly.
+Family Education Management System helps parents manage the daily and long-term education operations of a multi-child household:
 
-Family Education Dashboard turns that fragmented workflow into a unified family education operating system.
+- school schedules
+- tutoring sessions
+- extracurricular activities
+- exams and deadlines
+- learning records
+- study materials and files
+- self-evaluations
+- tutor feedback
+- education goals and milestones
+- iOS Calendar subscriptions
+- backup and restore workflows
 
-## Core Use Cases
+The current private workspace is designed around a three-child family, but the data model keeps `family_id` and child relationships explicit so the system can evolve into a commercial multi-family SaaS later.
 
-- See the whole family's education week at a glance.
-- Add, edit, and manage child profiles dynamically.
-- Track school, tutoring, activities, exams, and family education events in one calendar.
-- Record learning activity, performance signals, and monthly progress.
-- Plan goals, milestones, and exam timelines per child.
-- Organize files, notes, worksheets, links, and learning materials.
-- Prepare the product foundation for authentication, storage, subscriptions, and collaboration.
+## Current Status
 
-## Target Users
+The private MVP is beyond static demo state. It now supports real Supabase-backed workflows for the core modules.
 
-- Parents and guardians managing education for multiple children.
-- Co-parents or caregivers who need shared visibility.
-- Future collaborators such as tutors, teachers, or education consultants.
-- SaaS customers who need a family workspace instead of a single-child tracker.
+Implemented:
 
-## Product Modules
+- access-code protected private workspace
+- parent/caregiver dashboard access
+- limited tutor feedback entry flow
+- Supabase PostgreSQL schema for private family data
+- Supabase Storage integration for learning materials
+- child CRUD with deletion protection
+- calendar event CRUD
+- learning record CRUD
+- education roadmap CRUD
+- learning materials metadata and file upload
+- self-evaluation CRUD
+- tutor feedback CRUD
+- private JSON export
+- Storage backup and restore scripts
+- iOS Calendar ICS/webcal endpoint
+- PWA manifest, service worker, icons, and offline page
+- mobile four-mode app shell: Today, Week, Records, More
+- production smoke test script
 
-### 1. Family Dashboard
+Still in progress:
 
-The main dashboard summarizes the full household:
+- Vercel production deployment validation
+- real iPhone PWA installation test
+- real iOS Calendar subscription test
+- scheduled backups
+- stronger cross-instance access-code rate limiting
+- mobile form simplification
+- polished UI pass for daily parent use
 
-- Weekly overview by event category.
-- Upcoming event queue.
-- Study-time and goal-progress metrics.
-- Growth summary across all children.
-- Quick access to child profiles, calendar, roadmap, and resources.
+## Product Modes
 
-### 2. Child Management
+The dashboard is organized around parent tasks rather than feature showcase sections.
 
-Child management supports dynamic family composition:
+| Mode | Purpose |
+| --- | --- |
+| Today | First-screen command center for urgent tasks, upcoming items, quick actions, and child summaries |
+| Week | Calendar planning, weekly overview, event editing, iOS sync |
+| Records | Learning records, materials, self-evaluations, tutor feedback, child profiles, growth tracking |
+| More | Intake notes, export preview, handoff plan, PWA install, deployment status |
 
-- Add, edit, and delete children.
-- Switch between child profiles.
-- Store grade, school, program, interests, and focus areas.
-- Prepare for future per-child permissions and sharing.
+On desktop, modes are switched from a left sidebar. On mobile, they are switched from a fixed bottom tab bar.
 
-### 3. Unified Calendar
-
-The calendar normalizes education-related events into a single structure:
-
-- School events.
-- Tutoring sessions.
-- Activities and extracurriculars.
-- Exams and assessments.
-- Family education routines.
-- Events can belong to one child, multiple children, or the whole family.
-
-### 4. Growth Tracking
-
-Growth tracking captures both activity and progress:
-
-- Learning records.
-- Study duration.
-- Subject performance.
-- Confidence signals.
-- Monthly report structure.
-- Future AI-assisted progress summaries.
-
-### 5. Education Roadmap
-
-The roadmap turns long-term education planning into visible milestones:
-
-- Goals by child and subject.
-- Target dates.
-- Progress percentage.
-- Milestones.
-- Exam preparation timeline.
-- Status model: planned, in progress, achieved, at risk.
-
-### 6. Resource Center
-
-The resource center organizes education materials:
-
-- Files.
-- Notes.
-- Links.
-- Worksheets.
-- Books and videos.
-- Tags and subject metadata.
-- Supabase Storage-ready file metadata.
-
-## Technical Architecture
+## Architecture
 
 ```mermaid
 flowchart TD
-  UI["Next.js 15 App Router UI"] --> Components["Product Components"]
-  Components --> Domain["Typed Domain Models"]
-  Components --> MockData["Pilot Mock Data"]
-  UI --> FutureActions["Server Actions / Route Handlers"]
-  FutureActions --> Supabase["Supabase Client"]
-  Supabase --> Auth["Supabase Auth"]
-  Supabase --> Postgres["PostgreSQL"]
-  Supabase --> Storage["Supabase Storage"]
-  Postgres --> RLS["Row Level Security"]
-  Vercel["Vercel"] --> UI
+  Parent["Parent / Caregiver"] --> Access["Access Code Page"]
+  Tutor["Tutor"] --> TutorAccess["Tutor Access Code"]
+
+  Access --> Cookie["Signed httpOnly Session Cookie"]
+  TutorAccess --> Cookie
+
+  Cookie --> Middleware["Next.js Middleware"]
+  Middleware --> Dashboard["Private Dashboard"]
+  Middleware --> TutorPage["Tutor Feedback Page"]
+  Middleware --> PrivateAPI["/api/private/*"]
+
+  Dashboard --> PrivateAPI
+  TutorPage --> PrivateAPI
+
+  PrivateAPI --> AdminClient["Supabase Service Role Client"]
+  AdminClient --> Postgres["Supabase PostgreSQL"]
+  AdminClient --> Storage["Supabase Storage"]
+
+  Calendar["iOS Calendar"] --> ICS["/api/calendar/ios?token=..."]
+  ICS --> Postgres
+
+  Backup["Backup Scripts"] --> Postgres
+  Backup --> Storage
 ```
 
-The MVP currently uses typed mock data for fast product iteration. The repository also includes a Supabase-ready PostgreSQL schema with row-level security policies for the production data layer.
+## Security Model
 
-## Tech Stack
+This private version uses a lightweight no-login model:
 
-- Next.js 15 App Router
-- React 19
-- TypeScript
-- TailwindCSS
-- shadcn/ui-style local primitives
-- Radix UI primitives
-- Lucide React icons
-- Supabase client
-- PostgreSQL schema
-- Vercel deployment target
+- access code verifies role
+- successful login issues a signed `httpOnly` session cookie
+- cookies use `SameSite=Strict`
+- parent/caregiver can access the full dashboard
+- tutor can only access `/tutor-feedback` and limited private endpoints
+- viewer role is defined but not productized for the dashboard
+- Supabase service role key is server-only
+- `src/lib/supabase-admin.ts` imports `server-only`
+- private API writes verify `family_id` and child ownership
+- middleware returns JSON 403 for private API rejections
+- service worker does not cache private API responses
+
+Important limitation:
+
+The access-code rate limit is currently cookie + best-effort in-memory protection. For Vercel multi-instance production hardening, use a shared rate-limit store such as Upstash Redis.
+
+## Data Storage
+
+Long-term family data lives in Supabase.
+
+PostgreSQL stores:
+
+- family workspace settings
+- children
+- child intake profiles
+- calendar events
+- event-child relationships
+- learning records
+- education goals
+- milestones
+- resources
+- learning material metadata
+- self-evaluations
+- tutor feedback
+
+Supabase Storage stores:
+
+- uploaded worksheets
+- files
+- notes exported as files
+- other learning materials
+
+The database stores file metadata and `storage_path`; file bodies live in a private Supabase Storage bucket.
+
+## iOS Calendar Sync
+
+The app exposes a one-way ICS feed:
+
+```text
+/api/calendar/ios?token=<family_settings.calendar_token>
+```
+
+Parents can subscribe from iOS Calendar using `webcal://`.
+
+This is intentionally one-way. Edits should happen in the web app, then flow into iOS Calendar. Full CalDAV two-way sync is out of scope for this private MVP.
 
 ## Repository Structure
 
 ```text
 .
 ├── docs/
-│   ├── database-schema.sql
-│   ├── product-architecture.md
-│   └── wireframes.md
+│   ├── claude-current-review-2026-06-23.md
+│   ├── private-current-status-for-claude.md
+│   ├── private-pwa-deployment-guide.md
+│   ├── private-supabase-schema.sql
+│   ├── private-supabase-storage.sql
+│   ├── private-supabase-vercel-runbook.md
+│   └── private-three-child-debug-brief.md
+├── public/
+│   ├── offline.html
+│   └── sw.js
+├── scripts/
+│   ├── private-backup-storage.mjs
+│   ├── private-check-env.mjs
+│   ├── private-generate-secrets.mjs
+│   ├── private-restore-backup.mjs
+│   ├── private-restore-storage.mjs
+│   └── private-smoke-test.mjs
 ├── src/
 │   ├── app/
-│   │   ├── globals.css
+│   │   ├── api/
+│   │   │   ├── access/
+│   │   │   ├── calendar/ios/
+│   │   │   ├── health/
+│   │   │   └── private/
+│   │   ├── access/
+│   │   ├── tutor-feedback/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components/
 │   │   ├── dashboard/
-│   │   │   ├── app-shell.tsx
-│   │   │   ├── child-management.tsx
-│   │   │   ├── child-profile.tsx
-│   │   │   ├── education-roadmap.tsx
-│   │   │   ├── growth-summary.tsx
-│   │   │   ├── metric-card.tsx
-│   │   │   ├── resource-center.tsx
-│   │   │   ├── unified-calendar.tsx
-│   │   │   ├── upcoming-events.tsx
-│   │   │   └── weekly-overview.tsx
 │   │   └── ui/
-│   │       └── shadcn-style reusable UI primitives
-│   └── lib/
-│       ├── mock-data.ts
-│       ├── supabase.ts
-│       ├── types.ts
-│       └── utils.ts
+│   ├── lib/
+│   │   ├── child-theme.ts
+│   │   ├── private-access.ts
+│   │   ├── supabase-admin.ts
+│   │   ├── urgency.ts
+│   │   └── types.ts
+│   └── middleware.ts
+├── .env.example
+├── .nvmrc
 ├── package.json
-├── tailwind.config.ts
-└── next.config.ts
+└── README.md
 ```
 
-## Data Model
+## Environment Variables
 
-The database schema is designed around family workspaces:
+Create `.env.local` from `.env.example`.
 
-- `families`: top-level workspace.
-- `family_members`: user membership and roles.
-- `children`: child profiles and school information.
-- `calendar_events`: unified event model.
-- `calendar_event_children`: many-to-many event assignment.
-- `learning_records`: study activity and performance entries.
-- `monthly_reports`: report summaries by child and month.
-- `education_goals`: long-term goals and roadmap progress.
-- `milestones`: goal milestones.
-- `resources`: files, notes, links, and learning materials.
+Required for private Supabase mode:
 
-See [docs/database-schema.sql](./docs/database-schema.sql) for the full PostgreSQL schema and Supabase RLS policies.
+```bash
+NEXT_PUBLIC_FAMILY_DATA_MODE="private-api"
+NEXT_PUBLIC_PRIVATE_FAMILY_ID="family-uuid"
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="publishable-or-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="server-only-service-role-key"
+PRIVATE_PARENT_ACCESS_CODE="parent-access-code"
+PRIVATE_SESSION_SECRET="long-random-session-secret"
+SUPABASE_LEARNING_MATERIALS_BUCKET="learning-materials"
+```
 
-## Current MVP Status
+Optional:
 
-Implemented:
+```bash
+PRIVATE_CAREGIVER_ACCESS_CODE="caregiver-access-code"
+PRIVATE_TUTOR_ACCESS_CODE="tutor-access-code"
+PRIVATE_VIEWER_ACCESS_CODE="viewer-access-code"
+```
 
-- Two-track product direction: custom three-child version and commercial SaaS version.
-- Mobile-first responsive dashboard.
-- Multi-child pilot data model.
-- Custom pilot layer for the 伯 / 仲 / 叔 three-child management system.
-- Parent action board and three-child operating matrix.
-- Dynamic child add/edit/delete UI.
-- Child profile panel.
-- Weekly overview and upcoming events.
-- Unified calendar grouped by category.
-- Growth tracking summary.
-- Education roadmap cards.
-- Resource center.
-- Product architecture documentation.
-- Supabase-ready database schema.
-- TypeScript and ESLint validation.
-
-Next production steps:
-
-- Replace mock data with Supabase queries and mutations.
-- Add Supabase Auth and family membership onboarding.
-- Persist child, event, learning record, goal, and resource CRUD.
-- Add Supabase Storage upload flow.
-- Deploy to Vercel.
-- Add screenshots and product demo media.
-- Add test coverage for core user workflows.
+Never commit `.env.local`.
 
 ## Local Development
+
+Use Node 22:
+
+```bash
+nvm use
+```
 
 Install dependencies:
 
@@ -216,77 +249,137 @@ Install dependencies:
 npm install
 ```
 
-Run the development server:
+Run development server:
 
 ```bash
 npm run dev
 ```
 
-Run quality checks:
+Run production build:
 
 ```bash
-npm run lint
+npm run build
+```
+
+Run checks:
+
+```bash
 npm run typecheck
+npm run lint
 ```
 
-Create `.env.local` from `.env.example` when wiring Supabase:
+## Private Smoke Test
+
+After starting the app:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
-SUPABASE_SERVICE_ROLE_KEY="server-only-service-role-key"
+npm run start
+npm run private:smoke -- --base-url http://127.0.0.1:3000 --expect-ready --deep-private
 ```
 
-## Build Notes
+The smoke test checks:
 
-The application is configured for Next.js 15. On this local machine, the native Next SWC package had a cache issue during verification, so the production build was validated with the official SWC WASM fallback:
+- `/api/health`
+- access page
+- PWA manifest
+- icons
+- service worker
+- offline page
+- private access login
+- unauthenticated API rejection
+- protected dashboard
+- tutor access boundaries
+- iOS calendar feed
+- private export
+
+## Backup And Restore
+
+Database export is available from:
+
+```text
+/api/private/export
+```
+
+Storage backup:
 
 ```bash
-NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=/Users/moira/Documents/family/node_modules/@next/swc-wasm-nodejs npm run build
+npm run private:backup-storage -- --out ./private-storage-backup
 ```
 
-In a standard Vercel environment, this workaround should not be necessary.
+Database restore:
+
+```bash
+npm run private:restore -- --file ./backup.json
+```
+
+Database restore with Storage manifest verification:
+
+```bash
+npm run private:restore -- --file ./backup.json --storage-manifest ./private-storage-backup/storage-manifest.json
+```
+
+Storage restore:
+
+```bash
+npm run private:restore-storage -- --dir ./private-storage-backup
+```
+
+Before trusting backups for long-term use, restore into a fresh Supabase project and verify signed downloads from the app.
 
 ## Deployment Plan
 
-1. Create a Supabase project.
-2. Run `docs/database-schema.sql` in the Supabase SQL editor.
-3. Configure Supabase Auth providers.
-4. Add environment variables to Vercel.
-5. Deploy the Next.js app from GitHub.
-6. Enable storage buckets for resource uploads.
-7. Add production RLS policy tests before external users are invited.
+1. Keep this repository private.
+2. Import this repository into Vercel.
+3. Add all required environment variables in Vercel.
+4. Run `docs/private-supabase-schema.sql` in Supabase.
+5. Run `docs/private-supabase-storage.sql` in Supabase.
+6. Redeploy after environment variable changes.
+7. Open `/api/health` and confirm `ready=ok`.
+8. Run the private smoke test against the Vercel URL.
+9. Install the PWA on a real iPhone.
+10. Subscribe to the iOS Calendar feed using the real production `webcal://` URL.
 
-## Commercialization Path
+## Quality Gates
 
-Phase 1: Single-family MVP with core dashboard workflows.
+Before giving the production URL to parents:
 
-Phase 2: Authenticated family workspace with persistent CRUD.
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- private smoke test passes
+- Supabase tables exist
+- Storage bucket exists
+- parent access code works
+- tutor access code only opens tutor flow
+- export works
+- backup scripts run
+- iPhone PWA install works
+- iOS Calendar subscription works
 
-Phase 3: Invitations, caregiver roles, child-specific sharing, and storage.
+## Product Roadmap
 
-Phase 4: Subscription billing, calendar sync, reminders, and advanced reporting.
+Private version priorities:
 
-Phase 5: AI-assisted monthly reports and personalized education roadmap suggestions.
+1. Vercel production deployment
+2. iPhone PWA and Calendar verification
+3. daily parent workflow polish
+4. mobile quick-entry forms
+5. scheduled backup automation
+6. stronger rate limiting
+7. family handoff guide
 
-## Design Direction
+Commercial version later:
 
-The product interface is inspired by Apple Education, Linear, Notion, and Stripe Dashboard:
+1. Supabase Auth
+2. multi-family tenancy
+3. formal roles and invitations
+4. row-level security
+5. audit logs
+6. billing
+7. generalized onboarding
 
-- Calm information hierarchy.
-- Dense but readable operational layout.
-- Mobile-first interaction model.
-- Soft neutral surfaces with focused accent colors.
-- Clear cards for repeatable education objects.
-- Minimal friction for parent workflows.
+## Important Notes
 
-## Documentation
+This repository may contain private family workflow assumptions. Do not make it public without removing private context, seed data, and operational notes.
 
-- [Product Architecture](./docs/product-architecture.md)
-- [Database Schema](./docs/database-schema.sql)
-- [Wireframes](./docs/wireframes.md)
-- [Two-Track Roadmap](./docs/two-track-roadmap.md)
-
-## License
-
-This project is currently published as a portfolio MVP. A formal license can be added before external reuse or commercialization.
+Supabase keys, access codes, and calendar tokens must stay in local/Vercel environment variables only.
