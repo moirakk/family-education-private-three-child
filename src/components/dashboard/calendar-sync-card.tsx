@@ -6,7 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { buildEducationCalendarIcs } from "@/lib/ics";
+import { getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { CalendarEvent, Child } from "@/lib/types";
+
+type CalendarLink = {
+  httpsUrl: string;
+  webcalUrl: string;
+};
 
 export function CalendarSyncCard({
   currentEvents,
@@ -17,12 +23,22 @@ export function CalendarSyncCard({
 }) {
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
+  const [calendarLink, setCalendarLink] = useState<CalendarLink | null>(null);
+  const [calendarLinkError, setCalendarLinkError] = useState("");
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
-  const httpsFeedUrl = useMemo(() => (origin ? `${origin}/api/calendar/ios` : "/api/calendar/ios"), [origin]);
+  useEffect(() => {
+    if (!isPrivateApiMode()) return;
+
+    getPrivateApi<CalendarLink>("/api/private/calendar-link")
+      .then(setCalendarLink)
+      .catch((error) => setCalendarLinkError(error instanceof Error ? error.message : "订阅链接加载失败"));
+  }, []);
+
+  const httpsFeedUrl = useMemo(() => calendarLink?.httpsUrl ?? (origin ? `${origin}/api/calendar/ios` : "/api/calendar/ios"), [calendarLink, origin]);
   const webcalUrl = useMemo(() => httpsFeedUrl.replace(/^https?:\/\//, "webcal://"), [httpsFeedUrl]);
 
   async function copyFeedUrl() {
@@ -95,6 +111,7 @@ export function CalendarSyncCard({
               {copied ? "已复制" : "复制订阅链接"}
             </Button>
           </div>
+          {calendarLinkError ? <p className="mt-3 text-xs text-red-600">{calendarLinkError}</p> : null}
         </div>
 
         <div className="rounded-lg bg-slate-950 p-4 text-white">
