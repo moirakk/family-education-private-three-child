@@ -279,7 +279,7 @@ f39ba5c Persist private calendar edits
 - viewer 预留，当前不作为完整权限体系。
 - iOS 日历使用独立 token，不使用访问码。
 - 访问码通过 `POST /api/access` 提交，不进入 URL。
-- 登录后签发 httpOnly、sameSite=lax、有 12 小时过期时间的签名 session cookie。
+- 登录后签发 httpOnly、SameSite=Strict、有 90 天过期时间的签名 session cookie。
 - `/api/access` 对连续错误尝试有基础 cookie 级限流；商业化前仍应接入更可靠的边缘限流或后端限流。
 
 这比单一访问码更安全，但仍不是商业级权限系统。

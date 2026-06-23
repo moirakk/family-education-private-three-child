@@ -3,7 +3,7 @@ export const accessAttemptCookieName = "family_access_attempts";
 
 export type AccessRole = "parent" | "caregiver" | "tutor" | "viewer";
 
-const sessionTtlSeconds = 60 * 60 * 12;
+const sessionTtlSeconds = 60 * 60 * 24 * 90;
 const encoder = new TextEncoder();
 
 export function getConfiguredAccessCodes() {
