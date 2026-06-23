@@ -2,6 +2,14 @@
 
 > Goal: make Family Education Management System persist data long-term for the private family version.
 
+Private GitHub repository:
+
+```text
+https://github.com/moirahoumiki/family-education-private-three-child
+```
+
+Use this private repository for the three-child custom version. Do not deploy the public portfolio repository for private family use.
+
 ## 1. Create Supabase Project
 
 Create a new Supabase project and copy:
@@ -65,6 +73,16 @@ Check local readiness:
 ```bash
 npm run private:check-env
 ```
+
+This project targets Node 22. Vercel will use Node 22 because `package.json` declares:
+
+```json
+"engines": {
+  "node": "22.x"
+}
+```
+
+If local `private:check-env` says the current shell is Node 24, switch to Node 22 before parity testing. The local app may still build, but Node 22 is the production target.
 
 Private helper scripts automatically read `.env.local`, so you do not need to manually `source` it before running smoke, backup, or restore commands.
 
@@ -193,7 +211,23 @@ Add the same values from `.env.local` to Vercel:
 - `PRIVATE_SESSION_SECRET`
 - `SUPABASE_LEARNING_MATERIALS_BUCKET`
 
-Deploy from the private branch/repo that contains this private version.
+Deploy from:
+
+```text
+Repository: moirahoumiki/family-education-private-three-child
+Branch: codex/private-three-child-pilot
+```
+
+Recommended Vercel import settings:
+
+- Framework preset: Next.js
+- Build command: `npm run build`
+- Install command: `npm install`
+- Output directory: leave default
+- Node.js version: 22.x, from `package.json`
+- Root directory: repository root
+
+After changing any Vercel environment variable, redeploy. `NEXT_PUBLIC_*` variables are baked into the client build.
 
 After deployment, run:
 
@@ -241,6 +275,15 @@ Restore smoke test:
 
 ```bash
 npm run private:restore -- --file ./family-education-database-backup.json --dry-run
+```
+
+Restore smoke test with Storage manifest verification:
+
+```bash
+npm run private:restore -- \
+  --file ./family-education-database-backup.json \
+  --storage-manifest ./family-education-storage-backup/storage-manifest.json \
+  --dry-run
 ```
 
 Actual restore/upsert:
