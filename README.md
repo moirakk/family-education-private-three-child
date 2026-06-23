@@ -47,9 +47,14 @@ Implemented:
 - mobile four-mode app shell: Today, Week, Records, More
 - production smoke test script
 
+Production status:
+
+- Vercel production deployment is live
+- Production URL: `https://family-education-private-three-chil.vercel.app`
+- Private smoke test passed against production
+
 Still in progress:
 
-- Vercel production deployment validation
 - real iPhone PWA installation test
 - real iOS Calendar subscription test
 - scheduled backups
@@ -360,13 +365,12 @@ Before giving the production URL to parents:
 
 Private version priorities:
 
-1. Vercel production deployment
-2. iPhone PWA and Calendar verification
-3. daily parent workflow polish
-4. mobile quick-entry forms
-5. scheduled backup automation
-6. stronger rate limiting
-7. family handoff guide
+1. iPhone PWA and Calendar verification
+2. daily parent workflow polish
+3. mobile quick-entry forms
+4. scheduled backup automation
+5. stronger rate limiting
+6. family handoff guide
 
 Commercial version later:
 

@@ -10,6 +10,23 @@ https://github.com/moirahoumiki/family-education-private-three-child
 
 Use this private repository for the three-child custom version. Do not deploy the public portfolio repository for private family use.
 
+Current production URL:
+
+```text
+https://family-education-private-three-chil.vercel.app
+```
+
+Latest production smoke status:
+
+```text
+PASS health: ready=ok, mode=private-api
+PASS private access login
+PASS protected dashboard
+PASS tutor access boundaries
+PASS calendar feed
+PASS private export: 13 tables
+```
+
 ## 1. Create Supabase Project
 
 Create a new Supabase project and copy:
@@ -233,7 +250,7 @@ After deployment, run:
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://your-private-domain.vercel.app \
+  --base-url https://family-education-private-three-chil.vercel.app \
   --parent-code "$PRIVATE_PARENT_ACCESS_CODE" \
   --calendar-token "<family_settings.calendar_token>" \
   --expect-ready \
