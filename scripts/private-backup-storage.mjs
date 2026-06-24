@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { loadLocalEnv } from "./private-env.mjs";
@@ -76,10 +77,15 @@ async function downloadObject(supabase, bucket, object, outputRoot) {
   if (error) throw new Error(`${object.path}: ${error.message}`);
   if (!data) throw new Error(`${object.path}: empty download`);
 
+  const buffer = Buffer.from(await data.arrayBuffer());
   const outputPath = path.join(outputRoot, "files", object.path);
   await mkdir(path.dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, Buffer.from(await data.arrayBuffer()));
-  return outputPath;
+  await writeFile(outputPath, buffer);
+  return {
+    outputPath,
+    byteLength: buffer.length,
+    sha256: createHash("sha256").update(buffer).digest("hex")
+  };
 }
 
 async function main() {
@@ -102,8 +108,10 @@ async function main() {
 
   console.log(`Backing up ${objects.length} objects from ${bucket}`);
   for (const object of objects) {
-    const outputPath = await downloadObject(supabase, bucket, object, outputRoot);
-    console.log(`- ${object.path} -> ${outputPath}`);
+    const result = await downloadObject(supabase, bucket, object, outputRoot);
+    object.backupSize = result.byteLength;
+    object.sha256 = result.sha256;
+    console.log(`- ${object.path} -> ${result.outputPath}`);
   }
 
   const manifest = {

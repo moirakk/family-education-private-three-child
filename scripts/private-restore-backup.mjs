@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { loadLocalEnv } from "./private-env.mjs";
 
@@ -60,12 +62,33 @@ async function assertStorageManifest(backup, manifestPath) {
 
   const manifest = normalizeStorageManifest(JSON.parse(await readFile(manifestPath, "utf8")));
   const objectPaths = new Set(manifest.objects.map((object) => object.path).filter(Boolean));
+  const manifestObjectsByPath = new Map(manifest.objects.map((object) => [object.path, object]));
+  const backupDir = path.dirname(manifestPath);
   const missingPaths = (backup.tables.learning_materials ?? [])
     .map((material) => material.storage_path)
     .filter((storagePath) => storagePath && !objectPaths.has(storagePath));
 
   if (missingPaths.length > 0) {
     throw new Error(`Storage manifest is missing ${missingPaths.length} learning material file(s): ${missingPaths.slice(0, 5).join(", ")}`);
+  }
+
+  for (const object of manifest.objects) {
+    if (!object?.path) continue;
+    const body = await readFile(path.join(backupDir, "files", object.path));
+    if (object.sha256) {
+      const sha256 = createHash("sha256").update(body).digest("hex");
+      if (sha256 !== object.sha256) {
+        throw new Error(`Storage backup checksum mismatch: ${object.path}`);
+      }
+    }
+  }
+
+  for (const material of backup.tables.learning_materials ?? []) {
+    if (!material.storage_path) continue;
+    const object = manifestObjectsByPath.get(material.storage_path);
+    if (object?.backupSize != null && material.file_size != null && Number(material.file_size) !== Number(object.backupSize)) {
+      throw new Error(`Storage metadata size mismatch: ${material.storage_path}`);
+    }
   }
 
   console.log(`- storage manifest: verified ${objectPaths.size} object(s)`);

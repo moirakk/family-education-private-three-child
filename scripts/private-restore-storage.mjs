@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { loadLocalEnv } from "./private-env.mjs";
@@ -47,9 +48,14 @@ async function restoreObject(supabase, bucket, backupDir, object, dryRun) {
   const sourcePath = path.join(backupDir, "files", object.path);
   const body = await readFile(sourcePath);
   const mimetype = object.mimetype || "application/octet-stream";
+  const sha256 = createHash("sha256").update(body).digest("hex");
+
+  if (object.sha256 && object.sha256 !== sha256) {
+    throw new Error(`${object.path}: checksum mismatch; backup file may be corrupted.`);
+  }
 
   if (dryRun) {
-    console.log(`- ${object.path}: ${body.length} bytes ready`);
+    console.log(`- ${object.path}: ${body.length} bytes ready${object.sha256 ? ", checksum ok" : ""}`);
     return;
   }
 

@@ -49,7 +49,7 @@ codex/private-three-child-pilot
 | 家教反馈 | 已完成基础版 | tutor_feedback + 独立家教入口 | 家教可提交反馈，但不能进入完整系统 |
 | iOS 日历 | 已完成 | ICS feed + calendar token | iPhone Calendar 可订阅系统日程 |
 | PWA 手机入口 | 已完成 | manifest + service worker | iPhone 可添加到主屏幕，像 App 打开 |
-| 备份恢复 | 已完成脚本版 | export API + backup/restore scripts | 可导出数据库，备份和恢复 Storage 文件 |
+| 备份恢复 | 已完成脚本版 | export API + 一键 backup + restore dry-run + checksum | 可导出数据库，备份和恢复 Storage 文件 |
 | 生产安全加固 | 已完成当前轮 | 签名 session、health 降敏、日历 token、关联表收紧 | 线上私有数据边界更稳 |
 | UI 精修 | 待继续 | 继续优化组件和移动端表单 | 让家长日常使用更轻松 |
 
@@ -597,6 +597,7 @@ docs/private-vercel-env-checklist.md
 
 | 文件 | 方法 | 效果 |
 | --- | --- | --- |
+| `scripts/private-backup-all.mjs` | 登录生产站点导出 JSON，并下载 Storage 文件 | 一键生成完整备份目录 |
 | `scripts/private-backup-storage.mjs` | 下载 Supabase Storage 文件 | 备份资料文件本体 |
 | `scripts/private-restore-storage.mjs` | 上传文件回 Storage | 恢复资料文件 |
 | `scripts/private-restore-backup.mjs` | upsert 数据库 JSON | 恢复数据库元数据 |
@@ -605,24 +606,32 @@ docs/private-vercel-env-checklist.md
 推荐备份流程：
 
 ```bash
-npm run private:backup-storage -- --out ./private-storage-backup
+npm run private:backup -- --out ./private-backups/latest
 ```
 
-然后在网页里或 API 中导出 JSON。
+这个命令会生成：
+
+- `database-export.json`
+- `storage/storage-manifest.json`
+- `storage/files/**`
+- `backup-manifest.json`
 
 恢复前 dry run：
 
 ```bash
 npm run private:restore -- \
-  --file ./backup.json \
-  --storage-manifest ./private-storage-backup/storage-manifest.json \
+  --file ./private-backups/latest/database-export.json \
+  --storage-manifest ./private-backups/latest/storage/storage-manifest.json \
   --dry-run
+
+npm run private:restore-storage -- --dir ./private-backups/latest/storage --dry-run
 ```
 
 效果：
 
 - 将来如果 Supabase 项目出问题，可以迁移到新项目。
 - 不只是导出文字，也能备份文件。
+- Storage 备份带 SHA-256 checksum，恢复前能发现文件损坏或 metadata 对不上。
 
 ## 17. 验证和质量检查
 

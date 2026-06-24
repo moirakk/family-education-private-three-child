@@ -304,16 +304,46 @@ The smoke test checks:
 
 ## Backup And Restore
 
-Database export is available from:
+Create a full private backup:
+
+```bash
+npm run private:backup -- --out ./private-backups/latest
+```
+
+This creates:
+
+- `database-export.json`
+- `storage/storage-manifest.json`
+- `storage/files/**`
+- `backup-manifest.json`
+
+The backup manifest includes dry-run restore commands.
+
+Database export is also available from:
 
 ```text
 /api/private/export
 ```
 
-Storage backup:
+Storage-only backup:
 
 ```bash
 npm run private:backup-storage -- --out ./private-storage-backup
+```
+
+Database restore dry run:
+
+```bash
+npm run private:restore -- \
+  --file ./private-backups/latest/database-export.json \
+  --storage-manifest ./private-backups/latest/storage/storage-manifest.json \
+  --dry-run
+```
+
+Storage restore dry run:
+
+```bash
+npm run private:restore-storage -- --dir ./private-backups/latest/storage --dry-run
 ```
 
 Database restore:
