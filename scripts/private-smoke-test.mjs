@@ -121,6 +121,7 @@ async function checkHealth(ctx) {
   const { response, json } = await fetchJson(ctx, "/api/health");
   assert(response.status === 200, `expected 200, got ${response.status}`);
   assert(json.ok === true, "health ok must be true");
+  if (!ctx.cookie) return "public ok";
   if (ctx.expectReady) assert(json.readyForPrivateDeploy === true, "readyForPrivateDeploy must be true");
   return `ready=${statusLabel(Boolean(json.readyForPrivateDeploy))}, mode=${json.checks?.dataMode ?? "unknown"}`;
 }
@@ -285,6 +286,7 @@ async function main() {
   results.push(await step("service worker", () => checkOkPath(ctx, "/sw.js", "CACHE_NAME")));
   results.push(await step("offline page", () => checkOkPath(ctx, "/offline.html", "离线")));
   results.push(await step("private access login", () => checkLogin(ctx)));
+  results.push(await step("authenticated health", () => checkHealth(ctx)));
   results.push(await step("unauthenticated private API", () => checkUnauthenticatedPrivateApi(ctx)));
   results.push(await step("protected dashboard", () => checkProtectedDashboard(ctx)));
   results.push(await step("tutor access boundaries", () => checkTutorBoundaries(ctx)));

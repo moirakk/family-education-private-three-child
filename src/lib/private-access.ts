@@ -25,13 +25,14 @@ export function getPrivateSessionTtlSeconds() {
 }
 
 function getSessionSecret() {
-  return (
-    process.env.PRIVATE_SESSION_SECRET ||
-    process.env.PRIVATE_PARENT_ACCESS_CODE ||
-    process.env.PRIVATE_ACCESS_CODE ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    "local-development-private-session-secret"
-  );
+  const secret = process.env.PRIVATE_SESSION_SECRET;
+  if (secret && secret.length >= 32) return secret;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("PRIVATE_SESSION_SECRET must be set to at least 32 characters in production.");
+  }
+
+  return "local-development-insecure-session-secret-do-not-use-in-production";
 }
 
 function toBase64Url(bytes: ArrayBuffer) {
@@ -43,6 +44,19 @@ async function signSessionPayload(payload: string) {
   const key = await crypto.subtle.importKey("raw", encoder.encode(getSessionSecret()), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
   return toBase64Url(signature);
+}
+
+function timingSafeEqual(a: string | undefined, b: string) {
+  const left = encoder.encode(a ?? "");
+  const right = encoder.encode(b);
+  const length = Math.max(left.length, right.length);
+  let diff = left.length ^ right.length;
+
+  for (let index = 0; index < length; index++) {
+    diff |= (left[index] ?? 0) ^ (right[index] ?? 0);
+  }
+
+  return diff === 0;
 }
 
 export async function createAccessSession(role: AccessRole) {
@@ -62,5 +76,5 @@ export async function verifyAccessSession(value: string | undefined) {
   if (!Number.isFinite(expiresAt) || expiresAt < Math.floor(Date.now() / 1000)) return null;
 
   const expectedSignature = await signSessionPayload(`${role}.${expiresAtText}`);
-  return signature === expectedSignature ? role : null;
+  return timingSafeEqual(signature, expectedSignature) ? role : null;
 }

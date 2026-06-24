@@ -1,10 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { accessSessionCookieName, verifyAccessSession } from "@/lib/private-access";
 
 function isConfigured(value: string | undefined) {
   return Boolean(value && value.trim().length > 0);
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const role = await verifyAccessSession(request.cookies.get(accessSessionCookieName)?.value);
+  const canViewDiagnostics = role === "parent" || role === "caregiver";
+
+  if (!canViewDiagnostics) {
+    return NextResponse.json({ ok: true });
+  }
+
   const configuredDataMode = process.env.NEXT_PUBLIC_FAMILY_DATA_MODE;
   const dataMode =
     configuredDataMode === "local" || configuredDataMode === "private-api" || configuredDataMode === "supabase"
