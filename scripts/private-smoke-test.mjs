@@ -250,6 +250,21 @@ async function checkCalendarWithSession(ctx) {
   return contentType(response);
 }
 
+async function checkUnauthenticatedCalendar(ctx) {
+  if (process.env.NEXT_PUBLIC_FAMILY_DATA_MODE !== "private-api") return "skipped; not private-api mode";
+  const originalCookie = ctx.cookie;
+  ctx.cookie = "";
+
+  try {
+    const { response, text } = await fetchText(ctx, "/api/calendar/ios");
+    assert(response.status === 401, `expected 401, got ${response.status}`);
+    assert(!text.includes("BEGIN:VCALENDAR"), "unauthenticated calendar should not return ICS");
+    return "calendar requires token or session";
+  } finally {
+    ctx.cookie = originalCookie;
+  }
+}
+
 async function checkCalendarToken(ctx) {
   if (!ctx.calendarToken) return "skipped; no calendar token";
   const { response, text } = await fetchText(ctx, `/api/calendar/ios?token=${encodeURIComponent(ctx.calendarToken)}`);
@@ -290,6 +305,7 @@ async function main() {
   results.push(await step("unauthenticated private API", () => checkUnauthenticatedPrivateApi(ctx)));
   results.push(await step("protected dashboard", () => checkProtectedDashboard(ctx)));
   results.push(await step("tutor access boundaries", () => checkTutorBoundaries(ctx)));
+  results.push(await step("unauthenticated calendar", () => checkUnauthenticatedCalendar(ctx)));
   results.push(await step("calendar with session", () => checkCalendarWithSession(ctx)));
   results.push(await step("calendar token", () => checkCalendarToken(ctx)));
   results.push(await step("private export", () => checkPrivateExport(ctx)));

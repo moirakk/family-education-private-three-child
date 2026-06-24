@@ -154,10 +154,8 @@ export class SupabaseFamilyRepository implements FamilyRepository {
       childrenResult,
       intakeResult,
       eventsResult,
-      eventChildrenResult,
       recordsResult,
       goalsResult,
-      milestonesResult,
       resourcesResult
     ] = await Promise.all([
       this.supabase.from("families").select("id,name,timezone,locale").eq("id", familyId).single(),
@@ -165,10 +163,8 @@ export class SupabaseFamilyRepository implements FamilyRepository {
       this.supabase.from("children").select("id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas").eq("family_id", familyId).order("created_at"),
       this.supabase.from("child_intake_profiles").select("child_id,school_detail,weekly_schedule,important_dates,current_goals,parent_concerns,private_notes,updated_at"),
       this.supabase.from("calendar_events").select("id,title,category,starts_at,ends_at,location").eq("family_id", familyId).order("starts_at"),
-      this.supabase.from("calendar_event_children").select("event_id,child_id"),
       this.supabase.from("learning_records").select("id,child_id,subject,title,record_date,duration_minutes,score,confidence").eq("family_id", familyId).order("record_date", { ascending: false }),
       this.supabase.from("education_goals").select("id,child_id,title,subject,target_date,status,progress").eq("family_id", familyId),
-      this.supabase.from("milestones").select("id,goal_id,title,due_date,completed_at"),
       this.supabase.from("resources").select("id,child_id,kind,title,subject,tags,updated_at").eq("family_id", familyId).order("updated_at", { ascending: false })
     ]);
 
@@ -177,11 +173,23 @@ export class SupabaseFamilyRepository implements FamilyRepository {
     assertNoError(childrenResult.error, "Load children");
     assertNoError(intakeResult.error, "Load intake profiles");
     assertNoError(eventsResult.error, "Load calendar events");
-    assertNoError(eventChildrenResult.error, "Load event child links");
     assertNoError(recordsResult.error, "Load learning records");
     assertNoError(goalsResult.error, "Load education goals");
-    assertNoError(milestonesResult.error, "Load milestones");
     assertNoError(resourcesResult.error, "Load resources");
+
+    const eventIds = ((eventsResult.data ?? []) as EventRow[]).map((event) => event.id);
+    const goalIds = ((goalsResult.data ?? []) as GoalRow[]).map((goal) => goal.id);
+    const [eventChildrenResult, milestonesResult] = await Promise.all([
+      eventIds.length
+        ? this.supabase.from("calendar_event_children").select("event_id,child_id").in("event_id", eventIds)
+        : Promise.resolve({ data: [], error: null }),
+      goalIds.length
+        ? this.supabase.from("milestones").select("id,goal_id,title,due_date,completed_at").in("goal_id", goalIds).order("sort_order")
+        : Promise.resolve({ data: [], error: null })
+    ]);
+
+    assertNoError(eventChildrenResult.error, "Load event child links");
+    assertNoError(milestonesResult.error, "Load milestones");
 
     const family = familyResult.data as FamilyRow;
     const settings = settingsResult.data as FamilySettingsRow;

@@ -49,6 +49,7 @@ export function buildEducationCalendarIcs({
   events.forEach((event) => {
     const childNames = event.childIds.map((childId) => childById.get(childId)).filter(Boolean).join("、");
     const category = categoryLabels[event.category];
+    const location = event.location.trim();
 
     lines.push(
       "BEGIN:VEVENT",
@@ -58,10 +59,13 @@ export function buildEducationCalendarIcs({
       `DTEND:${formatIcsDate(event.endsAt ? event.endsAt : addMinutes(event.startsAt, 45))}`,
       `SUMMARY:${escapeIcsText(event.title)}`,
       `DESCRIPTION:${escapeIcsText([childNames, category].filter(Boolean).join(" · "))}`,
-      `LOCATION:${escapeIcsText(event.location)}`,
       `CATEGORIES:${escapeIcsText(category)}`,
       "END:VEVENT"
     );
+
+    if (location) {
+      lines.splice(lines.length - 2, 0, `LOCATION:${escapeIcsText(location)}`);
+    }
   });
 
   lines.push("END:VCALENDAR");

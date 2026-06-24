@@ -1,8 +1,20 @@
+import type { NextRequest } from "next/server";
 import { buildEducationCalendarIcs } from "@/lib/ics";
+import { accessSessionCookieName, verifyAccessSession } from "@/lib/private-access";
 import { pilotCalendarEvents, pilotChildren } from "@/lib/pilot-data";
-import { getCalendarFeedByToken } from "@/lib/supabase-calendar-feed";
+import { getCalendarFeedByFamilyId, getCalendarFeedByToken } from "@/lib/supabase-calendar-feed";
 
-export async function GET(request: Request) {
+function calendarResponse(ics: string, shouldDownload: boolean) {
+  return new Response(ics, {
+    headers: {
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": `${shouldDownload ? "attachment" : "inline"}; filename="family-education-calendar.ics"`,
+      "Cache-Control": "no-store"
+    }
+  });
+}
+
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const shouldDownload = url.searchParams.get("download") === "1";
   const token = url.searchParams.get("token");
@@ -26,10 +38,51 @@ export async function GET(request: Request) {
       calendarName: "Family Education Calendar"
     });
 
-    return new Response(ics, {
+    return calendarResponse(ics, shouldDownload);
+  }
+
+  const isPrivateApiMode = process.env.NEXT_PUBLIC_FAMILY_DATA_MODE === "private-api";
+  const sessionCookie = request.cookies.get(accessSessionCookieName)?.value;
+  const session = sessionCookie ? await verifyAccessSession(sessionCookie) : null;
+
+  if (session && session !== "tutor") {
+    const familyId = process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID;
+    if (!familyId) {
+      return new Response("Private family id is not configured.", {
+        status: 500,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      });
+    }
+
+    const supabaseFeed = await getCalendarFeedByFamilyId(familyId);
+
+    if (!supabaseFeed) {
+      return new Response("Calendar feed is unavailable.", {
+        status: 500,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      });
+    }
+
+    const ics = buildEducationCalendarIcs({
+      events: supabaseFeed.events,
+      children: supabaseFeed.children,
+      calendarName: "Family Education Calendar"
+    });
+
+    return calendarResponse(ics, shouldDownload);
+  }
+
+  if (isPrivateApiMode) {
+    return new Response("Calendar token or private session is required.", {
+      status: 401,
       headers: {
-        "Content-Type": "text/calendar; charset=utf-8",
-        "Content-Disposition": `${shouldDownload ? "attachment" : "inline"}; filename="family-education-calendar.ics"`,
+        "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store"
       }
     });
@@ -41,11 +94,5 @@ export async function GET(request: Request) {
     calendarName: "Family Education Calendar"
   });
 
-  return new Response(ics, {
-    headers: {
-      "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `${shouldDownload ? "attachment" : "inline"}; filename="boyang-zhongyang-shuyang-calendar.ics"`,
-      "Cache-Control": "no-store"
-    }
-  });
+  return calendarResponse(ics, shouldDownload);
 }

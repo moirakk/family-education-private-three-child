@@ -91,24 +91,35 @@ export async function GET() {
       settingsResult,
       childrenResult,
       eventsResult,
-      eventChildrenResult,
       recordsResult,
       goalsResult,
-      milestonesResult,
       resourcesResult
     ] = await Promise.all([
       supabase.from("families").select("id,name,timezone,locale").eq("id", familyId).single(),
       supabase.from("family_settings").select("family_id,calendar_name").eq("family_id", familyId).single(),
       supabase.from("children").select("id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas").eq("family_id", familyId).order("created_at"),
       supabase.from("calendar_events").select("id,title,category,starts_at,ends_at,location").eq("family_id", familyId).order("starts_at"),
-      supabase.from("calendar_event_children").select("event_id,child_id"),
       supabase.from("learning_records").select("id,child_id,subject,title,record_date,duration_minutes,score,confidence").eq("family_id", familyId).order("record_date", { ascending: false }),
       supabase.from("education_goals").select("id,child_id,title,subject,target_date,status,progress").eq("family_id", familyId),
-      supabase.from("milestones").select("id,goal_id,title,due_date,completed_at"),
       supabase.from("resources").select("id,child_id,kind,title,subject,tags,updated_at").eq("family_id", familyId).order("updated_at", { ascending: false })
     ]);
 
-    for (const result of [familyResult, settingsResult, childrenResult, eventsResult, eventChildrenResult, recordsResult, goalsResult, milestonesResult, resourcesResult]) {
+    for (const result of [familyResult, settingsResult, childrenResult, eventsResult, recordsResult, goalsResult, resourcesResult]) {
+      if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 });
+    }
+
+    const eventIds = ((eventsResult.data ?? []) as EventRow[]).map((event) => event.id);
+    const goalIds = ((goalsResult.data ?? []) as GoalRow[]).map((goal) => goal.id);
+    const [eventChildrenResult, milestonesResult] = await Promise.all([
+      eventIds.length
+        ? supabase.from("calendar_event_children").select("event_id,child_id").in("event_id", eventIds)
+        : Promise.resolve({ data: [], error: null }),
+      goalIds.length
+        ? supabase.from("milestones").select("id,goal_id,title,due_date,completed_at").in("goal_id", goalIds).order("sort_order")
+        : Promise.resolve({ data: [], error: null })
+    ]);
+
+    for (const result of [eventChildrenResult, milestonesResult]) {
       if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 });
     }
 

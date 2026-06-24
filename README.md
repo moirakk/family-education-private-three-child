@@ -46,17 +46,18 @@ Implemented:
 - PWA manifest, service worker, icons, and offline page
 - mobile four-mode app shell: Today, Week, Records, More
 - production smoke test script
+- production security hardening for signed sessions, private API boundaries, calendar token handling, and health output
 
 Production status:
 
 - Vercel production deployment is live
 - Production URL: `https://family-education-private-three-chil.vercel.app`
 - Private smoke test passed against production
+- real iPhone PWA installation has been verified
+- iOS Calendar feed works through the private calendar token
 
 Still in progress:
 
-- real iPhone PWA installation test
-- real iOS Calendar subscription test
 - scheduled backups
 - stronger cross-instance access-code rate limiting
 - mobile form simplification
@@ -118,6 +119,8 @@ This private version uses a lightweight no-login model:
 - `src/lib/supabase-admin.ts` imports `server-only`
 - private API writes verify `family_id` and child ownership
 - middleware returns JSON 403 for private API rejections
+- `/api/health` returns only `{ ok: true }` publicly and detailed checks only after private login
+- `/api/calendar/ios` requires either a valid calendar token or a signed private session in private production mode
 - service worker does not cache private API responses
 
 Important limitation:
@@ -163,6 +166,8 @@ The app exposes a one-way ICS feed:
 Parents can subscribe from iOS Calendar using `webcal://`.
 
 This is intentionally one-way. Edits should happen in the web app, then flow into iOS Calendar. Full CalDAV two-way sync is out of scope for this private MVP.
+
+In private production mode, the calendar endpoint no longer falls back to demo data when no token is provided. Token-based calendar access is validated server-side with Supabase service role access.
 
 ## Repository Structure
 

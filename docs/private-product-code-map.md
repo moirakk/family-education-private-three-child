@@ -50,6 +50,7 @@ codex/private-three-child-pilot
 | iOS 日历 | 已完成 | ICS feed + calendar token | iPhone Calendar 可订阅系统日程 |
 | PWA 手机入口 | 已完成 | manifest + service worker | iPhone 可添加到主屏幕，像 App 打开 |
 | 备份恢复 | 已完成脚本版 | export API + backup/restore scripts | 可导出数据库，备份和恢复 Storage 文件 |
+| 生产安全加固 | 已完成当前轮 | 签名 session、health 降敏、日历 token、关联表收紧 | 线上私有数据边界更稳 |
 | UI 精修 | 待继续 | 继续优化组件和移动端表单 | 让家长日常使用更轻松 |
 
 ## 3. 整体技术路线
@@ -249,7 +250,7 @@ src/app/api/
 | --- | --- | --- |
 | `api/access/route.ts` | 校验访问码，签发 cookie | 登录入口 |
 | `api/health/route.ts` | 检查 env 和部署状态 | 判断线上是否 ready |
-| `api/calendar/ios/route.ts` | 根据 token 输出 ICS | iOS Calendar 订阅 |
+| `api/calendar/ios/route.ts` | 根据 token 或已登录 session 输出 ICS | iOS Calendar 订阅，未授权不返回私有/演示日历 |
 
 ### 8.2 私有 API
 
@@ -280,6 +281,7 @@ src/app/api/private/
 - 所有写入通过服务端 API 进入 Supabase。
 - `SUPABASE_SERVICE_ROLE_KEY` 只在服务端使用。
 - 多数写入先校验 childId 是否属于当前 family。
+- `snapshot/route.ts` 先读取本家庭 event/goal，再按 id 读取关联表，避免未来多家庭时关联数据串读。
 
 效果：
 
@@ -309,6 +311,7 @@ src/middleware.ts
 
 - 家长数据不会直接暴露在公开 URL。
 - 家教不会看到完整家庭工作台。
+- 未登录访问私有 API 得到 JSON 403，不会被重定向到 HTML 页面。
 
 ### 9.2 访问码和 session
 
@@ -324,11 +327,14 @@ src/lib/private-access.ts
 - 成功登录后创建 HMAC 签名 session。
 - cookie 是 httpOnly、SameSite=Strict。
 - 有效期现在是 90 天。
+- 生产环境要求 `PRIVATE_SESSION_SECRET` 至少 32 字符。
+- 旧版明文 role/access cookie 已移除，不再作为 fallback。
 
 效果：
 
 - 家长手机添加到主屏幕后，不需要每天重新登录。
 - 如果访问码泄露，可以轮换 Vercel env 并重新部署。
+- 公开 `/api/health` 只返回 `{ ok: true }`，详细环境检查必须登录后才能看到。
 
 ## 10. 数据模型
 
@@ -467,12 +473,15 @@ flowchart TD
 - 登录家长通过 `/api/private/calendar-link` 获取带 token 的 webcal 链接。
 - iOS Calendar 访问 `/api/calendar/ios?token=...`。
 - API 输出标准 ICS 文本。
+- 私有生产模式下，如果没有 token 且没有有效登录 session，`/api/calendar/ios` 返回 401。
+- token 校验和按家庭读取日历都在服务端使用 Supabase admin client 完成。
 
 效果：
 
 - 家长可在 iPhone Calendar 订阅系统日程。
 - 这是单向同步：系统 → iOS Calendar。
 - 不支持在 iOS Calendar 修改后反向写回系统。
+- 不再公开返回 pilot/demo 日历，避免无 token 地址泄露样例数据。
 
 为什么这样做：
 
@@ -647,6 +656,8 @@ npm run private:smoke -- \
 - private export
 - calendar-link 返回带 token 的 webcal URL
 - session cookie 有效期 90 天
+- 公开 health 降敏，登录后 health 才返回详细 ready 信息
+- 未登录、无 token 的生产日历入口不再返回 demo 日历
 
 ## 18. 现阶段你应该怎么理解它
 
@@ -685,6 +696,7 @@ npm run private:smoke -- \
 | UI 美化 | 现在能用，但还不够高级、轻盈 |
 | 自动备份 | 现在是手动脚本，长期建议自动化 |
 | 更细权限 | 未来每个家教只看自己的孩子/科目 |
+| 共享限流 | 现在仍是 cookie/内存级保护，Vercel 多实例建议接 Upstash Redis |
 | 错误监控 | 线上出错时自动提醒 |
 | 自定义域名 | 给家长更好看的链接 |
 | 月度报告 | 把记录沉淀成家长可读的成长报告 |
