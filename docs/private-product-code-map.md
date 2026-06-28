@@ -50,6 +50,7 @@ codex/private-three-child-pilot
 | iOS 日历 | 已完成 | ICS feed + calendar token | iPhone Calendar 可订阅系统日程 |
 | PWA 手机入口 | 已完成 | manifest + service worker | iPhone 可添加到主屏幕，像 App 打开 |
 | 备份恢复 | 已完成脚本版 | export API + 一键 backup + restore dry-run + checksum | 可导出数据库，备份和恢复 Storage 文件 |
+| Obsidian 导出 | 已完成实验版 | export JSON -> Markdown Vault | 长期档案、可视化 dashboard、家长复盘 |
 | 生产安全加固 | 已完成当前轮 | 签名 session、health 降敏、日历 token、关联表收紧 | 线上私有数据边界更稳 |
 | UI 精修 | 待继续 | 继续优化组件和移动端表单 | 让家长日常使用更轻松 |
 
@@ -651,6 +652,36 @@ npm run private:smoke -- \
   --expect-ready \
   --deep-private
 ```
+
+## 17.1 Obsidian Vault 导出
+
+脚本：
+
+```text
+scripts/private-export-obsidian.mjs
+```
+
+命令：
+
+```bash
+npm run private:obsidian -- \
+  --file ./private-backups/latest/database-export.json \
+  --out ./Family-Education-Vault
+```
+
+方法：
+
+- 读取 `/api/private/export` 生成的数据库 JSON。
+- 生成一个普通文件夹形式的 Obsidian Vault。
+- 生成 `00 Dashboard.md` 作为入口。
+- 每个孩子单独生成档案页。
+- 日历、学习记录、资料、自评、家教反馈、路线图分别生成索引页。
+
+效果：
+
+- 家长可以用 Obsidian 打开这个文件夹做长期阅读、搜索、复盘。
+- Markdown 文件即使多年后不用原系统，也仍然可读。
+- iOS 提醒仍使用 Web App 的 webcal 订阅，Obsidian 主要承担档案和可视化复盘。
 
 已验证通过：
 

@@ -366,6 +366,30 @@ npm run private:restore-storage -- --dir ./private-storage-backup
 
 Before trusting backups for long-term use, restore into a fresh Supabase project and verify signed downloads from the app.
 
+## Obsidian Export
+
+Generate an Obsidian-compatible Markdown vault from a database export:
+
+```bash
+npm run private:obsidian -- \
+  --file ./private-backups/latest/database-export.json \
+  --out ./Family-Education-Vault
+```
+
+The vault includes:
+
+- `00 Dashboard.md`
+- child profile pages
+- unified calendar page
+- learning records page
+- materials index
+- education roadmap
+- self-evaluations
+- tutor feedback
+- export metadata
+
+Obsidian is recommended for long-term reading, search, and archive review. iOS reminders should still use the app's webcal calendar subscription.
+
 ## Deployment Plan
 
 1. Keep this repository private.
