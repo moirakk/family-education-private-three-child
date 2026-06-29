@@ -5,6 +5,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   LibraryBig,
+  Plus,
   Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,12 +33,13 @@ export function AppShell({
   onModeChange: (mode: DashboardMode) => void;
 }) {
   const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
+  const ActiveIcon = activeItem.icon;
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
-      <aside className="hidden border-r bg-white/80 px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
+    <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-slate-200/70 bg-white/85 px-4 py-5 backdrop-blur-xl lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
         <div className="flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm shadow-slate-200">
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
@@ -53,19 +55,28 @@ export function AppShell({
               type="button"
               onClick={() => onModeChange(item.mode)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950",
-                item.mode === activeMode && "bg-slate-100 text-slate-950"
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
+                item.mode === activeMode && "bg-slate-950 text-white shadow-sm shadow-slate-200 hover:bg-slate-950 hover:text-white"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <span
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600",
+                  item.mode === activeMode && "bg-white/10 text-white"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+              </span>
               <span>
                 <span className="block">{item.label}</span>
-                <span className="mt-0.5 block text-xs font-normal text-muted-foreground">{item.description}</span>
+                <span className={cn("mt-0.5 block text-xs font-normal text-muted-foreground", item.mode === activeMode && "text-slate-300")}>
+                  {item.description}
+                </span>
               </span>
             </button>
           ))}
         </nav>
-        <div className="mt-8 rounded-lg border bg-slate-950 p-4 text-white">
+        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-950 p-4 text-white shadow-sm">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Sparkles className="h-4 w-4 text-cyan-300" />
             月度报告
@@ -77,24 +88,25 @@ export function AppShell({
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
-        <header className="sticky top-0 z-30 border-b bg-white/90 px-3 py-2.5 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <BookOpen className="h-4 w-4" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm">
+                <ActiveIcon className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Family Education</p>
+                <p className="text-sm font-semibold">{activeItem.label}</p>
                 <p className="text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
-            <Button size="sm" onClick={() => onModeChange("week")}>
-              新增
+            <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange("week")}>
+              <Plus className="h-3.5 w-3.5" />
+              添加
             </Button>
           </div>
         </header>
         <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
             {modeItems.map((item) => (
               <button
@@ -102,7 +114,7 @@ export function AppShell({
                 type="button"
                 onClick={() => onModeChange(item.mode)}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950",
                   item.mode === activeMode && "bg-slate-950 text-white shadow-sm hover:bg-slate-950 hover:text-white"
                 )}
               >
