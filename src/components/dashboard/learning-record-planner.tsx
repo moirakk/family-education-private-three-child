@@ -22,6 +22,14 @@ type RecordFormState = {
 };
 
 const storageKey = "family-education-private-learning-records-v1";
+const quickSubjects = ["数学", "英语", "阅读", "语文", "科学", "综合"];
+const quickDurations = ["20", "30", "45", "60"];
+const confidenceOptions = [
+  { value: "2", label: "有点卡" },
+  { value: "3", label: "正常" },
+  { value: "4", label: "不错" },
+  { value: "5", label: "很稳" }
+];
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
@@ -183,10 +191,10 @@ export function LearningRecordPlanner({
           <div>
             <CardTitle className="flex items-center gap-2">
               <BookOpenCheck className="h-4 w-4 text-primary" />
-              学习记录编辑器
+              记录学习
             </CardTitle>
             <CardDescription>
-              现场记录学习内容、时长、分数和信心值，立刻进入成长摘要和周报。
+              手机上快速记一条学习内容，后续沉淀到成长摘要和周报。
             </CardDescription>
           </div>
           <Badge variant="outline">{records.length} 条本机新增记录</Badge>
@@ -238,6 +246,22 @@ export function LearningRecordPlanner({
                 value={form.subject}
                 onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
               />
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {quickSubjects.map((subject) => (
+                  <button
+                    key={subject}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, subject }))}
+                    className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                      form.subject === subject
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                    }`}
+                  >
+                    {subject}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="record-title">学习内容</Label>
@@ -258,6 +282,22 @@ export function LearningRecordPlanner({
                   value={form.durationMinutes}
                   onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}
                 />
+                <div className="grid grid-cols-4 gap-1">
+                  {quickDurations.map((duration) => (
+                    <button
+                      key={duration}
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, durationMinutes: duration }))}
+                      className={`rounded-md border px-2 py-1 text-xs font-medium ${
+                        form.durationMinutes === duration
+                          ? "border-slate-950 bg-slate-950 text-white"
+                          : "border-slate-200 bg-white text-slate-600"
+                      }`}
+                    >
+                      {duration}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="record-score">分数</Label>
@@ -275,12 +315,29 @@ export function LearningRecordPlanner({
                 <Label htmlFor="record-confidence">信心 1-5</Label>
                 <Input
                   id="record-confidence"
+                  className="sm:hidden"
                   type="number"
                   min="1"
                   max="5"
                   value={form.confidence}
                   onChange={(event) => setForm((current) => ({ ...current, confidence: event.target.value }))}
                 />
+                <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+                  {confidenceOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, confidence: option.value }))}
+                      className={`rounded-md border px-2 py-1.5 text-xs font-medium ${
+                        form.confidence === option.value
+                          ? "border-slate-950 bg-slate-950 text-white"
+                          : "border-slate-200 bg-white text-slate-600"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <Button type="submit" disabled={!form.childId || !form.subject.trim() || !form.title.trim()}>
@@ -291,21 +348,22 @@ export function LearningRecordPlanner({
         </form>
 
         <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm font-semibold">本机新增学习记录</p>
+          <p className="text-sm font-semibold">最近记录</p>
           <div className="mt-4 grid gap-3">
             {records.map((record) => (
-              <div key={record.id} className="flex items-start justify-between gap-3 rounded-md bg-slate-50 p-3">
-                <div>
+              <div key={record.id} className="flex items-start justify-between gap-3 rounded-md border border-slate-100 bg-slate-50 p-3">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{childById.get(record.childId)}</Badge>
-                    <p className="text-sm font-semibold">{record.title}</p>
+                    <Badge variant="secondary">{record.date}</Badge>
                   </div>
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5">{record.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {record.subject} · {record.durationMinutes} 分钟 · 信心 {record.confidence}/5
                     {record.score !== undefined ? ` · ${record.score} 分` : ""}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-1">
+                <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
                   <Button type="button" variant="ghost" size="icon" onClick={() => editRecord(record)} aria-label="编辑学习记录">
                     <Pencil className="h-4 w-4 text-muted-foreground" />
                   </Button>
