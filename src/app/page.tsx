@@ -121,7 +121,7 @@ export default function Home() {
   return (
     <AppShell activeMode={activeMode} onModeChange={setActiveMode}>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
-        <section id="dashboard" className="overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:p-5">
+        <section id="dashboard" className="hidden overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:block sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold text-primary sm:text-sm">{pilotFamilyName}</p>

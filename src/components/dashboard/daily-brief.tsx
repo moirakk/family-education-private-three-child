@@ -59,58 +59,58 @@ export function DailyBrief({
   const nextEvent = upcomingEvents[0];
 
   return (
-    <section className="overflow-hidden rounded-lg border border-white/80 bg-slate-950 text-white shadow-sm">
+    <section className="overflow-hidden rounded-lg border border-blue-100 bg-white/95 shadow-sm ring-1 ring-white/70">
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_380px]">
         <button type="button" onClick={() => onModeChange("week")} className="min-w-0 p-4 text-left sm:p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-300">{formatDayLabel(today)}</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+              <p className="text-xs font-medium text-blue-600">{formatDayLabel(today)}</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
                 {nextEvent ? "下一件事" : "今天暂时没有待办"}
               </h2>
             </div>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/10">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <CalendarClock className="h-4 w-4" />
             </span>
           </div>
 
           {nextEvent ? (
-            <div className="mt-4 rounded-lg bg-white/10 p-3">
+            <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50/70 p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-base font-semibold">{nextEvent.title}</p>
-                  <p className="mt-1 text-sm text-slate-300">
+                  <p className="truncate text-base font-semibold text-slate-950">{nextEvent.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">
                     {formatTime(nextEvent.startsAt)}
                     {nextEvent.location ? ` · ${nextEvent.location}` : ""}
                   </p>
                 </div>
-                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
+                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
               </div>
             </div>
           ) : (
-            <p className="mt-4 rounded-lg bg-white/10 p-3 text-sm text-slate-300">
+            <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
               可以先补学习记录、整理资料，或者查看本周安排。
             </p>
           )}
         </button>
 
-        <div className="grid grid-cols-3 border-t border-white/10 lg:border-l lg:border-t-0">
-          <button type="button" onClick={() => onModeChange("week")} className="p-3 text-left hover:bg-white/5 sm:p-4">
-            <p className="text-xs text-slate-400">今日事项</p>
-            <p className="mt-1 text-2xl font-semibold">{todayEvents.length}</p>
+        <div className="grid grid-cols-3 border-t border-blue-100 bg-slate-50/60 lg:border-l lg:border-t-0">
+          <button type="button" onClick={() => onModeChange("week")} className="p-3 text-left hover:bg-white sm:p-4">
+            <p className="text-xs text-slate-500">今日事项</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{todayEvents.length}</p>
           </button>
-          <button type="button" onClick={() => onModeChange("week")} className="border-l border-white/10 p-3 text-left hover:bg-white/5 sm:p-4">
-            <p className="text-xs text-slate-400">7 天内</p>
-            <p className="mt-1 text-2xl font-semibold">{weekEvents.length}</p>
+          <button type="button" onClick={() => onModeChange("week")} className="border-l border-blue-100 p-3 text-left hover:bg-white sm:p-4">
+            <p className="text-xs text-slate-500">7 天内</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{weekEvents.length}</p>
           </button>
-          <button type="button" onClick={() => onModeChange("records")} className="border-l border-white/10 p-3 text-left hover:bg-white/5 sm:p-4">
-            <p className="text-xs text-slate-400">学习分钟</p>
-            <p className="mt-1 text-2xl font-semibold">{records.reduce((sum, record) => sum + record.durationMinutes, 0)}</p>
+          <button type="button" onClick={() => onModeChange("records")} className="border-l border-blue-100 p-3 text-left hover:bg-white sm:p-4">
+            <p className="text-xs text-slate-500">学习分钟</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-950">{records.reduce((sum, record) => sum + record.durationMinutes, 0)}</p>
           </button>
         </div>
       </div>
 
-      <div className="grid gap-2 border-t border-white/10 p-3 sm:grid-cols-3 sm:p-4">
+      <div className="grid gap-2 border-t border-blue-100 p-3 sm:grid-cols-3 sm:p-4">
         {childProfiles.map((child, index) => {
           const theme = getChildTheme(index);
           const childWeekEvents = weekEvents.filter((event) => eventBelongsToChild(event, child.id)).length;
@@ -126,13 +126,13 @@ export function DailyBrief({
               key={child.id}
               type="button"
               onClick={() => onModeChange("records")}
-              className="flex items-center justify-between gap-3 rounded-md bg-white/10 px-3 py-2 text-left hover:bg-white/15"
+              className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-left shadow-[0_1px_0_rgba(15,23,42,0.03)] hover:border-blue-200 hover:bg-blue-50/40"
             >
               <div className="flex min-w-0 items-center gap-2">
                 <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", theme.dot)} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{child.firstName}</p>
-                  <p className="text-xs text-slate-400">{child.grade}</p>
+                  <p className="text-xs text-slate-500">{child.grade}</p>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
@@ -142,11 +142,11 @@ export function DailyBrief({
                     关注
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="bg-white/10 text-slate-200 hover:bg-white/10">
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-100">
                     {childWeekEvents} 项
                   </Badge>
                 )}
-                <span className="hidden items-center gap-1 text-xs text-slate-400 sm:flex">
+                <span className="hidden items-center gap-1 text-xs text-slate-500 sm:flex">
                   <Clock3 className="h-3 w-3" />
                   {childMinutes}m
                 </span>

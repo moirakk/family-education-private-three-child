@@ -77,7 +77,7 @@ export function AppShell({
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
-        <header className="sticky top-0 z-30 border-b bg-white/85 px-4 py-2.5 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b bg-white/90 px-3 py-2.5 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -93,8 +93,8 @@ export function AppShell({
             </Button>
           </div>
         </header>
-        <main className="min-w-0 overflow-x-hidden px-4 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur lg:hidden">
+        <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
             {modeItems.map((item) => (
               <button
@@ -103,7 +103,7 @@ export function AppShell({
                 onClick={() => onModeChange(item.mode)}
                 className={cn(
                   "flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950",
-                  item.mode === activeMode && "bg-slate-100 text-slate-950"
+                  item.mode === activeMode && "bg-slate-950 text-white shadow-sm hover:bg-slate-950 hover:text-white"
                 )}
               >
                 <item.icon className="h-4 w-4" />
