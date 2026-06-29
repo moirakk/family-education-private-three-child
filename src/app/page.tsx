@@ -6,6 +6,7 @@ import { AppShell, type DashboardMode } from "@/components/dashboard/app-shell";
 import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
 import { ChildManagement } from "@/components/dashboard/child-management";
 import { ChildProfile } from "@/components/dashboard/child-profile";
+import { DailyBrief } from "@/components/dashboard/daily-brief";
 import { DeploymentStatusCard } from "@/components/dashboard/deployment-status-card";
 import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
 import { ExportPreviewCenter } from "@/components/dashboard/export-preview-center";
@@ -146,6 +147,7 @@ export default function Home() {
 
         {activeMode === "today" && (
           <>
+            <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
             <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
 
             <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">

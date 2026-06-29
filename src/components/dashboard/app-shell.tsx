@@ -20,6 +20,8 @@ const modeItems = [
   { mode: "more" as const, label: "更多", mobileLabel: "更多", description: "补资料、导出和部署", icon: LibraryBig }
 ];
 
+const modeLabelByMode = new Map(modeItems.map((item) => [item.mode, item]));
+
 export function AppShell({
   activeMode,
   children,
@@ -29,6 +31,8 @@ export function AppShell({
   children: React.ReactNode;
   onModeChange: (mode: DashboardMode) => void;
 }) {
+  const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
+
   return (
     <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
       <aside className="hidden border-r bg-white/80 px-4 py-5 backdrop-blur lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
@@ -81,7 +85,7 @@ export function AppShell({
               </div>
               <div>
                 <p className="text-sm font-semibold">Family Education</p>
-                <p className="text-xs text-muted-foreground">今日工作台</p>
+                <p className="text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
             <Button size="sm" onClick={() => onModeChange("week")}>
