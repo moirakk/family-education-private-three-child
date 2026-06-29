@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type EventFormState = {
   title: string;
@@ -33,6 +34,14 @@ const categoryOptions: { value: EventCategory; label: string }[] = [
   { value: "family", label: "家庭" }
 ];
 
+const quickTitles: { category: EventCategory; title: string }[] = [
+  { category: "school", title: "学校事项" },
+  { category: "tutoring", title: "家教课" },
+  { category: "activity", title: "课外活动" },
+  { category: "exam", title: "考试/测评" },
+  { category: "family", title: "家庭复盘" }
+];
+
 const initialForm: EventFormState = {
   title: "",
   category: "school",
@@ -51,6 +60,42 @@ function toDateTimeInputValue(value: string) {
   const date = new Date(value);
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function toLocalInputValue(date: Date) {
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function addMinutes(date: Date, minutes: number) {
+  return new Date(date.getTime() + minutes * 60 * 1000);
+}
+
+function nextWeekendDate(day: 6 | 0, hour: number, minute = 0) {
+  const now = new Date();
+  const result = new Date(now);
+  const distance = (day - now.getDay() + 7) % 7 || 7;
+  result.setDate(now.getDate() + distance);
+  result.setHours(hour, minute, 0, 0);
+  return result;
+}
+
+function quickDateOptions() {
+  const today = new Date();
+  const tonight = new Date(today);
+  tonight.setHours(18, 0, 0, 0);
+  if (tonight < today) tonight.setDate(tonight.getDate() + 1);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  tomorrow.setHours(18, 0, 0, 0);
+
+  return [
+    { label: "今晚 18:00", value: tonight },
+    { label: "明天 18:00", value: tomorrow },
+    { label: "周六上午", value: nextWeekendDate(6, 10) },
+    { label: "周日上午", value: nextWeekendDate(0, 10) }
+  ];
 }
 
 function mapApiEvent(data: {
@@ -115,6 +160,22 @@ export function FamilyEventPlanner({
       childIds: current.childIds.includes(childId)
         ? current.childIds.filter((id) => id !== childId)
         : [...current.childIds, childId]
+    }));
+  }
+
+  function selectQuickTitle(option: { category: EventCategory; title: string }) {
+    setForm((current) => ({
+      ...current,
+      category: option.category,
+      title: current.title || option.title
+    }));
+  }
+
+  function selectQuickTime(date: Date) {
+    setForm((current) => ({
+      ...current,
+      startsAt: toLocalInputValue(date),
+      endsAt: current.endsAt || toLocalInputValue(addMinutes(date, 60))
     }));
   }
 
@@ -217,7 +278,7 @@ export function FamilyEventPlanner({
   }
 
   return (
-    <Card id="event-planner" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="event-planner" className="overflow-hidden border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -226,17 +287,17 @@ export function FamilyEventPlanner({
               日程编辑器
             </CardTitle>
             <CardDescription>
-              今天家长可直接补课表、考试、活动和家庭事项；新增内容会进入页面日历和本机 ICS 导出。
+              手机上快速补课表、考试、活动和家庭事项；新增内容会进入页面日历和 iOS 订阅。
             </CardDescription>
           </div>
-          <Badge variant="outline">{events.length} 个本机新增事项</Badge>
+          <Badge variant="outline" className="w-fit rounded-full bg-white">{events.length} 个新增事项</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveEvent} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveEvent} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
           <div className="grid gap-3">
             {editingEventId && (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
                 正在编辑日程
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -244,12 +305,64 @@ export function FamilyEventPlanner({
                 </button>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>关联孩子</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {childProfiles.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => toggleChild(child.id)}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
+                      form.childIds.includes(child.id) ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {child.firstName}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>常用事项</Label>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {quickTitles.map((option) => (
+                  <button
+                    key={`${option.category}-${option.title}`}
+                    type="button"
+                    onClick={() => selectQuickTitle(option)}
+                    className={cn(
+                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                      form.category === option.category ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {option.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>常用时间</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {quickDateOptions().map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => selectQuickTime(option.value)}
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="event-title">事项名称</Label>
               <Input
                 id="event-title"
                 placeholder="例如：伯杨数学衔接课"
                 value={form.title}
+                className="h-11 rounded-xl"
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
               />
             </div>
@@ -260,7 +373,7 @@ export function FamilyEventPlanner({
                   value={form.category}
                   onValueChange={(value) => setForm((current) => ({ ...current, category: value as EventCategory }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -278,6 +391,7 @@ export function FamilyEventPlanner({
                   id="event-location"
                   placeholder="学校 / 家里 / 机构"
                   value={form.location}
+                  className="h-11 rounded-xl"
                   onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
                 />
               </div>
@@ -289,6 +403,7 @@ export function FamilyEventPlanner({
                   id="event-start"
                   type="datetime-local"
                   value={form.startsAt}
+                  className="h-11 rounded-xl"
                   onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))}
                 />
               </div>
@@ -298,25 +413,9 @@ export function FamilyEventPlanner({
                   id="event-end"
                   type="datetime-local"
                   value={form.endsAt}
+                  className="h-11 rounded-xl"
                   onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))}
                 />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>关联孩子</Label>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {childProfiles.map((child) => (
-                  <button
-                    key={child.id}
-                    type="button"
-                    onClick={() => toggleChild(child.id)}
-                    className={`rounded-md border px-3 py-2 text-left text-sm transition ${
-                      form.childIds.includes(child.id) ? "border-primary bg-primary/5 text-primary" : "bg-white text-slate-600"
-                    }`}
-                  >
-                    {child.firstName}
-                  </button>
-                ))}
               </div>
             </div>
             <div className="space-y-1.5">
@@ -325,30 +424,31 @@ export function FamilyEventPlanner({
                 id="event-notes"
                 placeholder="可记录费用、接送、材料、老师提醒等。当前版本先作为现场记录，不进入 ICS。"
                 value={form.notes}
+                className="min-h-20 rounded-xl"
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
               />
             </div>
-            <Button type="submit" disabled={!form.title.trim() || !form.startsAt || form.childIds.length === 0}>
+            <Button className="h-11 rounded-xl" type="submit" disabled={!form.title.trim() || !form.startsAt || form.childIds.length === 0}>
               {editingEventId ? "保存日程修改" : "新增到日历"}
             </Button>
             {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
           </div>
         </form>
 
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">本机新增日程</p>
+            <p className="text-sm font-semibold">新增日程</p>
             <p className="text-xs text-muted-foreground">
               {selectedChildren.length > 0 ? `正在编辑：${selectedChildren.map((child) => child.firstName).join("、")}` : "选择孩子后添加事项"}
             </p>
           </div>
           <div className="mt-4 grid gap-3">
             {events.map((event) => (
-              <div key={event.id} className="flex items-start justify-between gap-3 rounded-md bg-slate-50 p-3">
-                <div>
+              <div key={event.id} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
-                    <p className="text-sm font-semibold">{event.title}</p>
+                    <Badge variant="outline" className="rounded-full bg-white">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
+                    <p className="min-w-0 line-clamp-2 text-sm font-semibold">{event.title}</p>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {new Date(event.startsAt).toLocaleString("zh-CN", {
@@ -365,7 +465,7 @@ export function FamilyEventPlanner({
                       const child = childProfiles.find((profile) => profile.id === childId);
                       if (!child) return null;
                       return (
-                        <span key={childId} className="flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-slate-600">
+                        <span key={childId} className="flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-slate-600 ring-1 ring-slate-200">
                           <Avatar className="h-4 w-4">
                             <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 1)}</AvatarFallback>
                           </Avatar>
@@ -376,10 +476,10 @@ export function FamilyEventPlanner({
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
-                  <Button type="button" variant="ghost" size="icon" onClick={() => editEvent(event)} aria-label="编辑日程">
+                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => editEvent(event)} aria-label="编辑日程">
                     <Pencil className="h-4 w-4 text-muted-foreground" />
                   </Button>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
+                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </div>
@@ -387,7 +487,7 @@ export function FamilyEventPlanner({
             ))}
             {events.length === 0 && (
               <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">
-                还没有本机新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 导出。
+                还没有新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 日历订阅。
               </p>
             )}
           </div>

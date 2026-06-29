@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type MaterialFormState = {
   childId: string;
@@ -25,6 +26,16 @@ type MaterialFormState = {
 const metadataStorageKey = "family-education-private-materials-v1";
 const databaseName = "family-education-private-files";
 const storeName = "learning-material-files";
+const quickSubjects = ["数学", "英语", "语文", "阅读", "科学", "综合"];
+const quickTags = ["错题", "讲义", "试卷", "暑假", "预习", "复习"];
+const kindLabels: Record<LearningMaterial["kind"], string> = {
+  file: "文件",
+  worksheet: "练习",
+  note: "笔记",
+  link: "链接",
+  book: "书籍",
+  video: "视频"
+};
 
 function nowIso() {
   return new Date().toISOString();
@@ -189,6 +200,17 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
         kind: "file"
       }));
     }
+  }
+
+  function toggleTag(tag: string) {
+    setForm((current) => {
+      const tags = splitTags(current.tags);
+      const nextTags = tags.includes(tag) ? tags.filter((item) => item !== tag) : [...tags, tag];
+      return {
+        ...current,
+        tags: nextTags.join(" ")
+      };
+    });
   }
 
   async function saveMaterial(event: FormEvent<HTMLFormElement>) {
@@ -365,7 +387,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   }
 
   return (
-    <Card id="materials" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="materials" className="overflow-hidden border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -373,16 +395,16 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
               <LibraryBig className="h-4 w-4 text-primary" />
               学习资料库
             </CardTitle>
-            <CardDescription>保存试卷、讲义、错题照片、阅读材料和链接。</CardDescription>
+            <CardDescription>保存试卷、讲义、错题照片、阅读材料和链接；后续可导出为本地资料索引。</CardDescription>
           </div>
-          <Badge variant="outline">{materials.length} 份资料</Badge>
+          <Badge variant="outline" className="w-fit rounded-full bg-white">{materials.length} 份资料</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveMaterial} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveMaterial} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
           <div className="grid gap-3">
             {editingMaterialId && (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
                 正在编辑资料索引
                 <button type="button" onClick={() => resetForm()} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -427,10 +449,47 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 </Select>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>快速关联</Label>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm((current) => ({ ...current, childId: "family" }))}
+                  className={cn(
+                    "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
+                    form.childId === "family" ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                  )}
+                >
+                  全家
+                </button>
+                {childProfiles.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
+                    className={cn(
+                      "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
+                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {child.firstName}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="material-file">上传文件</Label>
-              <Input id="material-file" type="file" onChange={handleFileChange} disabled={Boolean(editingMaterialId)} />
-              {editingMaterialId && <p className="text-xs text-muted-foreground">编辑模式暂不替换文件；需要换文件时请删除后重新上传。</p>}
+              <Input
+                id="material-file"
+                type="file"
+                accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                onChange={handleFileChange}
+                disabled={Boolean(editingMaterialId)}
+                className="h-12 cursor-pointer rounded-xl"
+              />
+              <p className="text-xs leading-5 text-muted-foreground">
+                手机上可直接拍照、选相册或选文件。{editingMaterialId ? "编辑模式暂不替换文件；需要换文件时请删除后重新上传。" : ""}
+              </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -452,6 +511,21 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 />
               </div>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {quickSubjects.map((subject) => (
+                <button
+                  key={subject}
+                  type="button"
+                  onClick={() => setForm((current) => ({ ...current, subject }))}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                    form.subject === subject ? "border-teal-500 bg-teal-50 text-teal-700" : "border-slate-200 bg-white text-slate-600"
+                  )}
+                >
+                  {subject}
+                </button>
+              ))}
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="material-url">外部链接</Label>
               <Input
@@ -472,6 +546,24 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="material-tags">标签</Label>
+              <div className="mb-2 flex flex-wrap gap-2">
+                {quickTags.map((tag) => {
+                  const active = splitTags(form.tags).includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                        active ? "border-amber-400 bg-amber-50 text-amber-700" : "border-slate-200 bg-white text-slate-600"
+                      )}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
               <Input
                 id="material-tags"
                 placeholder="错题 讲义 暑假"
@@ -479,7 +571,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
               />
             </div>
-            <Button type="submit" disabled={!form.title.trim() || !form.subject.trim()}>
+            <Button type="submit" className="h-11 rounded-xl" disabled={!form.title.trim() || !form.subject.trim()}>
               <UploadCloud className="mr-2 h-4 w-4" />
               {editingMaterialId ? "保存资料修改" : "保存资料"}
             </Button>
@@ -487,16 +579,22 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
           </div>
         </form>
 
-        <div className="rounded-lg border bg-white p-4">
-          <p className="text-sm font-semibold">资料索引</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">资料索引</p>
+              <p className="mt-1 text-xs text-muted-foreground">数据库保存文件本体，导出时生成可搜索索引。</p>
+            </div>
+            <Badge variant="secondary" className="rounded-full">Storage</Badge>
+          </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {materials.map((material) => (
-              <div key={material.id} className="rounded-md bg-slate-50 p-3">
+              <div key={material.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline">{material.childId ? childById.get(material.childId) : "全家"}</Badge>
-                      <Badge variant="secondary">{material.kind}</Badge>
+                      <Badge variant="outline" className="rounded-full bg-white">{material.childId ? childById.get(material.childId) : "全家"}</Badge>
+                      <Badge variant="secondary" className="rounded-full">{kindLabels[material.kind] ?? material.kind}</Badge>
                     </div>
                     <p className="mt-2 text-sm font-semibold">{material.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -519,7 +617,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 {material.tags.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {material.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-600">
+                      <span key={tag} className="rounded-full bg-white px-2 py-0.5 text-xs text-slate-600 ring-1 ring-slate-200">
                         {tag}
                       </span>
                     ))}
