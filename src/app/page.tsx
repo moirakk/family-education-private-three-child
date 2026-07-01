@@ -1,36 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { CalendarCheck2, Clock3, GraduationCap, Target } from "lucide-react";
 import { AppShell, type DashboardMode } from "@/components/dashboard/app-shell";
-import { CalendarSyncCard } from "@/components/dashboard/calendar-sync-card";
-import { ChildManagement } from "@/components/dashboard/child-management";
-import { ChildProfile } from "@/components/dashboard/child-profile";
 import { DailyBrief } from "@/components/dashboard/daily-brief";
-import { DeploymentStatusCard } from "@/components/dashboard/deployment-status-card";
-import { EducationRoadmap } from "@/components/dashboard/education-roadmap";
-import { ExportPreviewCenter } from "@/components/dashboard/export-preview-center";
-import { FamilyEventPlanner } from "@/components/dashboard/family-event-planner";
-import { FamilyIntakeWorkspace } from "@/components/dashboard/family-intake-workspace";
-import { GrowthSummary } from "@/components/dashboard/growth-summary";
-import { LearningRecordPlanner } from "@/components/dashboard/learning-record-planner";
-import { LearningMaterialsVault } from "@/components/dashboard/learning-materials-vault";
 import { MetricCard } from "@/components/dashboard/metric-card";
-import { ParentActionBoard } from "@/components/dashboard/parent-action-board";
-import { ParentHandoffPlan } from "@/components/dashboard/parent-handoff-plan";
-import { PwaInstallCard } from "@/components/dashboard/pwa-install-card";
-import { ResourceCenter } from "@/components/dashboard/resource-center";
-import { SelfEvaluationBoard } from "@/components/dashboard/self-evaluation-board";
-import { ThreeChildOperatingMatrix } from "@/components/dashboard/three-child-operating-matrix";
-import { TutorFeedbackBoard } from "@/components/dashboard/tutor-feedback-board";
 import { TodayCommandCenter } from "@/components/dashboard/today-command-center";
-import { UnifiedCalendar } from "@/components/dashboard/unified-calendar";
-import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
-import { WeeklyFamilyReport } from "@/components/dashboard/weekly-family-report";
-import { WeeklyOverview } from "@/components/dashboard/weekly-overview";
 import { Button } from "@/components/ui/button";
 import type { FamilySnapshot } from "@/lib/core-types";
 import { isFamilyDataModeMisconfigured, isPrivateApiMode } from "@/lib/private-api-client";
+import { mergeRemoteAndLocal } from "@/lib/reconciled-collection";
 import {
   childOperatingPlans,
   parentActions,
@@ -42,6 +22,77 @@ import {
   pilotResources
 } from "@/lib/pilot-data";
 
+function DashboardSectionLoading() {
+  return <div className="min-h-32 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm" />;
+}
+
+const CalendarSyncCard = dynamic(() => import("@/components/dashboard/calendar-sync-card").then((mod) => mod.CalendarSyncCard), {
+  loading: DashboardSectionLoading
+});
+const ChildManagement = dynamic(() => import("@/components/dashboard/child-management").then((mod) => mod.ChildManagement), {
+  loading: DashboardSectionLoading
+});
+const ChildProfile = dynamic(() => import("@/components/dashboard/child-profile").then((mod) => mod.ChildProfile), {
+  loading: DashboardSectionLoading
+});
+const DeploymentStatusCard = dynamic(() => import("@/components/dashboard/deployment-status-card").then((mod) => mod.DeploymentStatusCard), {
+  loading: DashboardSectionLoading
+});
+const EducationRoadmap = dynamic(() => import("@/components/dashboard/education-roadmap").then((mod) => mod.EducationRoadmap), {
+  loading: DashboardSectionLoading
+});
+const ExportPreviewCenter = dynamic(() => import("@/components/dashboard/export-preview-center").then((mod) => mod.ExportPreviewCenter), {
+  loading: DashboardSectionLoading
+});
+const FamilyEventPlanner = dynamic(() => import("@/components/dashboard/family-event-planner").then((mod) => mod.FamilyEventPlanner), {
+  loading: DashboardSectionLoading
+});
+const FamilyIntakeWorkspace = dynamic(() => import("@/components/dashboard/family-intake-workspace").then((mod) => mod.FamilyIntakeWorkspace), {
+  loading: DashboardSectionLoading
+});
+const GrowthSummary = dynamic(() => import("@/components/dashboard/growth-summary").then((mod) => mod.GrowthSummary), {
+  loading: DashboardSectionLoading
+});
+const LearningMaterialsVault = dynamic(() => import("@/components/dashboard/learning-materials-vault").then((mod) => mod.LearningMaterialsVault), {
+  loading: DashboardSectionLoading
+});
+const LearningRecordPlanner = dynamic(() => import("@/components/dashboard/learning-record-planner").then((mod) => mod.LearningRecordPlanner), {
+  loading: DashboardSectionLoading
+});
+const ParentActionBoard = dynamic(() => import("@/components/dashboard/parent-action-board").then((mod) => mod.ParentActionBoard), {
+  loading: DashboardSectionLoading
+});
+const ParentHandoffPlan = dynamic(() => import("@/components/dashboard/parent-handoff-plan").then((mod) => mod.ParentHandoffPlan), {
+  loading: DashboardSectionLoading
+});
+const PwaInstallCard = dynamic(() => import("@/components/dashboard/pwa-install-card").then((mod) => mod.PwaInstallCard), {
+  loading: DashboardSectionLoading
+});
+const ResourceCenter = dynamic(() => import("@/components/dashboard/resource-center").then((mod) => mod.ResourceCenter), {
+  loading: DashboardSectionLoading
+});
+const SelfEvaluationBoard = dynamic(() => import("@/components/dashboard/self-evaluation-board").then((mod) => mod.SelfEvaluationBoard), {
+  loading: DashboardSectionLoading
+});
+const ThreeChildOperatingMatrix = dynamic(() => import("@/components/dashboard/three-child-operating-matrix").then((mod) => mod.ThreeChildOperatingMatrix), {
+  loading: DashboardSectionLoading
+});
+const TutorFeedbackBoard = dynamic(() => import("@/components/dashboard/tutor-feedback-board").then((mod) => mod.TutorFeedbackBoard), {
+  loading: DashboardSectionLoading
+});
+const UnifiedCalendar = dynamic(() => import("@/components/dashboard/unified-calendar").then((mod) => mod.UnifiedCalendar), {
+  loading: DashboardSectionLoading
+});
+const UpcomingEvents = dynamic(() => import("@/components/dashboard/upcoming-events").then((mod) => mod.UpcomingEvents), {
+  loading: DashboardSectionLoading
+});
+const WeeklyFamilyReport = dynamic(() => import("@/components/dashboard/weekly-family-report").then((mod) => mod.WeeklyFamilyReport), {
+  loading: DashboardSectionLoading
+});
+const WeeklyOverview = dynamic(() => import("@/components/dashboard/weekly-overview").then((mod) => mod.WeeklyOverview), {
+  loading: DashboardSectionLoading
+});
+
 export default function Home() {
   const isMisconfigured = isFamilyDataModeMisconfigured();
   const [managedChildren, setManagedChildren] = useState(pilotChildren);
@@ -51,6 +102,7 @@ export default function Home() {
   const [roadmapGoals, setRoadmapGoals] = useState<typeof pilotEducationGoals>(pilotEducationGoals);
   const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
   const [activeMode, setActiveMode] = useState<DashboardMode>("today");
+  const [showTodayMetrics, setShowTodayMetrics] = useState(false);
 
   useEffect(() => {
     if (!isPrivateApiMode()) return;
@@ -92,10 +144,13 @@ export default function Home() {
     setRoadmapGoals(baseEducationGoals);
   }, [baseEducationGoals]);
 
-  const learningRecords = useMemo(() => [...localLearningRecords, ...baseLearningRecords], [baseLearningRecords, localLearningRecords]);
+  const learningRecords = useMemo(
+    () => mergeRemoteAndLocal(baseLearningRecords, localLearningRecords),
+    [baseLearningRecords, localLearningRecords]
+  );
   const totalMinutes = learningRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
   const calendarEvents = useMemo(
-    () => [...baseCalendarEvents, ...localCalendarEvents].sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
+    () => mergeRemoteAndLocal(baseCalendarEvents, localCalendarEvents).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
     [baseCalendarEvents, localCalendarEvents]
   );
   const averageGoalProgress =
@@ -150,11 +205,28 @@ export default function Home() {
             <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
             <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} />
 
-            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-              <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
-              <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
-              <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
-              <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
+            <section className="rounded-2xl border border-white/80 bg-white/75 p-3 shadow-sm shadow-slate-200/60 ring-1 ring-slate-950/[0.03] backdrop-blur">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 text-left"
+                onClick={() => setShowTodayMetrics((current) => !current)}
+              >
+                <span>
+                  <span className="block text-sm font-semibold text-slate-950">本周统计</span>
+                  <span className="mt-0.5 block text-xs text-slate-500">默认收起，给今天的行动留出空间。</span>
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                  {showTodayMetrics ? "收起" : "展开"}
+                </span>
+              </button>
+              {showTodayMetrics && (
+                <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                  <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
+                  <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
+                  <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
+                  <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
+                </div>
+              )}
             </section>
           </>
         )}

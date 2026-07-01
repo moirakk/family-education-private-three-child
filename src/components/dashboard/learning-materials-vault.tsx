@@ -1,13 +1,12 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import { Download, LibraryBig, Pencil, Trash2, UploadCloud, X } from "lucide-react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Camera, Download, FileUp, ImagePlus, LibraryBig, Pencil, Trash2, UploadCloud, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
@@ -36,6 +35,14 @@ const kindLabels: Record<LearningMaterial["kind"], string> = {
   book: "书籍",
   video: "视频"
 };
+const kindOptions: { value: LearningMaterial["kind"]; label: string }[] = [
+  { value: "file", label: "文件" },
+  { value: "worksheet", label: "练习" },
+  { value: "note", label: "笔记" },
+  { value: "link", label: "链接" },
+  { value: "book", label: "书籍" },
+  { value: "video", label: "视频" }
+];
 
 function nowIso() {
   return new Date().toISOString();
@@ -133,6 +140,10 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState("");
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(metadataStorageKey);
@@ -170,6 +181,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
     setForm(createInitialForm(childProfiles));
     setFile(null);
     setEditingMaterialId(null);
+    setShowAdvanced(false);
     formElement?.reset();
   }
 
@@ -186,6 +198,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
       tags: material.tags.join(" ")
     });
     setStatus("正在编辑资料索引；如需替换文件，请先删除后重新上传。");
+    setShowAdvanced(true);
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -412,45 +425,8 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 </button>
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>孩子</Label>
-                <Select value={form.childId} onValueChange={(value) => setForm((current) => ({ ...current, childId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="family">全家共用</SelectItem>
-                    {childProfiles.map((child) => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>类型</Label>
-                <Select
-                  value={form.kind}
-                  onValueChange={(value) => setForm((current) => ({ ...current, kind: value as LearningMaterial["kind"] }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="file">文件</SelectItem>
-                    <SelectItem value="worksheet">练习</SelectItem>
-                    <SelectItem value="note">笔记</SelectItem>
-                    <SelectItem value="link">链接</SelectItem>
-                    <SelectItem value="book">书籍</SelectItem>
-                    <SelectItem value="video">视频</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label>快速关联</Label>
+              <Label>关联孩子</Label>
               <div className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
@@ -477,18 +453,87 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 ))}
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>资料类型</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {kindOptions.map((kind) => (
+                  <button
+                    key={kind.value}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, kind: kind.value }))}
+                    className={cn(
+                      "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
+                      form.kind === kind.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {kind.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label htmlFor="material-file">上传文件</Label>
+              <Label>添加资料</Label>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileChange}
+                disabled={Boolean(editingMaterialId)}
+                className="hidden"
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={Boolean(editingMaterialId)}
+                className="hidden"
+              />
               <Input
-                id="material-file"
+                ref={fileInputRef}
                 type="file"
                 accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
                 onChange={handleFileChange}
                 disabled={Boolean(editingMaterialId)}
-                className="h-12 cursor-pointer rounded-xl"
+                className="hidden"
               />
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  disabled={Boolean(editingMaterialId)}
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-2 py-3 text-xs font-semibold text-blue-700 disabled:opacity-50"
+                >
+                  <Camera className="h-5 w-5" />
+                  拍照
+                </button>
+                <button
+                  type="button"
+                  disabled={Boolean(editingMaterialId)}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-amber-100 bg-amber-50 px-2 py-3 text-xs font-semibold text-amber-700 disabled:opacity-50"
+                >
+                  <ImagePlus className="h-5 w-5" />
+                  相册
+                </button>
+                <button
+                  type="button"
+                  disabled={Boolean(editingMaterialId)}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-semibold text-slate-700 disabled:opacity-50"
+                >
+                  <FileUp className="h-5 w-5" />
+                  文件
+                </button>
+              </div>
+              {file && (
+                <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  已选择：{file.name} · {formatFileSize(file.size)}
+                </p>
+              )}
               <p className="text-xs leading-5 text-muted-foreground">
-                手机上可直接拍照、选相册或选文件。{editingMaterialId ? "编辑模式暂不替换文件；需要换文件时请删除后重新上传。" : ""}
+                {editingMaterialId ? "编辑模式暂不替换文件；需要换文件时请删除后重新上传。" : "手机端优先拍照保存错题、讲义和课堂反馈。"}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -526,51 +571,65 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 </button>
               ))}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="material-url">外部链接</Label>
-              <Input
-                id="material-url"
-                placeholder="可选：网盘、学校链接、视频地址"
-                value={form.externalUrl}
-                onChange={(event) => setForm((current) => ({ ...current, externalUrl: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="material-notes">备注</Label>
-              <Textarea
-                id="material-notes"
-                placeholder="用途、使用建议、对应考试或阶段"
-                value={form.notes}
-                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="material-tags">标签</Label>
-              <div className="mb-2 flex flex-wrap gap-2">
-                {quickTags.map((tag) => {
-                  const active = splitTags(form.tags).includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                        active ? "border-amber-400 bg-amber-50 text-amber-700" : "border-slate-200 bg-white text-slate-600"
-                      )}
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
+            <button
+              type="button"
+              className="w-fit text-sm font-medium text-blue-700"
+              onClick={() => setShowAdvanced((current) => !current)}
+            >
+              {showAdvanced ? "收起更多设置" : "更多设置：链接、备注、标签"}
+            </button>
+            {showAdvanced && (
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="material-url">外部链接</Label>
+                  <Input
+                    id="material-url"
+                    placeholder="可选：网盘、学校链接、视频地址"
+                    value={form.externalUrl}
+                    className="bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, externalUrl: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="material-notes">备注</Label>
+                  <Textarea
+                    id="material-notes"
+                    placeholder="用途、使用建议、对应考试或阶段"
+                    value={form.notes}
+                    className="bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="material-tags">标签</Label>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {quickTags.map((tag) => {
+                      const active = splitTags(form.tags).includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={cn(
+                            "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                            active ? "border-amber-400 bg-amber-50 text-amber-700" : "border-slate-200 bg-white text-slate-600"
+                          )}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <Input
+                    id="material-tags"
+                    placeholder="错题 讲义 暑假"
+                    value={form.tags}
+                    className="bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
+                  />
+                </div>
               </div>
-              <Input
-                id="material-tags"
-                placeholder="错题 讲义 暑假"
-                value={form.tags}
-                onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))}
-              />
-            </div>
+            )}
             <Button type="submit" className="h-11 rounded-xl" disabled={!form.title.trim() || !form.subject.trim()}>
               <UploadCloud className="mr-2 h-4 w-4" />
               {editingMaterialId ? "保存资料修改" : "保存资料"}

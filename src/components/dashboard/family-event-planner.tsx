@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
+import { getLocalOnlyItems } from "@/lib/reconciled-collection";
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -128,6 +128,7 @@ export function FamilyEventPlanner({
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [form, setForm] = useState<EventFormState>(initialForm);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
 
   useEffect(() => {
@@ -136,8 +137,9 @@ export function FamilyEventPlanner({
 
     try {
       const parsed = JSON.parse(raw) as CalendarEvent[];
-      setEvents(parsed);
-      onEventsChange(parsed);
+      const localEvents = isPrivateApiMode() ? getLocalOnlyItems(parsed) : parsed;
+      setEvents(localEvents);
+      onEventsChange(localEvents);
     } catch {
       setEvents([]);
       onEventsChange([]);
@@ -145,7 +147,8 @@ export function FamilyEventPlanner({
   }, [onEventsChange]);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(events));
+    const eventsToStore = isPrivateApiMode() ? getLocalOnlyItems(events) : events;
+    window.localStorage.setItem(storageKey, JSON.stringify(eventsToStore));
     onEventsChange(events);
   }, [events, onEventsChange]);
 
@@ -182,6 +185,7 @@ export function FamilyEventPlanner({
   function resetForm() {
     setForm(initialForm);
     setEditingEventId(null);
+    setShowAdvanced(false);
   }
 
   function editEvent(event: CalendarEvent) {
@@ -196,6 +200,7 @@ export function FamilyEventPlanner({
       notes: ""
     });
     setSyncStatus("");
+    setShowAdvanced(true);
   }
 
   async function saveEvent(event: FormEvent<HTMLFormElement>) {
@@ -366,68 +371,75 @@ export function FamilyEventPlanner({
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
               />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>类型</Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(value) => setForm((current) => ({ ...current, category: value as EventCategory }))}
-                >
-                  <SelectTrigger className="h-11 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoryOptions.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="event-location">地点</Label>
-                <Input
-                  id="event-location"
-                  placeholder="学校 / 家里 / 机构"
-                  value={form.location}
-                  className="h-11 rounded-xl"
-                  onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="event-start">开始时间</Label>
-                <Input
-                  id="event-start"
-                  type="datetime-local"
-                  value={form.startsAt}
-                  className="h-11 rounded-xl"
-                  onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="event-end">结束时间</Label>
-                <Input
-                  id="event-end"
-                  type="datetime-local"
-                  value={form.endsAt}
-                  className="h-11 rounded-xl"
-                  onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))}
-                />
+            <div className="space-y-2">
+              <Label>类型</Label>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                {categoryOptions.map((category) => (
+                  <button
+                    key={category.value}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, category: category.value }))}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
+                      form.category === category.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {category.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="event-notes">现场备注</Label>
-              <Textarea
-                id="event-notes"
-                placeholder="可记录费用、接送、材料、老师提醒等。当前版本先作为现场记录，不进入 ICS。"
-                value={form.notes}
-                className="min-h-20 rounded-xl"
-                onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+              <Label htmlFor="event-start">开始时间</Label>
+              <Input
+                id="event-start"
+                type="datetime-local"
+                value={form.startsAt}
+                className="h-11 rounded-xl"
+                onChange={(event) => setForm((current) => ({ ...current, startsAt: event.target.value }))}
               />
             </div>
+            <button
+              type="button"
+              className="w-fit text-sm font-medium text-blue-700"
+              onClick={() => setShowAdvanced((current) => !current)}
+            >
+              {showAdvanced ? "收起更多设置" : "更多设置：地点、结束时间、备注"}
+            </button>
+            {showAdvanced && (
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="event-location">地点</Label>
+                  <Input
+                    id="event-location"
+                    placeholder="学校 / 家里 / 机构"
+                    value={form.location}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="event-end">结束时间</Label>
+                  <Input
+                    id="event-end"
+                    type="datetime-local"
+                    value={form.endsAt}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="event-notes">现场备注</Label>
+                  <Textarea
+                    id="event-notes"
+                    placeholder="可记录费用、接送、材料、老师提醒等。当前版本先作为现场记录，不进入 ICS。"
+                    value={form.notes}
+                    className="min-h-20 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
             <Button className="h-11 rounded-xl" type="submit" disabled={!form.title.trim() || !form.startsAt || form.childIds.length === 0}>
               {editingEventId ? "保存日程修改" : "新增到日历"}
             </Button>

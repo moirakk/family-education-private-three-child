@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
+import { getLocalOnlyItems } from "@/lib/reconciled-collection";
 import type { Child, LearningRecord } from "@/lib/types";
 
 type RecordFormState = {
@@ -65,8 +66,9 @@ export function LearningRecordPlanner({
 
     try {
       const parsed = JSON.parse(raw) as LearningRecord[];
-      setRecords(parsed);
-      onRecordsChange(parsed);
+      const localRecords = isPrivateApiMode() ? getLocalOnlyItems(parsed) : parsed;
+      setRecords(localRecords);
+      onRecordsChange(localRecords);
     } catch {
       setRecords([]);
       onRecordsChange([]);
@@ -74,7 +76,8 @@ export function LearningRecordPlanner({
   }, [onRecordsChange]);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(records));
+    const recordsToStore = isPrivateApiMode() ? getLocalOnlyItems(records) : records;
+    window.localStorage.setItem(storageKey, JSON.stringify(recordsToStore));
     onRecordsChange(records);
   }, [records, onRecordsChange]);
 
@@ -197,7 +200,7 @@ export function LearningRecordPlanner({
               手机上快速记一条学习内容，后续沉淀到成长摘要和周报。
             </CardDescription>
           </div>
-          <Badge variant="outline">{records.length} 条本机新增记录</Badge>
+          <Badge variant="outline">{records.length} 条新增记录</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
@@ -375,7 +378,7 @@ export function LearningRecordPlanner({
             ))}
             {records.length === 0 && (
               <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">
-                还没有本机新增学习记录。今天可以先记录 1-2 条真实学习事项，让家长看到成长追踪如何长期积累。
+                还没有新增学习记录。今天可以先记录 1-2 条真实学习事项，让家长看到成长追踪如何长期积累。
               </p>
             )}
           </div>
