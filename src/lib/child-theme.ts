@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Child } from "@/lib/types";
+import type { Child } from "./types";
 
 export type ChildTheme = {
   hex: string;

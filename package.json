@@ -20,6 +20,7 @@
     "private:restore-storage": "node scripts/private-restore-storage.mjs",
     "private:secrets": "node scripts/private-generate-secrets.mjs",
     "private:smoke": "node scripts/private-smoke-test.mjs",
+    "test": "node --experimental-strip-types --test tests/core/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

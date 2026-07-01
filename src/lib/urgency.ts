@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import type { CalendarEvent } from "@/lib/types";
+import type { CalendarEvent } from "./types";
 
 export type Urgency = "critical" | "warning" | "ok" | "past";
 
