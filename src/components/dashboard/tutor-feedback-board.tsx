@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, TutorFeedback } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type TutorFeedbackFormState = {
   childId: string;
@@ -26,6 +26,14 @@ type TutorFeedbackFormState = {
 };
 
 const storageKey = "family-education-private-tutor-feedback-v1";
+const quickSubjects = ["数学", "英语", "语文", "阅读", "综合"];
+const quickDurations = ["45", "60", "90", "120"];
+const ratingOptions = [
+  { value: "2", label: "需跟进" },
+  { value: "3", label: "正常" },
+  { value: "4", label: "不错" },
+  { value: "5", label: "很好" }
+];
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
@@ -55,6 +63,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   const [form, setForm] = useState<TutorFeedbackFormState>(() => createInitialForm(childProfiles));
   const [syncStatus, setSyncStatus] = useState("");
   const [editingFeedbackId, setEditingFeedbackId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -91,6 +100,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   function resetForm() {
     setForm(createInitialForm(childProfiles));
     setEditingFeedbackId(null);
+    setShowAdvanced(false);
   }
 
   function editFeedback(feedback: TutorFeedback) {
@@ -108,6 +118,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
       rating: String(feedback.rating)
     });
     setSyncStatus("");
+    setShowAdvanced(true);
   }
 
   async function saveFeedback(event: FormEvent<HTMLFormElement>) {
@@ -196,10 +207,10 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={saveFeedback} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveFeedback} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
           <div className="grid gap-3">
             {editingFeedbackId && (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
                 正在编辑家教反馈
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -207,60 +218,61 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                 </button>
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>孩子</Label>
-                <Select value={form.childId} onValueChange={(value) => setForm((current) => ({ ...current, childId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {childProfiles.map((child) => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-2">
+              <Label>孩子</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {childProfiles.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
+                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {child.firstName}
+                  </button>
+                ))}
               </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="tutor-name">老师</Label>
                 <Input
                   id="tutor-name"
                   placeholder="老师姓名"
                   value={form.tutorName}
+                  className="h-11 rounded-xl"
                   onChange={(event) => setForm((current) => ({ ...current, tutorName: event.target.value }))}
                 />
               </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="tutor-subject">科目</Label>
                 <Input
                   id="tutor-subject"
                   placeholder="数学 / 英语"
                   value={form.subject}
+                  className="h-11 rounded-xl"
                   onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="tutor-date">日期</Label>
-                <Input
-                  id="tutor-date"
-                  type="date"
-                  value={form.sessionDate}
-                  onChange={(event) => setForm((current) => ({ ...current, sessionDate: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="tutor-duration">分钟</Label>
-                <Input
-                  id="tutor-duration"
-                  type="number"
-                  min="0"
-                  value={form.durationMinutes}
-                  onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}
-                />
+                <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-1">
+                  {quickSubjects.map((subject) => (
+                    <button
+                      key={subject}
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, subject }))}
+                      className={cn(
+                        "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                        form.subject === subject
+                          ? "border-slate-950 bg-slate-950 text-white"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                      )}
+                    >
+                      {subject}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="space-y-1.5">
@@ -269,50 +281,108 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                 id="tutor-focus"
                 placeholder="本节课讲了什么、解决了什么问题"
                 value={form.focus}
+                className="min-h-24 rounded-xl"
                 onChange={(event) => setForm((current) => ({ ...current, focus: event.target.value }))}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="tutor-performance">孩子表现</Label>
-              <Textarea
-                id="tutor-performance"
-                placeholder="理解情况、注意力、薄弱点"
-                value={form.performance}
-                onChange={(event) => setForm((current) => ({ ...current, performance: event.target.value }))}
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
-              <div className="space-y-1.5">
-                <Label htmlFor="tutor-homework">课后任务</Label>
-                <Input
-                  id="tutor-homework"
-                  placeholder="作业 / 复习任务"
-                  value={form.homework}
-                  onChange={(event) => setForm((current) => ({ ...current, homework: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="tutor-rating">效果 1-5</Label>
-                <Input
-                  id="tutor-rating"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={form.rating}
-                  onChange={(event) => setForm((current) => ({ ...current, rating: event.target.value }))}
-                />
+              <Label>本次效果</Label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {ratingOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, rating: option.value }))}
+                    className={cn(
+                      "rounded-lg border px-2 py-2 text-xs font-medium transition",
+                      form.rating === option.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="tutor-next">下次方向</Label>
-              <Input
-                id="tutor-next"
-                placeholder="下次优先处理什么"
-                value={form.nextFocus}
-                onChange={(event) => setForm((current) => ({ ...current, nextFocus: event.target.value }))}
-              />
-            </div>
-            <Button type="submit" disabled={!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()}>
+            <button
+              type="button"
+              className="w-fit text-sm font-medium text-blue-700"
+              onClick={() => setShowAdvanced((current) => !current)}
+            >
+              {showAdvanced ? "收起更多设置" : "更多设置：日期、时长、表现、作业、下次方向"}
+            </button>
+            {showAdvanced && (
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="tutor-date">日期</Label>
+                    <Input
+                      id="tutor-date"
+                      type="date"
+                      value={form.sessionDate}
+                      className="h-11 rounded-xl bg-white"
+                      onChange={(event) => setForm((current) => ({ ...current, sessionDate: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="tutor-duration">分钟</Label>
+                    <Input
+                      id="tutor-duration"
+                      type="number"
+                      min="0"
+                      value={form.durationMinutes}
+                      className="h-11 rounded-xl bg-white"
+                      onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}
+                    />
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {quickDurations.map((duration) => (
+                        <button
+                          key={duration}
+                          type="button"
+                          onClick={() => setForm((current) => ({ ...current, durationMinutes: duration }))}
+                          className={cn(
+                            "rounded-lg border px-2 py-1.5 text-xs font-medium",
+                            form.durationMinutes === duration ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                          )}
+                        >
+                          {duration}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="tutor-performance">孩子表现</Label>
+                  <Textarea
+                    id="tutor-performance"
+                    placeholder="理解情况、注意力、薄弱点"
+                    value={form.performance}
+                    className="rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, performance: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="tutor-homework">课后任务</Label>
+                  <Input
+                    id="tutor-homework"
+                    placeholder="作业 / 复习任务"
+                    value={form.homework}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, homework: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="tutor-next">下次方向</Label>
+                  <Input
+                    id="tutor-next"
+                    placeholder="下次优先处理什么"
+                    value={form.nextFocus}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, nextFocus: event.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+            <Button type="submit" className="h-11 rounded-xl" disabled={!form.childId || !form.tutorName.trim() || !form.subject.trim() || !form.focus.trim()}>
               {editingFeedbackId ? "保存反馈修改" : "保存反馈"}
             </Button>
             {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}

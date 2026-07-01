@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, SelfEvaluation } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type EvaluationFormState = {
   childId: string;
@@ -24,6 +24,14 @@ type EvaluationFormState = {
 };
 
 const storageKey = "family-education-private-self-evaluations-v1";
+const quickSubjects = ["数学", "英语", "阅读", "语文", "综合"];
+const scoreOptions = [
+  { value: "1", label: "很卡" },
+  { value: "2", label: "有点难" },
+  { value: "3", label: "还可以" },
+  { value: "4", label: "不错" },
+  { value: "5", label: "很稳" }
+];
 
 function todayDate() {
   return new Date().toISOString().slice(0, 10);
@@ -51,6 +59,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
   const [form, setForm] = useState<EvaluationFormState>(() => createInitialForm(childProfiles));
   const [syncStatus, setSyncStatus] = useState("");
   const [editingEvaluationId, setEditingEvaluationId] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -87,6 +96,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
   function resetForm() {
     setForm(createInitialForm(childProfiles));
     setEditingEvaluationId(null);
+    setShowAdvanced(false);
   }
 
   function editEvaluation(evaluation: SelfEvaluation) {
@@ -102,6 +112,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
       nextStep: evaluation.nextStep
     });
     setSyncStatus("");
+    setShowAdvanced(true);
   }
 
   async function saveEvaluation(event: FormEvent<HTMLFormElement>) {
@@ -188,10 +199,10 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={saveEvaluation} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveEvaluation} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
           <div className="grid gap-3">
             {editingEvaluationId && (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
                 正在编辑自评
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -199,75 +210,79 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                 </button>
               </div>
             )}
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label>孩子</Label>
-                <Select value={form.childId} onValueChange={(value) => setForm((current) => ({ ...current, childId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {childProfiles.map((child) => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="evaluation-date">日期</Label>
-                <Input
-                  id="evaluation-date"
-                  type="date"
-                  value={form.evaluationDate}
-                  onChange={(event) => setForm((current) => ({ ...current, evaluationDate: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="evaluation-subject">科目</Label>
-                <Input
-                  id="evaluation-subject"
-                  placeholder="数学 / 阅读 / 综合"
-                  value={form.subject}
-                  onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
-                />
+            <div className="space-y-2">
+              <Label>孩子</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {childProfiles.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
+                    className={cn(
+                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
+                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                    )}
+                  >
+                    {child.firstName}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="evaluation-mood">心情 1-5</Label>
-                <Input
-                  id="evaluation-mood"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={form.mood}
-                  onChange={(event) => setForm((current) => ({ ...current, mood: event.target.value }))}
-                />
+            <div className="space-y-1.5">
+              <Label htmlFor="evaluation-subject">科目</Label>
+              <Input
+                id="evaluation-subject"
+                placeholder="数学 / 阅读 / 综合"
+                value={form.subject}
+                className="h-11 rounded-xl"
+                onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
+              />
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {quickSubjects.map((subject) => (
+                  <button
+                    key={subject}
+                    type="button"
+                    onClick={() => setForm((current) => ({ ...current, subject }))}
+                    className={cn(
+                      "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                      form.subject === subject
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                    )}
+                  >
+                    {subject}
+                  </button>
+                ))}
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="evaluation-effort">投入 1-5</Label>
-                <Input
-                  id="evaluation-effort"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={form.effort}
-                  onChange={(event) => setForm((current) => ({ ...current, effort: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="evaluation-confidence">掌握 1-5</Label>
-                <Input
-                  id="evaluation-confidence"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={form.confidence}
-                  onChange={(event) => setForm((current) => ({ ...current, confidence: event.target.value }))}
-                />
-              </div>
+            </div>
+            <div className="grid gap-3">
+              {[
+                ["mood", "今天心情"],
+                ["effort", "投入程度"],
+                ["confidence", "掌握感觉"]
+              ].map(([key, label]) => (
+                <div key={key} className="space-y-1.5">
+                  <Label>{label}</Label>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {scoreOptions.map((option) => {
+                      const active = form[key as "mood" | "effort" | "confidence"] === option.value;
+                      return (
+                        <button
+                          key={`${key}-${option.value}`}
+                          type="button"
+                          onClick={() => setForm((current) => ({ ...current, [key]: option.value }))}
+                          className={cn(
+                            "rounded-lg border px-1.5 py-2 text-xs font-medium transition",
+                            active ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="evaluation-reflection">今天我觉得</Label>
@@ -275,19 +290,42 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                 id="evaluation-reflection"
                 placeholder="哪里做得不错？哪里有点卡？"
                 value={form.reflection}
+                className="min-h-24 rounded-xl"
                 onChange={(event) => setForm((current) => ({ ...current, reflection: event.target.value }))}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="evaluation-next">下一步</Label>
-              <Input
-                id="evaluation-next"
-                placeholder="例如：明天再练 3 道应用题"
-                value={form.nextStep}
-                onChange={(event) => setForm((current) => ({ ...current, nextStep: event.target.value }))}
-              />
-            </div>
-            <Button type="submit" disabled={!form.childId || !form.subject.trim() || !form.reflection.trim()}>
+            <button
+              type="button"
+              className="w-fit text-sm font-medium text-blue-700"
+              onClick={() => setShowAdvanced((current) => !current)}
+            >
+              {showAdvanced ? "收起更多设置" : "更多设置：日期、下一步"}
+            </button>
+            {showAdvanced && (
+              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="evaluation-date">日期</Label>
+                  <Input
+                    id="evaluation-date"
+                    type="date"
+                    value={form.evaluationDate}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, evaluationDate: event.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="evaluation-next">下一步</Label>
+                  <Input
+                    id="evaluation-next"
+                    placeholder="例如：明天再练 3 道应用题"
+                    value={form.nextStep}
+                    className="h-11 rounded-xl bg-white"
+                    onChange={(event) => setForm((current) => ({ ...current, nextStep: event.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+            <Button type="submit" className="h-11 rounded-xl" disabled={!form.childId || !form.subject.trim() || !form.reflection.trim()}>
               {editingEvaluationId ? "保存自评修改" : "保存自评"}
             </Button>
             {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
