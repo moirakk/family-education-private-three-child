@@ -93,6 +93,52 @@ const WeeklyOverview = dynamic(() => import("@/components/dashboard/weekly-overv
   loading: DashboardSectionLoading
 });
 
+const hashModeMap: Record<string, DashboardMode> = {
+  today: "today",
+  dashboard: "today",
+  week: "week",
+  "event-planner": "week",
+  calendar: "week",
+  "calendar-sync": "week",
+  "weekly-report": "week",
+  records: "records",
+  "learning-records": "records",
+  materials: "records",
+  "self-evaluation": "records",
+  "tutor-feedback": "records",
+  children: "records",
+  growth: "records",
+  roadmap: "records",
+  resources: "records",
+  more: "more",
+  intake: "more",
+  "export-preview": "more",
+  "deploy-status": "more"
+};
+
+function getModeFromHash(hash: string): DashboardMode | null {
+  const key = hash.replace(/^#/, "");
+  return hashModeMap[key] ?? null;
+}
+
+function scrollToDashboardTarget(targetId?: string, attempt = 0) {
+  window.requestAnimationFrame(() => {
+    const element = targetId ? document.getElementById(targetId) : null;
+
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    if (targetId && attempt < 10) {
+      window.setTimeout(() => scrollToDashboardTarget(targetId, attempt + 1), 80);
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
 export default function Home() {
   const isMisconfigured = isFamilyDataModeMisconfigured();
   const [managedChildren, setManagedChildren] = useState(pilotChildren);
@@ -103,6 +149,28 @@ export default function Home() {
   const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
   const [activeMode, setActiveMode] = useState<DashboardMode>("today");
   const [showTodayMetrics, setShowTodayMetrics] = useState(false);
+
+  function handleModeChange(mode: DashboardMode, targetId?: string) {
+    const nextHash = targetId ?? mode;
+    setActiveMode(mode);
+    window.history.replaceState(null, "", `#${nextHash}`);
+    scrollToDashboardTarget(targetId);
+  }
+
+  useEffect(() => {
+    function syncModeFromHash() {
+      const mode = getModeFromHash(window.location.hash);
+      if (!mode) return;
+
+      const targetId = window.location.hash.replace(/^#/, "") || undefined;
+      setActiveMode(mode);
+      scrollToDashboardTarget(targetId);
+    }
+
+    syncModeFromHash();
+    window.addEventListener("hashchange", syncModeFromHash);
+    return () => window.removeEventListener("hashchange", syncModeFromHash);
+  }, []);
 
   useEffect(() => {
     if (!isPrivateApiMode()) return;
@@ -174,7 +242,7 @@ export default function Home() {
   }
 
   return (
-    <AppShell activeMode={activeMode} onModeChange={setActiveMode}>
+    <AppShell activeMode={activeMode} onModeChange={handleModeChange}>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
         <section id="dashboard" className="hidden overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:block sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -190,10 +258,10 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => setActiveMode("more")}>
+              <Button variant="outline" onClick={() => handleModeChange("more", "export-preview")}>
                 看导出效果
               </Button>
-              <Button onClick={() => setActiveMode("week")}>
+              <Button onClick={() => handleModeChange("week", "event-planner")}>
                 新增事项
               </Button>
             </div>
@@ -202,8 +270,8 @@ export default function Home() {
 
         {activeMode === "today" && (
           <>
-            <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
-            <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} />
+            <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={handleModeChange} records={learningRecords} />
+            <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={handleModeChange} />
 
             <section className="rounded-2xl border border-white/80 bg-white/75 p-3 shadow-sm shadow-slate-200/60 ring-1 ring-slate-950/[0.03] backdrop-blur">
               <button

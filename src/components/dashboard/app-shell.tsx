@@ -29,6 +29,12 @@ const quickAddByMode: Partial<Record<DashboardMode, { label: string; target: Das
   records: { label: "新增记录", target: "records" }
 };
 
+const quickAddTargetIdByMode: Partial<Record<DashboardMode, string>> = {
+  today: "event-planner",
+  week: "event-planner",
+  records: "learning-records"
+};
+
 export function AppShell({
   activeMode,
   children,
@@ -36,7 +42,7 @@ export function AppShell({
 }: {
   activeMode: DashboardMode;
   children: React.ReactNode;
-  onModeChange: (mode: DashboardMode) => void;
+  onModeChange: (mode: DashboardMode, targetId?: string) => void;
 }) {
   const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
   const ActiveIcon = activeItem.icon;
@@ -107,7 +113,7 @@ export function AppShell({
               </div>
             </div>
             {quickAdd && (
-              <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target)}>
+              <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target, quickAddTargetIdByMode[activeMode])}>
                 <Plus className="h-3.5 w-3.5" />
                 {quickAdd.label}
               </Button>

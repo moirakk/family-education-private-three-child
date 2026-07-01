@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 import { getEventUrgency, sortEventsByUrgency, type Urgency } from "@/lib/urgency";
 
 const quickActions = [
-  { mode: "week" as const, label: "新增日程", hint: "考试、课外、家庭事项", icon: CalendarPlus, tone: "bg-blue-50 text-blue-700 ring-blue-100" },
-  { mode: "records" as const, label: "上传资料", hint: "讲义、试卷、笔记", icon: LibraryBig, tone: "bg-amber-50 text-amber-700 ring-amber-100" }
+  { mode: "week" as const, targetId: "event-planner", label: "新增日程", hint: "考试、课外、家庭事项", icon: CalendarPlus, tone: "bg-blue-50 text-blue-700 ring-blue-100" },
+  { mode: "records" as const, targetId: "materials", label: "上传资料", hint: "讲义、试卷、笔记", icon: LibraryBig, tone: "bg-amber-50 text-amber-700 ring-amber-100" }
 ];
 
 const urgencyLabels: Record<Urgency, string> = {
@@ -43,7 +43,7 @@ export function TodayCommandCenter({
 }: {
   childProfiles: Child[];
   events: CalendarEvent[];
-  onModeChange: (mode: DashboardMode) => void;
+  onModeChange: (mode: DashboardMode, targetId?: string) => void;
 }) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -65,7 +65,7 @@ export function TodayCommandCenter({
               key={action.label}
               type="button"
               className="group flex min-h-24 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-sm"
-              onClick={() => onModeChange(action.mode)}
+              onClick={() => onModeChange(action.mode, action.targetId)}
             >
               <span className="flex items-center justify-between gap-2">
                 <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ${action.tone}`}>
