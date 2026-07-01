@@ -23,6 +23,12 @@ const modeItems = [
 
 const modeLabelByMode = new Map(modeItems.map((item) => [item.mode, item]));
 
+const quickAddByMode: Partial<Record<DashboardMode, { label: string; target: DashboardMode }>> = {
+  today: { label: "新增日程", target: "week" },
+  week: { label: "新增日程", target: "week" },
+  records: { label: "新增记录", target: "records" }
+};
+
 export function AppShell({
   activeMode,
   children,
@@ -34,6 +40,7 @@ export function AppShell({
 }) {
   const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
   const ActiveIcon = activeItem.icon;
+  const quickAdd = quickAddByMode[activeMode];
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
@@ -99,10 +106,12 @@ export function AppShell({
                 <p className="text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
-            <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange("week")}>
-              <Plus className="h-3.5 w-3.5" />
-              添加
-            </Button>
+            {quickAdd && (
+              <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target)}>
+                <Plus className="h-3.5 w-3.5" />
+                {quickAdd.label}
+              </Button>
+            )}
           </div>
         </header>
         <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>

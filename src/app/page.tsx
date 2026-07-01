@@ -148,7 +148,7 @@ export default function Home() {
         {activeMode === "today" && (
           <>
             <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
-            <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} records={learningRecords} />
+            <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={setActiveMode} />
 
             <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
@@ -156,8 +156,6 @@ export default function Home() {
               <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
               <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
             </section>
-
-            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
           </>
         )}
 
@@ -176,6 +174,7 @@ export default function Home() {
             </div>
 
             <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
+            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
           </>
         )}
 

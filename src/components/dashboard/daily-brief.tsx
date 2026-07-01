@@ -131,8 +131,8 @@ export function DailyBrief({
       </div>
 
       <div className="grid gap-2 border-t border-slate-200 p-3 sm:grid-cols-3 sm:p-4">
-        {childProfiles.map((child, index) => {
-          const theme = getChildTheme(index);
+        {childProfiles.map((child) => {
+          const theme = getChildTheme(child);
           const childWeekEvents = weekEvents.filter((event) => eventBelongsToChild(event, child.id)).length;
           const childCriticalEvents = weekEvents.filter(
             (event) => eventBelongsToChild(event, child.id) && getEventUrgency(event, today) === "critical"
@@ -149,7 +149,7 @@ export function DailyBrief({
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:border-blue-200 hover:bg-blue-50/40"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", theme.dot)} />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={theme.dotStyle} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{child.firstName}</p>
                   <p className="text-xs text-slate-500">{child.grade}</p>
