@@ -65,52 +65,52 @@ export function DailyBrief({
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-card">
-      <button type="button" onClick={() => onModeChange("week", "calendar")} className="block w-full min-w-0 p-4 text-left transition hover:bg-muted/50 sm:p-5">
-        <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5" />
-          {formatDayLabel(today)}
-        </p>
-        <h2 className="mt-2 font-voice text-2xl leading-snug text-foreground sm:text-[1.7rem]">
-          {nextEvent ? "今天先看这一件。" : "今天节奏很干净。"}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          {nextEvent ? "打开后先处理最近事项，再补学习记录和资料。" : "没有紧急事项，可以补一条学习记录，或者看看本周安排。"}
-        </p>
-
-        {nextEvent ? (
-          <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-border bg-muted/60 p-3.5 sm:p-4">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                {nextUrgency ? (
-                  <Badge variant="outline" className={cn("h-6 rounded-full px-2", urgencyCopy[nextUrgency].className)}>
-                    {urgencyCopy[nextUrgency].label}
-                  </Badge>
-                ) : null}
-                <span className="text-xs font-medium text-muted-foreground">{formatTime(nextEvent.startsAt)}</span>
-              </div>
-              <p className="mt-2 line-clamp-2 text-base font-medium leading-6 text-foreground">{nextEvent.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{nextEvent.location ? nextEvent.location : "点击查看本周安排"}</p>
+    <section className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <button type="button" onClick={() => onModeChange("week", "calendar")} className="min-w-0 rounded-2xl bg-muted/50 p-3 text-left transition hover:bg-muted sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5" />
+              {formatDayLabel(today)}
+            </p>
+            <div className="flex gap-1.5">
+              <span className="rounded-full border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
+                今日 {todayEvents.length}
+              </span>
+              <span className="rounded-full border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
+                {totalMinutes}m
+              </span>
             </div>
-            <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
           </div>
-        ) : null}
-      </button>
+          <h2 className="mt-2 font-voice text-2xl leading-snug text-foreground sm:text-[1.7rem]">
+            {nextEvent ? "今天先看这一件。" : "今天节奏很干净。"}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            {nextEvent ? "先处理最近事项，再补学习记录和资料。" : "没有紧急事项，可以补一条学习记录，或者看看本周安排。"}
+          </p>
 
-      <div className="grid grid-cols-2 gap-2 border-t border-border p-3 sm:p-4">
-        <div className="rounded-xl bg-muted/60 p-3">
-          <p className="text-xs text-muted-foreground">今日事项</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{todayEvents.length}</p>
-        </div>
-        <div className="rounded-xl bg-muted/60 p-3">
-          <p className="text-xs text-muted-foreground">学习分钟</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{totalMinutes}</p>
-        </div>
-      </div>
+          {nextEvent ? (
+            <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-border bg-card p-3.5">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  {nextUrgency ? (
+                    <Badge variant="outline" className={cn("h-6 rounded-full px-2", urgencyCopy[nextUrgency].className)}>
+                      {urgencyCopy[nextUrgency].label}
+                    </Badge>
+                  ) : null}
+                  <span className="text-xs font-medium text-muted-foreground">{formatTime(nextEvent.startsAt)}</span>
+                </div>
+                <p className="mt-2 line-clamp-2 text-base font-medium leading-6 text-foreground">{nextEvent.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{nextEvent.location ? nextEvent.location : "点击查看本周安排"}</p>
+              </div>
+              <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
+            </div>
+          ) : null}
+        </button>
 
-      <div className="border-t border-border p-3 sm:p-4">
-        <p className="px-1 pb-2 text-xs text-muted-foreground">三个孩子</p>
-        <div className="flex flex-col gap-2">
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <p className="px-1 pb-2 text-xs font-medium text-muted-foreground">三个孩子</p>
+          <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
           {childProfiles.map((child) => {
             const theme = getChildTheme(child);
 
@@ -119,19 +119,24 @@ export function DailyBrief({
                 key={child.id}
                 type="button"
                 onClick={() => goToChild(child.id)}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2.5 text-left transition hover:bg-muted/50"
+                className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-muted/40 px-2.5 py-2 text-left transition hover:bg-muted/70"
               >
                 <span
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-medium"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium"
                   style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}
                 >
                   {child.firstName.slice(0, 1)}
                 </span>
-                <p className="min-w-0 flex-1 truncate text-sm text-foreground">{child.firstName}</p>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="hidden min-w-0 flex-1 lg:block">
+                  <p className="truncate text-sm text-foreground">{child.firstName}</p>
+                  <p className="truncate text-xs text-muted-foreground">{child.grade}</p>
+                </div>
+                <p className="min-w-0 flex-1 truncate text-xs text-foreground lg:hidden">{child.firstName}</p>
+                <ChevronRight className="hidden h-4 w-4 shrink-0 text-muted-foreground lg:block" />
               </button>
             );
           })}
+          </div>
         </div>
       </div>
     </section>

@@ -2,10 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { CalendarCheck2, Clock3, GraduationCap, Target } from "lucide-react";
 import { AppShell, type DashboardMode } from "@/components/dashboard/app-shell";
 import { DailyBrief } from "@/components/dashboard/daily-brief";
-import { MetricCard } from "@/components/dashboard/metric-card";
 import { TodayCommandCenter } from "@/components/dashboard/today-command-center";
 import { Button } from "@/components/ui/button";
 import type { FamilySnapshot } from "@/lib/core-types";
@@ -282,26 +280,38 @@ export default function Home() {
             />
             <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={handleModeChange} />
 
-            <section className="rounded-2xl bg-muted/60 p-3 sm:p-4">
+            <section className="rounded-2xl border border-border bg-muted/30 p-3">
               <button
                 type="button"
                 className="flex w-full items-center justify-between gap-3 text-left"
                 onClick={() => setShowTodayMetrics((current) => !current)}
               >
                 <span>
-                  <span className="block text-sm text-foreground">本周统计</span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">默认收起，给今天的行动留出空间。</span>
+                  <span className="block text-xs font-medium text-muted-foreground">本周统计</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">轻量查看，不作为每日主入口。</span>
                 </span>
-                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+                <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                   {showTodayMetrics ? "收起" : "展开"}
                 </span>
               </button>
               {showTodayMetrics && (
-                <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4">
-                  <MetricCard title="本周事项" value={String(calendarEvents.length)} detail="学校 / 课外 / 家庭复盘" icon={CalendarCheck2} tone="blue" />
-                  <MetricCard title="学习记录" value={`${totalMinutes}m`} detail="本周已记录时长" icon={Clock3} tone="teal" />
-                  <MetricCard title="教育目标" value={String(roadmapGoals.length)} detail={`${averageGoalProgress}% 平均进度`} icon={Target} tone="amber" />
-                  <MetricCard title="孩子档案" value={String(managedChildren.length)} detail="伯杨 / 仲杨 / 叔杨" icon={GraduationCap} tone="rose" />
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+                  <div className="rounded-xl bg-card px-3 py-2">
+                    <p className="text-muted-foreground">事项</p>
+                    <p className="mt-1 text-base font-semibold text-foreground">{calendarEvents.length}</p>
+                  </div>
+                  <div className="rounded-xl bg-card px-3 py-2">
+                    <p className="text-muted-foreground">学习</p>
+                    <p className="mt-1 text-base font-semibold text-foreground">{totalMinutes}m</p>
+                  </div>
+                  <div className="rounded-xl bg-card px-3 py-2">
+                    <p className="text-muted-foreground">目标</p>
+                    <p className="mt-1 text-base font-semibold text-foreground">{averageGoalProgress}%</p>
+                  </div>
+                  <div className="rounded-xl bg-card px-3 py-2">
+                    <p className="text-muted-foreground">孩子</p>
+                    <p className="mt-1 text-base font-semibold text-foreground">{managedChildren.length}</p>
+                  </div>
                 </div>
               )}
             </section>

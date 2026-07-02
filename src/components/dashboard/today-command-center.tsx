@@ -44,27 +44,33 @@ export function TodayCommandCenter({
   const nextEvents = sortEventsByUrgency(events.filter((event) => new Date(event.startsAt) >= todayStart)).slice(0, 3);
 
   return (
-    <section className="flex flex-col gap-3 sm:gap-4">
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={() => onModeChange("week", "event-planner")}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-        >
-          <CalendarPlus className="h-4 w-4" />
-          新增日程
-        </button>
-        <button
-          type="button"
-          onClick={() => onModeChange("records", "materials")}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-medium text-foreground transition hover:bg-muted/50"
-        >
-          <Upload className="h-4 w-4" />
-          上传资料
-        </button>
+    <section className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-foreground">今日行动</p>
+          <p className="mt-1 text-xs text-muted-foreground">最常用的家长入口放在这里。</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:w-[320px]">
+          <button
+            type="button"
+            onClick={() => onModeChange("week", "event-planner")}
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
+            <CalendarPlus className="h-4 w-4" />
+            新增日程
+          </button>
+          <button
+            type="button"
+            onClick={() => onModeChange("records", "materials")}
+            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-medium text-foreground transition hover:bg-muted/50"
+          >
+            <Upload className="h-4 w-4" />
+            上传资料
+          </button>
+        </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-3 sm:p-4">
+      <div className="mt-3 rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-foreground">下一步提醒</p>
           <span className="text-xs text-muted-foreground">按紧急度排序</span>
