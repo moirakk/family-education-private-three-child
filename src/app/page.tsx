@@ -11,7 +11,6 @@ import { isFamilyDataModeMisconfigured, isPrivateApiMode } from "@/lib/private-a
 import { mergeRemoteAndLocal } from "@/lib/reconciled-collection";
 import {
   childOperatingPlans,
-  parentActions,
   pilotCalendarEvents,
   pilotChildren,
   pilotEducationGoals,
@@ -33,9 +32,6 @@ const ChildManagement = dynamic(() => import("@/components/dashboard/child-manag
 const ChildProfile = dynamic(() => import("@/components/dashboard/child-profile").then((mod) => mod.ChildProfile), {
   loading: DashboardSectionLoading
 });
-const DeploymentStatusCard = dynamic(() => import("@/components/dashboard/deployment-status-card").then((mod) => mod.DeploymentStatusCard), {
-  loading: DashboardSectionLoading
-});
 const EducationRoadmap = dynamic(() => import("@/components/dashboard/education-roadmap").then((mod) => mod.EducationRoadmap), {
   loading: DashboardSectionLoading
 });
@@ -55,12 +51,6 @@ const LearningMaterialsVault = dynamic(() => import("@/components/dashboard/lear
   loading: DashboardSectionLoading
 });
 const LearningRecordPlanner = dynamic(() => import("@/components/dashboard/learning-record-planner").then((mod) => mod.LearningRecordPlanner), {
-  loading: DashboardSectionLoading
-});
-const ParentActionBoard = dynamic(() => import("@/components/dashboard/parent-action-board").then((mod) => mod.ParentActionBoard), {
-  loading: DashboardSectionLoading
-});
-const ParentHandoffPlan = dynamic(() => import("@/components/dashboard/parent-handoff-plan").then((mod) => mod.ParentHandoffPlan), {
   loading: DashboardSectionLoading
 });
 const PwaInstallCard = dynamic(() => import("@/components/dashboard/pwa-install-card").then((mod) => mod.PwaInstallCard), {
@@ -415,22 +405,35 @@ export default function Home() {
 
         {activeMode === "more" && (
           <>
-            <FamilyIntakeWorkspace childProfiles={managedChildren} />
-            <ExportPreviewCenter
-              childProfiles={managedChildren}
-              events={calendarEvents}
-              goals={roadmapGoals}
-              records={learningRecords}
-              resources={baseResources}
-            />
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">初始化资料</p>
+                <p className="text-xs text-muted-foreground">用于第一次和家长对齐学校、固定课表、重要日期和关注点。</p>
+              </div>
+              <FamilyIntakeWorkspace childProfiles={managedChildren} />
+            </section>
 
-            <div className="grid gap-5 xl:grid-cols-2">
-              <ParentActionBoard actions={parentActions} />
-              <ParentHandoffPlan />
-            </div>
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">备份与导出</p>
+                <p className="text-xs text-muted-foreground">导出周报、JSON 备份和 iOS 日历文件，便于长期留存。</p>
+              </div>
+              <ExportPreviewCenter
+                childProfiles={managedChildren}
+                events={calendarEvents}
+                goals={roadmapGoals}
+                records={learningRecords}
+                resources={baseResources}
+              />
+            </section>
 
-            <DeploymentStatusCard />
-            <PwaInstallCard />
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">手机安装</p>
+                <p className="text-xs text-muted-foreground">把网页添加到 iPhone 主屏幕，让家长像 App 一样打开。</p>
+              </div>
+              <PwaInstallCard />
+            </section>
           </>
         )}
 
