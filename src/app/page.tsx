@@ -59,6 +59,9 @@ const PwaInstallCard = dynamic(() => import("@/components/dashboard/pwa-install-
 const SelfEvaluationBoard = dynamic(() => import("@/components/dashboard/self-evaluation-board").then((mod) => mod.SelfEvaluationBoard), {
   loading: DashboardSectionLoading
 });
+const ShareLinksCard = dynamic(() => import("@/components/dashboard/share-links-card").then((mod) => mod.ShareLinksCard), {
+  loading: DashboardSectionLoading
+});
 const ThreeChildOperatingMatrix = dynamic(() => import("@/components/dashboard/three-child-operating-matrix").then((mod) => mod.ThreeChildOperatingMatrix), {
   loading: DashboardSectionLoading
 });
@@ -97,6 +100,7 @@ const hashModeMap: Record<string, DashboardMode> = {
   resources: "records",
   more: "more",
   intake: "more",
+  "share-links": "more",
   "export-preview": "more",
   "deploy-status": "more"
 };
@@ -425,6 +429,14 @@ export default function Home() {
                 records={learningRecords}
                 resources={baseResources}
               />
+            </section>
+
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">分享入口</p>
+                <p className="text-xs text-muted-foreground">把家长入口装到手机；家教老师只分享课后反馈链接。</p>
+              </div>
+              <ShareLinksCard />
             </section>
 
             <section className="space-y-3">
