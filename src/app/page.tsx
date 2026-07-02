@@ -147,6 +147,7 @@ export default function Home() {
   const [remoteSnapshot, setRemoteSnapshot] = useState<FamilySnapshot | null>(null);
   const [activeMode, setActiveMode] = useState<DashboardMode>("today");
   const [showTodayMetrics, setShowTodayMetrics] = useState(false);
+  const [showWeeklyReview, setShowWeeklyReview] = useState(false);
 
   function handleModeChange(mode: DashboardMode, targetId?: string) {
     const nextHash = targetId ?? mode;
@@ -322,18 +323,42 @@ export default function Home() {
           <>
             <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
 
-            <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-              <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
-              <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
-            </div>
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">周计划</p>
+                <p className="text-xs text-muted-foreground">先看本周整体节奏，再处理近期最需要家长关注的事项。</p>
+              </div>
+              <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <WeeklyOverview events={calendarEvents} childProfiles={managedChildren} />
+                <UpcomingEvents events={calendarEvents} childProfiles={managedChildren} />
+              </div>
+            </section>
 
             <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
               <UnifiedCalendar events={calendarEvents} childProfiles={managedChildren} />
               <CalendarSyncCard currentEvents={calendarEvents} childProfiles={managedChildren} />
             </div>
 
-            <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
-            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+            <section className="space-y-3">
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-3 text-left"
+                onClick={() => setShowWeeklyReview((current) => !current)}
+              >
+                <span>
+                  <span className="block text-xs font-medium text-muted-foreground">周报与复盘</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">需要导出或给家长讲解时再打开。</span>
+                </span>
+                <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  {showWeeklyReview ? "收起" : "展开"}
+                </span>
+              </button>
+              {showWeeklyReview && (
+                <div>
+                  <WeeklyFamilyReport childProfiles={managedChildren} events={calendarEvents} goals={roadmapGoals} records={learningRecords} />
+                </div>
+              )}
+            </section>
           </>
         )}
 
@@ -362,6 +387,7 @@ export default function Home() {
               <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
             </div>
 
+            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
             <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
           </>
         )}
