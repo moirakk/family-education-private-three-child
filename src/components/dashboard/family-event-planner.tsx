@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getChildTheme } from "@/lib/child-theme";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import { getLocalOnlyItems } from "@/lib/reconciled-collection";
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
@@ -283,7 +284,7 @@ export function FamilyEventPlanner({
   }
 
   return (
-    <Card id="event-planner" className="overflow-hidden border-white/70 bg-white/85 shadow-sm shadow-slate-200/60 backdrop-blur">
+    <Card id="event-planner" className="overflow-hidden border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -295,14 +296,14 @@ export function FamilyEventPlanner({
               手机上快速补课表、考试、活动和家庭事项；新增内容会进入页面日历和 iOS 订阅。
             </CardDescription>
           </div>
-          <Badge variant="outline" className="w-fit rounded-full bg-white">{events.length} 个新增事项</Badge>
+          <Badge variant="outline" className="w-fit rounded-full border-border bg-card">{events.length} 个新增事项</Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveEvent} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <form onSubmit={saveEvent} className="rounded-2xl border border-border bg-card p-4">
           <div className="grid gap-3">
             {editingEventId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑日程
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -320,7 +321,7 @@ export function FamilyEventPlanner({
                     onClick={() => toggleChild(child.id)}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.childIds.includes(child.id) ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                      form.childIds.includes(child.id) ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {child.firstName}
@@ -338,7 +339,7 @@ export function FamilyEventPlanner({
                     onClick={() => selectQuickTitle(option)}
                     className={cn(
                       "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                      form.category === option.category ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                      form.category === option.category ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {option.title}
@@ -354,7 +355,7 @@ export function FamilyEventPlanner({
                     key={option.label}
                     type="button"
                     onClick={() => selectQuickTime(option.value)}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium text-slate-700 transition hover:border-blue-200 hover:bg-blue-50"
+                    className="rounded-xl border border-border bg-muted/60 px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-muted"
                   >
                     {option.label}
                   </button>
@@ -381,7 +382,7 @@ export function FamilyEventPlanner({
                     onClick={() => setForm((current) => ({ ...current, category: category.value }))}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.category === category.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                      form.category === category.value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {category.label}
@@ -401,20 +402,20 @@ export function FamilyEventPlanner({
             </div>
             <button
               type="button"
-              className="w-fit text-sm font-medium text-blue-700"
+              className="w-fit text-sm font-medium text-primary"
               onClick={() => setShowAdvanced((current) => !current)}
             >
               {showAdvanced ? "收起更多设置" : "更多设置：地点、结束时间、备注"}
             </button>
             {showAdvanced && (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="grid gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="event-location">地点</Label>
                   <Input
                     id="event-location"
                     placeholder="学校 / 家里 / 机构"
                     value={form.location}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))}
                   />
                 </div>
@@ -424,7 +425,7 @@ export function FamilyEventPlanner({
                     id="event-end"
                     type="datetime-local"
                     value={form.endsAt}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, endsAt: event.target.value }))}
                   />
                 </div>
@@ -434,7 +435,7 @@ export function FamilyEventPlanner({
                     id="event-notes"
                     placeholder="可记录费用、接送、材料、老师提醒等。当前版本先作为现场记录，不进入 ICS。"
                     value={form.notes}
-                    className="min-h-20 rounded-xl bg-white"
+                    className="min-h-20 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                   />
                 </div>
@@ -447,7 +448,7 @@ export function FamilyEventPlanner({
           </div>
         </form>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-semibold">新增日程</p>
             <p className="text-xs text-muted-foreground">
@@ -456,10 +457,10 @@ export function FamilyEventPlanner({
           </div>
           <div className="mt-4 grid gap-3">
             {events.map((event) => (
-              <div key={event.id} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div key={event.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="rounded-full bg-white">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
+                    <Badge variant="outline" className="rounded-full border-border bg-card">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
                     <p className="min-w-0 line-clamp-2 text-sm font-semibold">{event.title}</p>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -476,10 +477,11 @@ export function FamilyEventPlanner({
                     {event.childIds.map((childId) => {
                       const child = childProfiles.find((profile) => profile.id === childId);
                       if (!child) return null;
+                      const theme = getChildTheme(child);
                       return (
-                        <span key={childId} className="flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-slate-600 ring-1 ring-slate-200">
+                        <span key={childId} className="flex items-center gap-1 rounded-full bg-card px-2 py-1 text-xs text-muted-foreground ring-1 ring-border">
                           <Avatar className="h-4 w-4">
-                            <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 1)}</AvatarFallback>
+                            <AvatarFallback style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>{child.firstName.slice(0, 1)}</AvatarFallback>
                           </Avatar>
                           {child.firstName}
                         </span>
@@ -498,7 +500,7 @@ export function FamilyEventPlanner({
               </div>
             ))}
             {events.length === 0 && (
-              <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
                 还没有新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 日历订阅。
               </p>
             )}

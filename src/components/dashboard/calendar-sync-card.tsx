@@ -63,7 +63,7 @@ export function CalendarSyncCard({
   }
 
   return (
-    <Card id="calendar-sync" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="calendar-sync" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -75,14 +75,14 @@ export function CalendarSyncCard({
               先支持 Apple Calendar 标准 ICS。今天可先导入，本项目私有部署后可用订阅链接自动同步。
             </CardDescription>
           </div>
-          <Badge variant="outline" className="gap-1">
+          <Badge variant="outline" className="gap-1 border-border bg-card">
             <CalendarCheck className="h-3 w-3" />
             Apple Calendar Ready
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-2xl border border-border bg-muted/50 p-4">
           <p className="text-sm font-semibold">今天可用方式</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
             <p>1. 本地演示时，先下载 `.ics` 文件并导入 iPhone / Mac 日历。</p>
@@ -114,12 +114,12 @@ export function CalendarSyncCard({
           {calendarLinkError ? <p className="mt-3 text-xs text-red-600">{calendarLinkError}</p> : null}
         </div>
 
-        <div className="rounded-lg bg-slate-950 p-4 text-white">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm font-semibold">同步策略</p>
-          <p className="mt-3 text-sm leading-6 text-slate-300">
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             当前页面 ICS 会包含本机新增日程，适合今天现场导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。
           </p>
-          <p className="mt-4 break-all rounded-md bg-white/10 p-3 text-xs text-slate-300">{webcalUrl}</p>
+          <p className="mt-4 break-all rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground ring-1 ring-border">{webcalUrl}</p>
         </div>
       </CardContent>
     </Card>
