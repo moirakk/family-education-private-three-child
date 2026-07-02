@@ -3,26 +3,50 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 222 89% 55%;
+  --background: 40 20% 98%;
+  --foreground: 20 8% 12%;
+  --card: 40 20% 100%;
+  --card-foreground: 20 8% 12%;
+  --popover: 40 20% 100%;
+  --popover-foreground: 20 8% 12%;
+  --primary: 207 68% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 214 32% 91%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 214 32% 91%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 190 81% 42%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --secondary: 40 12% 95%;
+  --secondary-foreground: 20 8% 20%;
+  --muted: 40 12% 94%;
+  --muted-foreground: 30 6% 45%;
+  --accent: 40 12% 93%;
+  --accent-foreground: 20 8% 15%;
+  --destructive: 4 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 214 32% 86%;
-  --input: 214 32% 86%;
-  --ring: 222 89% 55%;
-  --radius: 0.5rem;
+  --border: 30 10% 88%;
+  --input: 30 10% 88%;
+  --ring: 207 68% 52%;
+  --radius: 0.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 30 6% 9%;
+    --foreground: 40 15% 92%;
+    --card: 30 6% 12%;
+    --card-foreground: 40 15% 92%;
+    --popover: 30 6% 12%;
+    --popover-foreground: 40 15% 92%;
+    --primary: 207 75% 62%;
+    --primary-foreground: 30 6% 9%;
+    --secondary: 30 6% 16%;
+    --secondary-foreground: 40 15% 90%;
+    --muted: 30 6% 16%;
+    --muted-foreground: 30 6% 62%;
+    --accent: 30 6% 18%;
+    --accent-foreground: 40 15% 90%;
+    --destructive: 4 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 6% 22%;
+    --input: 30 6% 22%;
+    --ring: 207 75% 62%;
+  }
 }
 
 * {
@@ -32,12 +56,10 @@
 body {
   max-width: 100%;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 30rem),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 

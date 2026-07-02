@@ -19,7 +19,7 @@ const toneClass = {
 
 export function MetricCard({ title, value, detail, icon: Icon, tone = "blue" }: MetricCardProps) {
   return (
-    <Card className="border-white/70 bg-white/80 shadow-sm backdrop-blur">
+    <Card className="border-none bg-muted/60 shadow-none">
       <CardContent className="flex items-start justify-between gap-2 p-3 sm:gap-3 sm:p-4">
         <div className="min-w-0">
           <p className="truncate text-xs text-muted-foreground sm:text-sm">{title}</p>

@@ -10,6 +10,8 @@ test("derives child theme styles from avatar color", () => {
   assert.deepEqual(theme.borderStyle, { borderLeftColor: "#10b981" });
   assert.deepEqual(theme.surfaceStyle, { backgroundColor: "rgba(16, 185, 129, 0.08)" });
   assert.deepEqual(theme.textStyle, { color: "#10b981" });
+  assert.deepEqual(theme.avatarBgStyle, { backgroundColor: "rgb(219, 245, 236)" });
+  assert.deepEqual(theme.avatarTextStyle, { color: "rgb(9, 102, 71)" });
 });
 
 test("falls back to slate when avatar color is missing or invalid", () => {

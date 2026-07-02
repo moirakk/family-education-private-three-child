@@ -270,20 +270,26 @@ export default function Home() {
 
         {activeMode === "today" && (
           <>
-            <DailyBrief childProfiles={managedChildren} events={calendarEvents} onModeChange={handleModeChange} records={learningRecords} />
+            <DailyBrief
+              childProfiles={managedChildren}
+              events={calendarEvents}
+              onModeChange={handleModeChange}
+              onSelectChild={setSelectedChildId}
+              records={learningRecords}
+            />
             <TodayCommandCenter childProfiles={managedChildren} events={calendarEvents} onModeChange={handleModeChange} />
 
-            <section className="rounded-2xl border border-white/80 bg-white/75 p-3 shadow-sm shadow-slate-200/60 ring-1 ring-slate-950/[0.03] backdrop-blur">
+            <section className="rounded-2xl bg-muted/60 p-3 sm:p-4">
               <button
                 type="button"
                 className="flex w-full items-center justify-between gap-3 text-left"
                 onClick={() => setShowTodayMetrics((current) => !current)}
               >
                 <span>
-                  <span className="block text-sm font-semibold text-slate-950">本周统计</span>
-                  <span className="mt-0.5 block text-xs text-slate-500">默认收起，给今天的行动留出空间。</span>
+                  <span className="block text-sm text-foreground">本周统计</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">默认收起，给今天的行动留出空间。</span>
                 </span>
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
                   {showTodayMetrics ? "收起" : "展开"}
                 </span>
               </button>

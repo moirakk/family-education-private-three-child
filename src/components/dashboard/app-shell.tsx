@@ -50,9 +50,9 @@ export function AppShell({
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
-      <aside className="hidden border-r border-slate-200/70 bg-white/85 px-4 py-5 backdrop-blur-xl lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
+      <aside className="hidden border-r border-border bg-card/85 px-4 py-5 backdrop-blur-xl lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
         <div className="flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm shadow-slate-200">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
@@ -68,43 +68,43 @@ export function AppShell({
               type="button"
               onClick={() => onModeChange(item.mode)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950",
-                item.mode === activeMode && "bg-slate-950 text-white shadow-sm shadow-slate-200 hover:bg-slate-950 hover:text-white"
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                item.mode === activeMode && "bg-foreground text-background hover:bg-foreground hover:text-background"
               )}
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600",
-                  item.mode === activeMode && "bg-white/10 text-white"
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground",
+                  item.mode === activeMode && "bg-background/10 text-background"
                 )}
               >
                 <item.icon className="h-4 w-4" />
               </span>
               <span>
                 <span className="block">{item.label}</span>
-                <span className={cn("mt-0.5 block text-xs font-normal text-muted-foreground", item.mode === activeMode && "text-slate-300")}>
+                <span className={cn("mt-0.5 block text-xs font-normal text-muted-foreground", item.mode === activeMode && "text-background/70")}>
                   {item.description}
                 </span>
               </span>
             </button>
           ))}
         </nav>
-        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-950 p-4 text-white shadow-sm">
+        <div className="mt-8 rounded-xl border border-border bg-foreground p-4 text-background">
           <div className="flex items-center gap-2 text-sm font-medium">
-            <Sparkles className="h-4 w-4 text-cyan-300" />
+            <Sparkles className="h-4 w-4 text-background/70" />
             月度报告
           </div>
-          <p className="mt-2 text-xs leading-5 text-slate-300">定制版稳定后，生成面向家长的月度成长复盘。</p>
+          <p className="mt-2 text-xs leading-5 text-background/70">定制版稳定后，生成面向家长的月度成长复盘。</p>
           <Button size="sm" variant="secondary" className="mt-4 w-full" onClick={() => onModeChange("more")}>
             预览
           </Button>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-border bg-card/90 px-3 py-2.5 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
                 <ActiveIcon className="h-4 w-4" />
               </div>
               <div>
@@ -121,7 +121,7 @@ export function AppShell({
           </div>
         </header>
         <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
             {modeItems.map((item) => (
               <button
@@ -129,8 +129,8 @@ export function AppShell({
                 type="button"
                 onClick={() => onModeChange(item.mode)}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-950",
-                  item.mode === activeMode && "bg-slate-950 text-white shadow-sm hover:bg-slate-950 hover:text-white"
+                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                  item.mode === activeMode && "bg-foreground text-background hover:bg-foreground hover:text-background"
                 )}
               >
                 <item.icon className="h-4 w-4" />
