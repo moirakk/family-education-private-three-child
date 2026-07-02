@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getChildTheme } from "@/lib/child-theme";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, postPrivateFormData, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, LearningMaterial } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -413,9 +414,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
           <Badge variant="outline" className="w-fit rounded-full bg-card">{materials.length} 份资料</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveMaterial} className="rounded-2xl border border-border bg-card p-4">
-          <div className="grid gap-3">
+      <CardContent className="grid gap-4 xl:grid-cols-[400px_minmax(0,1fr)]">
+        <form onSubmit={saveMaterial} className="rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
+          <div className="grid gap-4">
             {editingMaterialId && (
               <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑资料索引
@@ -425,44 +426,62 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 </button>
               </div>
             )}
+
+            <div className="rounded-2xl bg-muted/60 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">手机资料沉淀</p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                优先拍照保存错题、讲义和试卷；标题与科目补齐后就能入库。
+              </p>
+            </div>
+
             <div className="space-y-2">
-              <Label>关联孩子</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label>1. 归档到谁</Label>
+                <span className="text-xs text-muted-foreground">{form.childId === "family" ? "全家资料" : childById.get(form.childId)}</span>
+              </div>
               <div className="grid grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => setForm((current) => ({ ...current, childId: "family" }))}
                   className={cn(
-                    "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
+                    "rounded-2xl border px-2 py-3 text-center text-xs font-semibold transition",
                     form.childId === "family" ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                   )}
                 >
                   全家
                 </button>
-                {childProfiles.map((child) => (
-                  <button
-                    key={child.id}
-                    type="button"
-                    onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
-                    className={cn(
-                      "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
-                      form.childId === child.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
-                    )}
-                  >
-                    {child.firstName}
-                  </button>
-                ))}
+                {childProfiles.map((child) => {
+                  const theme = getChildTheme(child);
+                  const active = form.childId === child.id;
+                  return (
+                    <button
+                      key={child.id}
+                      type="button"
+                      onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
+                      className={cn(
+                        "rounded-2xl border px-2 py-3 text-center text-xs font-semibold transition",
+                        active ? "bg-card text-foreground shadow-sm" : "border-border bg-card text-muted-foreground"
+                      )}
+                      style={active ? { borderColor: theme.hex, ...theme.surfaceStyle } : undefined}
+                    >
+                      <span className="mx-auto mb-1 block h-2 w-2 rounded-full" style={theme.dotStyle} />
+                      {child.firstName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label>资料类型</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <Label>2. 资料类型</Label>
+              <div className="flex gap-2 overflow-x-auto pb-1">
                 {kindOptions.map((kind) => (
                   <button
                     key={kind.value}
                     type="button"
                     onClick={() => setForm((current) => ({ ...current, kind: kind.value }))}
                     className={cn(
-                      "rounded-xl border px-2 py-2 text-center text-xs font-medium transition",
+                      "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
                       form.kind === kind.value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                     )}
                   >
@@ -471,8 +490,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 ))}
               </div>
             </div>
+
             <div className="space-y-1.5">
-              <Label>添加资料</Label>
+              <Label>3. 添加资料</Label>
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -498,14 +518,14 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 disabled={Boolean(editingMaterialId)}
                 className="hidden"
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-[1.2fr_1fr_1fr] gap-2">
                 <button
                   type="button"
                   disabled={Boolean(editingMaterialId)}
                   onClick={() => cameraInputRef.current?.click()}
-                  className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 px-2 py-3 text-xs font-semibold text-primary disabled:opacity-50"
+                  className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 px-2 py-3 text-xs font-semibold text-primary shadow-sm shadow-primary/5 disabled:opacity-50"
                 >
-                  <Camera className="h-5 w-5" />
+                  <Camera className="h-6 w-6" />
                   拍照
                 </button>
                 <button
@@ -532,10 +552,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                   已选择：{file.name} · {formatFileSize(file.size)}
                 </p>
               )}
-              <p className="text-xs leading-5 text-muted-foreground">
-                {editingMaterialId ? "编辑模式暂不替换文件；需要换文件时请删除后重新上传。" : "手机端优先拍照保存错题、讲义和课堂反馈。"}
-              </p>
+              {editingMaterialId && <p className="text-xs leading-5 text-muted-foreground">编辑模式暂不替换文件；需要换文件时请删除后重新上传。</p>}
             </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="material-title">标题</Label>
@@ -569,8 +588,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
                 >
                   {subject}
                 </button>
-              ))}
+                ))}
             </div>
+
             <button
               type="button"
               className="w-fit text-sm font-medium text-primary"
@@ -578,7 +598,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             >
               {showAdvanced ? "收起更多设置" : "更多设置：链接、备注、标签"}
             </button>
-            {showAdvanced && (
+            {(showAdvanced || form.kind === "link" || form.kind === "video") && (
               <div className="grid gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="material-url">外部链接</Label>

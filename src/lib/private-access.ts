@@ -24,6 +24,10 @@ export function getPrivateSessionTtlSeconds() {
   return sessionTtlSeconds;
 }
 
+export function isParentAutoAccessEnabled() {
+  return (process.env.PRIVATE_PARENT_ACCESS_MODE ?? "open") !== "code";
+}
+
 function getSessionSecret() {
   const secret = process.env.PRIVATE_SESSION_SECRET;
   if (secret && secret.length >= 32) return secret;

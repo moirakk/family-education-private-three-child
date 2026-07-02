@@ -299,9 +299,9 @@ export function FamilyEventPlanner({
           <Badge variant="outline" className="w-fit rounded-full border-border bg-card">{events.length} 个新增事项</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveEvent} className="rounded-2xl border border-border bg-card p-4">
-          <div className="grid gap-3">
+      <CardContent className="grid gap-4 xl:grid-cols-[400px_minmax(0,1fr)]">
+        <form onSubmit={saveEvent} className="rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
+          <div className="grid gap-4">
             {editingEventId && (
               <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑日程
@@ -311,26 +311,44 @@ export function FamilyEventPlanner({
                 </button>
               </div>
             )}
+
+            <div className="rounded-2xl bg-muted/60 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">快速录入</p>
+              <p className="mt-1 text-sm font-medium text-foreground">
+                先选孩子、事项和时间；地点备注可以之后补。
+              </p>
+            </div>
+
             <div className="space-y-2">
-              <Label>关联孩子</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label>1. 选择孩子</Label>
+                <span className="text-xs text-muted-foreground">{form.childIds.length > 0 ? `已选 ${form.childIds.length} 个` : "必选"}</span>
+              </div>
               <div className="grid grid-cols-3 gap-2">
-                {childProfiles.map((child) => (
-                  <button
-                    key={child.id}
-                    type="button"
-                    onClick={() => toggleChild(child.id)}
-                    className={cn(
-                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.childIds.includes(child.id) ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
-                    )}
-                  >
-                    {child.firstName}
-                  </button>
-                ))}
+                {childProfiles.map((child) => {
+                  const theme = getChildTheme(child);
+                  const active = form.childIds.includes(child.id);
+                  return (
+                    <button
+                      key={child.id}
+                      type="button"
+                      onClick={() => toggleChild(child.id)}
+                      className={cn(
+                        "rounded-2xl border px-3 py-3 text-center text-sm font-semibold transition",
+                        active ? "bg-card text-foreground shadow-sm" : "border-border bg-card text-muted-foreground"
+                      )}
+                      style={active ? { borderColor: theme.hex, ...theme.surfaceStyle } : undefined}
+                    >
+                      <span className="mx-auto mb-1 block h-2 w-2 rounded-full" style={theme.dotStyle} />
+                      {child.firstName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
             <div className="space-y-2">
-              <Label>常用事项</Label>
+              <Label>2. 选择事项</Label>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {quickTitles.map((option) => (
                   <button
@@ -338,7 +356,7 @@ export function FamilyEventPlanner({
                     type="button"
                     onClick={() => selectQuickTitle(option)}
                     className={cn(
-                      "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                      "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
                       form.category === option.category ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                     )}
                   >
@@ -347,8 +365,36 @@ export function FamilyEventPlanner({
                 ))}
               </div>
             </div>
+
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_144px]">
+              <div className="space-y-1.5">
+                <Label htmlFor="event-title">事项名称</Label>
+                <Input
+                  id="event-title"
+                  placeholder="例如：伯杨数学衔接课"
+                  value={form.title}
+                  className="h-11 rounded-xl"
+                  onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>类型</Label>
+                <select
+                  value={form.category}
+                  className="h-11 w-full rounded-xl border border-input bg-card px-3 text-sm font-medium outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+                  onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as EventCategory }))}
+                >
+                  {categoryOptions.map((category) => (
+                    <option key={category.value} value={category.value}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>常用时间</Label>
+              <Label>3. 选择时间</Label>
               <div className="grid grid-cols-2 gap-2">
                 {quickDateOptions().map((option) => (
                   <button
@@ -358,34 +404,6 @@ export function FamilyEventPlanner({
                     className="rounded-xl border border-border bg-muted/60 px-3 py-2 text-left text-xs font-medium text-foreground transition hover:bg-muted"
                   >
                     {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="event-title">事项名称</Label>
-              <Input
-                id="event-title"
-                placeholder="例如：伯杨数学衔接课"
-                value={form.title}
-                className="h-11 rounded-xl"
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>类型</Label>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                {categoryOptions.map((category) => (
-                  <button
-                    key={category.value}
-                    type="button"
-                    onClick={() => setForm((current) => ({ ...current, category: category.value }))}
-                    className={cn(
-                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.category === category.value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
-                    )}
-                  >
-                    {category.label}
                   </button>
                 ))}
               </div>

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   accessSessionCookieName,
+  createAccessSession,
   getConfiguredAccessCodes,
+  getPrivateSessionTtlSeconds,
+  isParentAutoAccessEnabled,
+  resolveRoleByCode,
   verifyAccessSession,
   type AccessRole
 } from "@/lib/private-access";
@@ -47,6 +51,28 @@ function nextWithAccessRole(request: NextRequest, role: AccessRole | null) {
   return NextResponse.next({ request: { headers } });
 }
 
+async function setAccessSessionCookie(request: NextRequest, response: NextResponse, role: AccessRole) {
+  const session = await createAccessSession(role);
+
+  response.cookies.set(accessSessionCookieName, session, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: request.nextUrl.protocol === "https:",
+    maxAge: getPrivateSessionTtlSeconds(),
+    path: "/"
+  });
+
+  return response;
+}
+
+async function nextWithIssuedRole(request: NextRequest, role: AccessRole) {
+  return setAccessSessionCookie(request, nextWithAccessRole(request, role), role);
+}
+
+async function redirectWithIssuedRole(request: NextRequest, pathname: string, role: AccessRole) {
+  return setAccessSessionCookie(request, NextResponse.redirect(new URL(pathname, request.url)), role);
+}
+
 function safeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
@@ -54,6 +80,7 @@ function safeRedirectPath(value: string | null) {
 
 export async function middleware(request: NextRequest) {
   const hasAccessConfig = getConfiguredAccessCodes().length > 0;
+  const parentAutoAccess = isParentAutoAccessEnabled();
   const cookieRole = await getCookieRole(request);
 
   if (!hasAccessConfig || isPublicAsset(request.nextUrl.pathname)) {
@@ -79,10 +106,21 @@ export async function middleware(request: NextRequest) {
       return nextWithAccessRole(request, cookieRole);
     }
 
+    if (parentAutoAccess) {
+      return nextWithIssuedRole(request, "parent");
+    }
+
     return NextResponse.json({ error: "Private API requires an authorized access role." }, { status: 403 });
   }
 
   if (request.nextUrl.pathname === "/tutor-feedback") {
+    const linkCode = request.nextUrl.searchParams.get("code") || request.nextUrl.searchParams.get("token");
+    const linkRole = resolveRoleByCode(linkCode);
+
+    if (linkRole === "tutor") {
+      return redirectWithIssuedRole(request, "/tutor-feedback", "tutor");
+    }
+
     if (cookieRole && tutorApiRoles.has(cookieRole)) {
       return nextWithAccessRole(request, cookieRole);
     }
@@ -93,8 +131,14 @@ export async function middleware(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname === "/access") {
+    const requestedNextPath = safeRedirectPath(request.nextUrl.searchParams.get("next"));
+
+    if (parentAutoAccess && request.method === "GET" && !cookieRole && requestedNextPath !== "/tutor-feedback") {
+      return redirectWithIssuedRole(request, requestedNextPath, "parent");
+    }
+
     if (request.method === "GET" && cookieRole) {
-      const nextPath = cookieRole === "tutor" ? "/tutor-feedback" : safeRedirectPath(request.nextUrl.searchParams.get("next"));
+      const nextPath = cookieRole === "tutor" ? "/tutor-feedback" : requestedNextPath;
       return NextResponse.redirect(new URL(nextPath, request.url));
     }
 
@@ -103,6 +147,10 @@ export async function middleware(request: NextRequest) {
 
   if (hasDashboardAccess(cookieRole)) {
     return nextWithAccessRole(request, cookieRole);
+  }
+
+  if (parentAutoAccess) {
+    return nextWithIssuedRole(request, "parent");
   }
 
   const accessUrl = new URL("/access", request.url);
