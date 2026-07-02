@@ -1,6 +1,7 @@
 import { BookOpenCheck, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { getChildTheme } from "@/lib/child-theme";
 import type { Child, EducationGoal, LearningRecord } from "@/lib/types";
 
 export function GrowthSummary({
@@ -13,7 +14,7 @@ export function GrowthSummary({
   goals: EducationGoal[];
 }) {
   return (
-    <Card id="growth" className="h-full border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="growth" className="h-full border-border bg-card shadow-none">
       <CardHeader>
         <CardTitle>成长摘要</CardTitle>
         <CardDescription>按孩子查看学习稳定性和目标推进情况。</CardDescription>
@@ -26,13 +27,17 @@ export function GrowthSummary({
             ? Math.round(childGoals.reduce((sum, goal) => sum + goal.progress, 0) / childGoals.length)
             : 0;
           const minutes = childRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
+          const theme = getChildTheme(child);
 
           return (
-            <div key={child.id} className="rounded-lg border bg-white p-4">
+            <div key={child.id} className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold">{child.firstName}</p>
-                  <p className="text-xs text-muted-foreground">{child.focusAreas.join(" · ")}</p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={theme.dotStyle} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold">{child.firstName}</p>
+                    <p className="truncate text-xs text-muted-foreground">{child.focusAreas.join(" · ")}</p>
+                  </div>
                 </div>
                 <span className="text-sm font-semibold">{averageProgress}%</span>
               </div>

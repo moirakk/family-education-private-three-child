@@ -185,7 +185,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
   }
 
   return (
-    <Card id="self-evaluation" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="self-evaluation" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -199,10 +199,10 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={saveEvaluation} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <form onSubmit={saveEvaluation} className="rounded-2xl border border-border bg-card p-4">
           <div className="grid gap-3">
             {editingEvaluationId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑自评
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -220,7 +220,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                     onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                      form.childId === child.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {child.firstName}
@@ -246,8 +246,8 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                     className={cn(
                       "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition",
                       form.subject === subject
-                        ? "border-slate-950 bg-slate-950 text-white"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted/60"
                     )}
                   >
                     {subject}
@@ -273,7 +273,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                           onClick={() => setForm((current) => ({ ...current, [key]: option.value }))}
                           className={cn(
                             "rounded-lg border px-1.5 py-2 text-xs font-medium transition",
-                            active ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                            active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                           )}
                         >
                           {option.label}
@@ -296,20 +296,20 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
             </div>
             <button
               type="button"
-              className="w-fit text-sm font-medium text-blue-700"
+              className="w-fit text-sm font-medium text-primary"
               onClick={() => setShowAdvanced((current) => !current)}
             >
               {showAdvanced ? "收起更多设置" : "更多设置：日期、下一步"}
             </button>
             {showAdvanced && (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="grid gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="evaluation-date">日期</Label>
                   <Input
                     id="evaluation-date"
                     type="date"
                     value={form.evaluationDate}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, evaluationDate: event.target.value }))}
                   />
                 </div>
@@ -319,7 +319,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                     id="evaluation-next"
                     placeholder="例如：明天再练 3 道应用题"
                     value={form.nextStep}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, nextStep: event.target.value }))}
                   />
                 </div>
@@ -334,7 +334,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
 
         <div className="grid gap-3">
           {evaluations.map((evaluation) => (
-            <div key={evaluation.id} className="flex items-start justify-between gap-3 rounded-md border bg-white p-3">
+            <div key={evaluation.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{childById.get(evaluation.childId)}</Badge>
@@ -343,7 +343,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
                 <p className="mt-1 text-xs text-muted-foreground">
                   {evaluation.evaluationDate} · 心情 {evaluation.mood}/5 · 投入 {evaluation.effort}/5 · 掌握 {evaluation.confidence}/5
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{evaluation.reflection}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">{evaluation.reflection}</p>
                 {evaluation.nextStep && <p className="mt-1 text-xs text-muted-foreground">下一步：{evaluation.nextStep}</p>}
               </div>
               <div className="flex shrink-0 gap-1">
@@ -356,7 +356,7 @@ export function SelfEvaluationBoard({ childProfiles }: { childProfiles: Child[] 
               </div>
             </div>
           ))}
-          {evaluations.length === 0 && <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">还没有自评记录。</p>}
+          {evaluations.length === 0 && <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">还没有自评记录。</p>}
         </div>
       </CardContent>
     </Card>

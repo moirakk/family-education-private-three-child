@@ -23,7 +23,7 @@ import {
 } from "@/lib/pilot-data";
 
 function DashboardSectionLoading() {
-  return <div className="min-h-32 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm" />;
+  return <div className="min-h-32 rounded-2xl border border-border bg-card p-4 shadow-none" />;
 }
 
 const CalendarSyncCard = dynamic(() => import("@/components/dashboard/calendar-sync-card").then((mod) => mod.CalendarSyncCard), {
@@ -228,12 +228,12 @@ export default function Home() {
 
   if (isMisconfigured) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-        <section className="w-full max-w-lg rounded-lg border border-red-200 bg-white p-5 shadow-sm">
+      <main className="flex min-h-screen items-center justify-center bg-background px-4">
+        <section className="w-full max-w-lg rounded-2xl border border-destructive/20 bg-card p-5 shadow-none">
           <p className="text-sm font-semibold text-red-600">部署配置错误</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">数据模式未配置</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">数据模式未配置</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            生产环境必须设置 <code className="rounded bg-slate-100 px-1 py-0.5">NEXT_PUBLIC_FAMILY_DATA_MODE=private-api</code>。
+            生产环境必须设置 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_FAMILY_DATA_MODE=private-api</code>。
             系统已停止回退到本机示例数据，避免家长误以为资料已经保存到数据库。
           </p>
         </section>
@@ -244,11 +244,11 @@ export default function Home() {
   return (
     <AppShell activeMode={activeMode} onModeChange={handleModeChange}>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
-        <section id="dashboard" className="hidden overflow-hidden rounded-lg border border-white/80 bg-white/90 p-4 shadow-sm backdrop-blur sm:block sm:p-5">
+        <section id="dashboard" className="hidden overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-none sm:block sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold text-primary sm:text-sm">{pilotFamilyName}</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 <span className="sm:hidden">Family Education</span>
                 <span className="hidden sm:inline">Family Education Management System</span>
               </h1>

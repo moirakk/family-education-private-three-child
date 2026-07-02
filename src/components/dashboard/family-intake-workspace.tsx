@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { getChildTheme } from "@/lib/child-theme";
 import { isPrivateApiMode, putPrivateApi } from "@/lib/private-api-client";
 import type { Child } from "@/lib/types";
 
@@ -164,7 +165,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
   }
 
   return (
-    <Card id="intake" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="intake" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -217,19 +218,20 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
             {childProfiles.map((child) => {
               const entry = intake[child.id] ?? createEmptyEntry();
               const completed = completionCount(entry);
+              const theme = getChildTheme(child);
 
               return (
                 <TabsTrigger
                   key={child.id}
                   value={child.id}
-                  className="h-auto justify-start rounded-lg border bg-white p-3 text-left data-[state=active]:border-primary data-[state=active]:shadow-sm"
+                  className="h-auto justify-start rounded-2xl border border-border bg-card p-3 text-left data-[state=active]:border-primary data-[state=active]:bg-primary/5"
                 >
                   <span className="flex w-full items-center gap-3">
                     <Avatar>
-                      <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 2)}</AvatarFallback>
+                      <AvatarFallback style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>{child.firstName.slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-slate-950">{child.firstName}</span>
+                      <span className="block text-sm font-semibold text-foreground">{child.firstName}</span>
                       <span className="mt-1 block truncate text-xs text-muted-foreground">{child.grade}</span>
                     </span>
                     <Badge variant={completed >= 4 ? "default" : "outline"}>{completed}/5</Badge>
@@ -244,7 +246,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
 
             return (
               <TabsContent key={child.id} value={child.id} className="mt-0">
-                <div className="rounded-lg border bg-white p-4">
+                <div className="rounded-2xl border border-border bg-card p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold">{child.firstName} 信息补充</p>

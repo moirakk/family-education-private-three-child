@@ -210,7 +210,7 @@ export function EducationRoadmap({
   }
 
   return (
-    <Card id="roadmap" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="roadmap" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -224,10 +224,10 @@ export function EducationRoadmap({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <form onSubmit={saveGoal} className="rounded-lg border bg-white p-4">
+        <form onSubmit={saveGoal} className="rounded-2xl border border-border bg-card p-4">
           <div className="grid gap-3">
             {editingGoalId && (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑路线
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -328,7 +328,7 @@ export function EducationRoadmap({
 
         <div className="grid gap-4 lg:grid-cols-2">
           {roadmapGoals.map((goal) => (
-            <div key={goal.id} className="rounded-lg border bg-white p-4">
+            <div key={goal.id} className="rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold">{goal.title}</p>
@@ -355,14 +355,14 @@ export function EducationRoadmap({
               <Progress value={goal.progress} className="mt-2" />
               <div className="mt-4 space-y-3">
                 {goal.milestones.length === 0 ? (
-                  <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-muted-foreground">暂无里程碑，家长会议后可补充。</p>
+                  <p className="rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">暂无里程碑，家长会议后可补充。</p>
                 ) : (
                   goal.milestones.map((milestone) => (
                     <div key={milestone.id} className="flex items-start gap-2 text-sm">
                       {milestone.completed ? (
                         <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />
                       ) : (
-                        <Circle className="mt-0.5 h-4 w-4 text-slate-300" />
+                        <Circle className="mt-0.5 h-4 w-4 text-muted-foreground/40" />
                       )}
                       <div>
                         <p className="font-medium">{milestone.title}</p>

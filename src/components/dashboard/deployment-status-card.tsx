@@ -64,7 +64,7 @@ export function DeploymentStatusCard() {
   }, [health]);
 
   return (
-    <Card id="deploy-status" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="deploy-status" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -81,7 +81,7 @@ export function DeploymentStatusCard() {
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">环境变量检查</p>
@@ -98,7 +98,7 @@ export function DeploymentStatusCard() {
             {labels.map((item) => {
               const ready = Boolean(health?.checks[item.key]);
               return (
-                <div key={item.key} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 px-3 py-2">
+                <div key={item.key} className="flex items-center justify-between gap-3 rounded-xl bg-muted/60 px-3 py-2">
                   <span className="text-sm">{item.label}</span>
                   <Badge variant={ready ? "success" : "outline"}>{ready ? "已配置" : "缺少"}</Badge>
                 </div>
@@ -115,16 +115,16 @@ export function DeploymentStatusCard() {
           {error && <p className="mt-3 text-xs text-destructive">{error}</p>}
         </div>
 
-        <div className="rounded-lg bg-slate-950 p-4 text-white">
+        <div className="rounded-2xl bg-foreground p-4 text-background">
           <p className="text-sm font-semibold">下一步</p>
           {health?.readyForPrivateDeploy ? (
-            <div className="mt-3 grid gap-2 text-sm text-slate-300">
+            <div className="mt-3 grid gap-2 text-sm text-background/70">
               <p>1. 部署到 Vercel 私有项目。</p>
               <p>2. iPhone Safari 打开链接并添加到主屏幕。</p>
               <p>3. 在 Apple Calendar 订阅私有日历链接。</p>
             </div>
           ) : (
-            <div className="mt-3 grid gap-2 text-sm text-slate-300">
+            <div className="mt-3 grid gap-2 text-sm text-background/70">
               {missingItems.length > 0 ? (
                 missingItems.map((item) => <p key={item.key}>缺少：{item.label}</p>)
               ) : (
@@ -132,7 +132,7 @@ export function DeploymentStatusCard() {
               )}
             </div>
           )}
-          <p className="mt-4 text-xs leading-5 text-slate-400">详细步骤见 docs/private-supabase-vercel-runbook.md。</p>
+          <p className="mt-4 text-xs leading-5 text-background/55">详细步骤见 docs/private-supabase-vercel-runbook.md。</p>
         </div>
       </CardContent>
     </Card>

@@ -28,7 +28,7 @@ const handoffSteps = [
 
 export function ParentHandoffPlan() {
   return (
-    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -45,10 +45,10 @@ export function ParentHandoffPlan() {
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-3">
         {handoffSteps.map((step) => (
-          <div key={step.title} className="rounded-lg border bg-white p-4">
+          <div key={step.title} className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-100 text-slate-700">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted/60 text-foreground">
                   <step.icon className="h-4 w-4" />
                 </div>
                 <div>
@@ -60,7 +60,7 @@ export function ParentHandoffPlan() {
             </div>
             <div className="mt-4 grid gap-2">
               {step.details.map((detail) => (
-                <div key={detail} className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                <div key={detail} className="rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
                   {detail}
                 </div>
               ))}

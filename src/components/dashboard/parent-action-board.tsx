@@ -12,7 +12,7 @@ type ParentAction = {
 
 export function ParentActionBoard({ actions }: { actions: ParentAction[] }) {
   return (
-    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -30,7 +30,7 @@ export function ParentActionBoard({ actions }: { actions: ParentAction[] }) {
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-2">
         {actions.map((action) => (
-          <div key={action.id} className="rounded-lg border bg-white p-4">
+          <div key={action.id} className="rounded-2xl border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">{action.title}</p>

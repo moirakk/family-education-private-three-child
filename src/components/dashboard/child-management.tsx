@@ -10,6 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { getChildTheme } from "@/lib/child-theme";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child } from "@/lib/types";
 
@@ -149,7 +150,7 @@ export function ChildManagement({
   }
 
   return (
-    <Card id="children" className="min-w-0 border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="children" className="min-w-0 border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -177,80 +178,83 @@ export function ChildManagement({
         </div>
       </CardHeader>
       <CardContent className="min-w-0">
-        {syncStatus && <p className="mb-3 rounded-md bg-slate-50 px-3 py-2 text-xs text-muted-foreground">{syncStatus}</p>}
+        {syncStatus && <p className="mb-3 rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">{syncStatus}</p>}
         <div className="flex w-full max-w-full gap-3 overflow-x-auto pb-2">
-          {childProfiles.map((child) => (
-            <div
-              role="button"
-              tabIndex={0}
-              key={child.id}
-              onClick={() => onSelectChild(child.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  onSelectChild(child.id);
-                }
-              }}
-              className={`min-w-64 rounded-lg border bg-white p-4 text-left transition hover:border-primary/40 ${
-                selectedChild?.id === child.id ? "border-primary ring-2 ring-primary/10" : ""
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback style={{ backgroundColor: child.avatarColor }}>{child.firstName.slice(0, 1)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{child.firstName} {child.lastName}</p>
-                  <p className="text-xs text-muted-foreground">{child.grade}</p>
+          {childProfiles.map((child) => {
+            const theme = getChildTheme(child);
+            return (
+              <div
+                role="button"
+                tabIndex={0}
+                key={child.id}
+                onClick={() => onSelectChild(child.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    onSelectChild(child.id);
+                  }
+                }}
+                className={`min-w-64 rounded-2xl border bg-card p-4 text-left transition hover:border-primary/40 ${
+                  selectedChild?.id === child.id ? "border-primary ring-2 ring-primary/10" : "border-border"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarFallback style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>{child.firstName.slice(0, 1)}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{child.firstName} {child.lastName}</p>
+                    <p className="text-xs text-muted-foreground">{child.grade}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-1">
+                  {child.focusAreas.slice(0, 2).map((area) => (
+                    <Badge key={area} variant="outline" className="rounded-full">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEdit(child);
+                        }}
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                        编辑
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>编辑孩子档案</DialogTitle>
+                        <DialogDescription>更新学校、课程和阶段重点。</DialogDescription>
+                      </DialogHeader>
+                      <ChildForm form={form} setForm={setForm} />
+                      <DialogClose asChild>
+                        <Button onClick={saveChild}>Save profile</Button>
+                      </DialogClose>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      deleteChild(child.id);
+                    }}
+                    disabled={childProfiles.length === 1}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    删除
+                  </Button>
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap gap-1">
-                {child.focusAreas.slice(0, 2).map((area) => (
-                  <Badge key={area} variant="outline">
-                    {area}
-                  </Badge>
-                ))}
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openEdit(child);
-                      }}
-                    >
-                      <Edit3 className="h-3.5 w-3.5" />
-                      编辑
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>编辑孩子档案</DialogTitle>
-                      <DialogDescription>更新学校、课程和阶段重点。</DialogDescription>
-                    </DialogHeader>
-                    <ChildForm form={form} setForm={setForm} />
-                    <DialogClose asChild>
-                      <Button onClick={saveChild}>Save profile</Button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    deleteChild(child.id);
-                  }}
-                  disabled={childProfiles.length === 1}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  删除
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

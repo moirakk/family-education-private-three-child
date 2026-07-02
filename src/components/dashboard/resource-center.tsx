@@ -36,7 +36,7 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
   }, [childById, childFilter, query, resources]);
 
   return (
-    <Card id="resources" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="resources" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -70,9 +70,9 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
           {filteredResources.map((resource) => {
             const Icon = resourceIcon[resource.kind];
             return (
-              <div key={resource.id} className="rounded-lg border bg-white p-4">
+              <div key={resource.id} className="rounded-2xl border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="rounded-md bg-slate-100 p-2 text-slate-700">
+                  <div className="rounded-xl bg-muted/60 p-2 text-foreground">
                     <Icon className="h-4 w-4" />
                   </div>
                   <Badge variant="outline">{resource.kind}</Badge>
@@ -83,7 +83,7 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1">
                   {resource.tags.map((tag) => (
-                    <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                    <span key={tag} className="rounded-full bg-muted/60 px-2 py-0.5 text-xs text-muted-foreground">
                       {tag}
                     </span>
                   ))}
@@ -93,7 +93,7 @@ export function ResourceCenter({ resources, childProfiles }: { resources: Resour
           })}
         </div>
         {filteredResources.length === 0 && (
-          <p className="rounded-lg border bg-white p-4 text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-border bg-muted/60 p-4 text-sm text-muted-foreground">
             没有找到匹配资源。可以换一个关键词，或切回“全部资源”。
           </p>
         )}

@@ -191,7 +191,7 @@ export function LearningRecordPlanner({
   }
 
   return (
-    <Card id="learning-records" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="learning-records" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -207,10 +207,10 @@ export function LearningRecordPlanner({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveRecord} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <form onSubmit={saveRecord} className="rounded-2xl border border-border bg-card p-4">
           <div className="grid gap-3">
             {editingRecordId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑学习记录
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export function LearningRecordPlanner({
                     onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                      form.childId === child.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {child.firstName}
@@ -254,8 +254,8 @@ export function LearningRecordPlanner({
                     className={cn(
                       "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition",
                       form.subject === subject
-                        ? "border-slate-950 bg-slate-950 text-white"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-card text-muted-foreground hover:bg-muted/60"
                     )}
                   >
                     {subject}
@@ -292,7 +292,7 @@ export function LearningRecordPlanner({
                       onClick={() => setForm((current) => ({ ...current, durationMinutes: duration }))}
                       className={cn(
                         "rounded-lg border px-2 py-1.5 text-xs font-medium",
-                        form.durationMinutes === duration ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                        form.durationMinutes === duration ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                       )}
                     >
                       {duration}
@@ -319,7 +319,7 @@ export function LearningRecordPlanner({
                       onClick={() => setForm((current) => ({ ...current, confidence: option.value }))}
                       className={cn(
                         "rounded-lg border px-2 py-1.5 text-xs font-medium",
-                        form.confidence === option.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                        form.confidence === option.value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                       )}
                     >
                       {option.label}
@@ -330,20 +330,20 @@ export function LearningRecordPlanner({
             </div>
             <button
               type="button"
-              className="w-fit text-sm font-medium text-blue-700"
+              className="w-fit text-sm font-medium text-primary"
               onClick={() => setShowAdvanced((current) => !current)}
             >
               {showAdvanced ? "收起更多设置" : "更多设置：日期、分数"}
             </button>
             {showAdvanced && (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2">
+              <div className="grid gap-3 rounded-2xl border border-border bg-muted/60 p-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="record-date">日期</Label>
                   <Input
                     id="record-date"
                     type="date"
                     value={form.date}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, date: event.target.value }))}
                   />
                 </div>
@@ -356,7 +356,7 @@ export function LearningRecordPlanner({
                     max="100"
                     placeholder="可选"
                     value={form.score}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, score: event.target.value }))}
                   />
                 </div>
@@ -369,11 +369,11 @@ export function LearningRecordPlanner({
           </div>
         </form>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm font-semibold">最近记录</p>
           <div className="mt-4 grid gap-3">
             {records.map((record) => (
-              <div key={record.id} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div key={record.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{childById.get(record.childId)}</Badge>
@@ -396,7 +396,7 @@ export function LearningRecordPlanner({
               </div>
             ))}
             {records.length === 0 && (
-              <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
                 还没有新增学习记录。今天可以先记录 1-2 条真实学习事项，让家长看到成长追踪如何长期积累。
               </p>
             )}

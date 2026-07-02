@@ -193,7 +193,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   }
 
   return (
-    <Card id="tutor-feedback" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="tutor-feedback" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -207,10 +207,10 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form onSubmit={saveFeedback} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+        <form onSubmit={saveFeedback} className="rounded-2xl border border-border bg-card p-4">
           <div className="grid gap-3">
             {editingFeedbackId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-700">
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑家教反馈
                 <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
                   <X className="h-3.5 w-3.5" />
@@ -228,7 +228,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     onClick={() => setForm((current) => ({ ...current, childId: child.id }))}
                     className={cn(
                       "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition",
-                      form.childId === child.id ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
+                      form.childId === child.id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {child.firstName}
@@ -265,8 +265,8 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                       className={cn(
                         "shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium transition",
                         form.subject === subject
-                          ? "border-slate-950 bg-slate-950 text-white"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50"
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border bg-card text-muted-foreground hover:bg-muted/60"
                       )}
                     >
                       {subject}
@@ -295,7 +295,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     onClick={() => setForm((current) => ({ ...current, rating: option.value }))}
                     className={cn(
                       "rounded-lg border px-2 py-2 text-xs font-medium transition",
-                      form.rating === option.value ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                      form.rating === option.value ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                     )}
                   >
                     {option.label}
@@ -305,13 +305,13 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
             </div>
             <button
               type="button"
-              className="w-fit text-sm font-medium text-blue-700"
+              className="w-fit text-sm font-medium text-primary"
               onClick={() => setShowAdvanced((current) => !current)}
             >
               {showAdvanced ? "收起更多设置" : "更多设置：日期、时长、表现、作业、下次方向"}
             </button>
             {showAdvanced && (
-              <div className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="grid gap-3 rounded-2xl border border-border bg-muted/60 p-3">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="tutor-date">日期</Label>
@@ -319,7 +319,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                       id="tutor-date"
                       type="date"
                       value={form.sessionDate}
-                      className="h-11 rounded-xl bg-white"
+                      className="h-11 rounded-xl bg-card"
                       onChange={(event) => setForm((current) => ({ ...current, sessionDate: event.target.value }))}
                     />
                   </div>
@@ -330,7 +330,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                       type="number"
                       min="0"
                       value={form.durationMinutes}
-                      className="h-11 rounded-xl bg-white"
+                      className="h-11 rounded-xl bg-card"
                       onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}
                     />
                     <div className="grid grid-cols-4 gap-1.5">
@@ -341,7 +341,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                           onClick={() => setForm((current) => ({ ...current, durationMinutes: duration }))}
                           className={cn(
                             "rounded-lg border px-2 py-1.5 text-xs font-medium",
-                            form.durationMinutes === duration ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-white text-slate-600"
+                            form.durationMinutes === duration ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
                           )}
                         >
                           {duration}
@@ -356,7 +356,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     id="tutor-performance"
                     placeholder="理解情况、注意力、薄弱点"
                     value={form.performance}
-                    className="rounded-xl bg-white"
+                    className="rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, performance: event.target.value }))}
                   />
                 </div>
@@ -366,7 +366,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     id="tutor-homework"
                     placeholder="作业 / 复习任务"
                     value={form.homework}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, homework: event.target.value }))}
                   />
                 </div>
@@ -376,7 +376,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     id="tutor-next"
                     placeholder="下次优先处理什么"
                     value={form.nextFocus}
-                    className="h-11 rounded-xl bg-white"
+                    className="h-11 rounded-xl bg-card"
                     onChange={(event) => setForm((current) => ({ ...current, nextFocus: event.target.value }))}
                   />
                 </div>
@@ -391,7 +391,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
 
         <div className="grid gap-3">
           {feedbackItems.map((feedback) => (
-            <div key={feedback.id} className="flex items-start justify-between gap-3 rounded-md border bg-white p-3">
+            <div key={feedback.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{childById.get(feedback.childId)}</Badge>
@@ -402,7 +402,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                 <p className="mt-1 text-xs text-muted-foreground">
                   {feedback.sessionDate} · {feedback.durationMinutes} 分钟 · 效果 {feedback.rating}/5
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{feedback.focus}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">{feedback.focus}</p>
                 {feedback.performance && <p className="mt-1 text-xs text-muted-foreground">表现：{feedback.performance}</p>}
                 {feedback.homework && <p className="mt-1 text-xs text-muted-foreground">任务：{feedback.homework}</p>}
                 {feedback.nextFocus && <p className="mt-1 text-xs text-muted-foreground">下次：{feedback.nextFocus}</p>}
@@ -417,7 +417,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
               </div>
             </div>
           ))}
-          {feedbackItems.length === 0 && <p className="rounded-md bg-slate-50 p-4 text-sm text-muted-foreground">还没有家教反馈。</p>}
+          {feedbackItems.length === 0 && <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">还没有家教反馈。</p>}
         </div>
       </CardContent>
     </Card>

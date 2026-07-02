@@ -42,7 +42,7 @@ export function PwaInstallCard() {
   }
 
   return (
-    <Card className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -61,19 +61,19 @@ export function PwaInstallCard() {
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="rounded-lg border bg-white p-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-sm font-semibold">iPhone 家长使用方式</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
-            <p className="flex gap-2"><span className="font-semibold text-slate-700">1.</span> 用 Safari 打开私有链接并输入访问码。</p>
-            <p className="flex gap-2"><Share className="mt-0.5 h-4 w-4 text-slate-500" /> 点击分享按钮。</p>
-            <p className="flex gap-2"><Home className="mt-0.5 h-4 w-4 text-slate-500" /> 选择“添加到主屏幕”。</p>
-            <p className="flex gap-2"><span className="font-semibold text-slate-700">4.</span> 之后从桌面图标进入“Family Education”。</p>
+            <p className="flex gap-2"><span className="font-semibold text-foreground">1.</span> 用 Safari 打开私有链接并输入访问码。</p>
+            <p className="flex gap-2"><Share className="mt-0.5 h-4 w-4 text-muted-foreground" /> 点击分享按钮。</p>
+            <p className="flex gap-2"><Home className="mt-0.5 h-4 w-4 text-muted-foreground" /> 选择“添加到主屏幕”。</p>
+            <p className="flex gap-2"><span className="font-semibold text-foreground">4.</span> 之后从桌面图标进入“Family Education”。</p>
           </div>
         </div>
 
-        <div className="rounded-lg bg-slate-950 p-4 text-white">
+        <div className="rounded-2xl bg-foreground p-4 text-background">
           <p className="text-sm font-semibold">为什么不是原生 App</p>
-          <p className="mt-3 text-sm leading-6 text-slate-300">
+          <p className="mt-3 text-sm leading-6 text-background/70">
             家庭教育管理的核心是快速编辑、快速分享、日历同步和持续迭代。PWA 能保留链接分享和网页迭代速度，同时给家长接近 App 的入口。
           </p>
           <Button className="mt-4" variant="secondary" disabled={!installPrompt} onClick={installApp}>

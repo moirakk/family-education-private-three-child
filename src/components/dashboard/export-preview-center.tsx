@@ -200,7 +200,7 @@ export function ExportPreviewCenter({
   }
 
   return (
-    <Card id="export-preview" className="border-white/70 bg-white/85 shadow-sm backdrop-blur">
+    <Card id="export-preview" className="border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -226,10 +226,10 @@ export function ExportPreviewCenter({
 
           <TabsContent value="report">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-sm leading-6 text-slate-100">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-sm leading-6 text-background">
                 {reportText}
               </pre>
-              <div className="rounded-lg border bg-white p-4">
+              <div className="rounded-2xl border border-border bg-card p-4">
                 <p className="text-sm font-semibold">导出用途</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   适合复制到微信、邮件，或用“打印 / 存 PDF”生成家长会议材料。
@@ -256,10 +256,10 @@ export function ExportPreviewCenter({
 
           <TabsContent value="backup">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
                 {backupJson}
               </pre>
-              <div className="rounded-lg border bg-white p-4">
+              <div className="rounded-2xl border border-border bg-card p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <FileJson className="h-4 w-4 text-primary" />
                   完整备份包
@@ -286,14 +286,14 @@ export function ExportPreviewCenter({
 
           <TabsContent value="calendar">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
                 {calendarIcs}
               </pre>
-              <div className="rounded-lg border bg-white p-4">
+              <div className="rounded-2xl border border-border bg-card p-4">
                 <p className="text-sm font-semibold">导入日历后会显示</p>
                 <div className="mt-3 grid gap-2">
                   {nextEvents.map((event) => (
-                    <div key={event.id} className="rounded-md bg-slate-50 p-3">
+                    <div key={event.id} className="rounded-xl bg-muted/60 p-3">
                       <p className="text-sm font-medium">{event.title}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         {formatDateTime(event.startsAt)} · {event.location || "地点待补充"}
