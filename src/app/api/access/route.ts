@@ -88,6 +88,12 @@ function redirectToAccess(request: NextRequest, nextPath: string, reason: "inval
   return NextResponse.redirect(url);
 }
 
+export function GET(request: NextRequest) {
+  const url = new URL("/access", request.url);
+  url.searchParams.set("next", "/");
+  return NextResponse.redirect(url);
+}
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const code = formData.get("code");
