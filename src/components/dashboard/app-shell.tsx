@@ -5,11 +5,9 @@ import {
   CalendarDays,
   LayoutDashboard,
   LibraryBig,
-  Plus,
-  Sparkles
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export type DashboardMode = "today" | "week" | "records" | "more";
@@ -38,82 +36,96 @@ const quickAddTargetIdByMode: Partial<Record<DashboardMode, string>> = {
 export function AppShell({
   activeMode,
   children,
-  onModeChange
+  onModeChange,
+  workspaceLabel = "伯杨 · 仲杨 · 叔杨"
 }: {
   activeMode: DashboardMode;
   children: React.ReactNode;
   onModeChange: (mode: DashboardMode, targetId?: string) => void;
+  workspaceLabel?: string;
 }) {
   const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
   const ActiveIcon = activeItem.icon;
   const quickAdd = quickAddByMode[activeMode];
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
-      <aside className="hidden border-r border-border bg-card/85 px-4 py-5 backdrop-blur-xl lg:sticky lg:top-0 lg:block lg:h-screen lg:overflow-y-auto">
-        <div className="flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
-            <BookOpen className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold">Family Education</p>
-            <p className="text-xs text-muted-foreground">三孩定制工作区</p>
+    <div className="min-h-screen w-full overflow-x-hidden bg-background lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+      <aside className="hidden border-r border-border bg-card px-4 py-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-y-auto">
+        <div className="rounded-2xl border border-border bg-muted/40 p-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground text-background shadow-sm">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-tight">Family Education</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{workspaceLabel}</p>
+            </div>
           </div>
         </div>
-        <Separator className="my-5" />
-        <nav className="space-y-1">
-          {modeItems.map((item) => (
-            <button
-              key={item.mode}
-              type="button"
-              onClick={() => onModeChange(item.mode)}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
-                item.mode === activeMode && "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              <span
+
+        <div className="mt-6 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Workspace
+        </div>
+        <nav className="mt-2 space-y-1">
+          {modeItems.map((item) => {
+            const isActive = item.mode === activeMode;
+
+            return (
+              <button
+                key={item.mode}
+                type="button"
+                onClick={() => onModeChange(item.mode)}
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground",
-                  item.mode === activeMode && "bg-background/10 text-background"
+                  "group relative flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-medium text-muted-foreground transition duration-200 hover:bg-muted/70 hover:text-foreground",
+                  isActive && "bg-foreground text-background shadow-sm hover:bg-foreground hover:text-background"
                 )}
               >
-                <item.icon className="h-4 w-4" />
-              </span>
-              <span>
-                <span className="block">{item.label}</span>
-                <span className={cn("mt-0.5 block text-xs font-normal text-muted-foreground", item.mode === activeMode && "text-background/70")}>
-                  {item.description}
+                <span
+                  className={cn(
+                    "absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-transparent transition",
+                    isActive && "bg-background/80"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground transition duration-200 group-hover:text-foreground",
+                    isActive && "bg-background/10 text-background group-hover:text-background"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
                 </span>
-              </span>
-            </button>
-          ))}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{item.label}</span>
+                  <span className={cn("mt-0.5 block truncate text-xs font-normal text-muted-foreground", isActive && "text-background/70")}>
+                    {item.description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </nav>
-        <div className="mt-8 rounded-xl border border-border bg-foreground p-4 text-background">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Sparkles className="h-4 w-4 text-background/70" />
-            月度报告
+
+        <div className="mt-auto pt-8">
+          <div className="rounded-2xl border border-border bg-muted/40 p-3">
+            <p className="text-xs font-medium text-foreground">私有家庭工作区</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">数据由访问码保护；日程、资料和反馈统一沉淀。</p>
           </div>
-          <p className="mt-2 text-xs leading-5 text-background/70">定制版稳定后，生成面向家长的月度成长复盘。</p>
-          <Button size="sm" variant="secondary" className="mt-4 w-full" onClick={() => onModeChange("more")}>
-            预览
-          </Button>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
         <header className="sticky top-0 z-30 border-b border-border bg-card/90 px-3 py-2.5 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
                 <ActiveIcon className="h-4 w-4" />
               </div>
-              <div>
-                <p className="text-sm font-semibold">{activeItem.label}</p>
-                <p className="text-xs text-muted-foreground">{activeItem.description}</p>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{activeItem.label}</p>
+                <p className="truncate text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
             {quickAdd && (
-              <Button size="sm" className="gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target, quickAddTargetIdByMode[activeMode])}>
+              <Button size="sm" className="shrink-0 gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target, quickAddTargetIdByMode[activeMode])}>
                 <Plus className="h-3.5 w-3.5" />
                 {quickAdd.label}
               </Button>
@@ -129,7 +141,7 @@ export function AppShell({
                 type="button"
                 onClick={() => onModeChange(item.mode)}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground",
+                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition duration-200 hover:bg-muted hover:text-foreground",
                   item.mode === activeMode && "bg-foreground text-background hover:bg-foreground hover:text-background"
                 )}
               >

@@ -221,6 +221,7 @@ export default function Home() {
     () => mergeRemoteAndLocal(baseCalendarEvents, localCalendarEvents).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
     [baseCalendarEvents, localCalendarEvents]
   );
+  const workspaceLabel = useMemo(() => managedChildren.map((child) => child.firstName).join(" · "), [managedChildren]);
   const averageGoalProgress =
     roadmapGoals.length > 0
       ? Math.round(roadmapGoals.reduce((sum, goal) => sum + goal.progress, 0) / roadmapGoals.length)
@@ -242,31 +243,33 @@ export default function Home() {
   }
 
   return (
-    <AppShell activeMode={activeMode} onModeChange={handleModeChange}>
+    <AppShell activeMode={activeMode} onModeChange={handleModeChange} workspaceLabel={workspaceLabel}>
       <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5">
-        <section id="dashboard" className="hidden overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-none sm:block sm:p-5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold text-primary sm:text-sm">{pilotFamilyName}</p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                <span className="sm:hidden">Family Education</span>
-                <span className="hidden sm:inline">Family Education Management System</span>
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-3">
-                <span className="sm:hidden">今天事项、日程和资料集中处理。</span>
-                <span className="hidden sm:inline">第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。</span>
-              </p>
+        {activeMode === "today" && (
+          <section id="dashboard" className="hidden overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-none sm:block sm:p-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-semibold text-primary sm:text-sm">{pilotFamilyName}</p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                  <span className="sm:hidden">Family Education</span>
+                  <span className="hidden sm:inline">Family Education Management System</span>
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-3">
+                  <span className="sm:hidden">今天事项、日程和资料集中处理。</span>
+                  <span className="hidden sm:inline">第一屏处理今天要做的事，后面沉淀日程、资料、反馈和长期规划。</span>
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => handleModeChange("more", "export-preview")}>
+                  看导出效果
+                </Button>
+                <Button onClick={() => handleModeChange("week", "event-planner")}>
+                  新增事项
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => handleModeChange("more", "export-preview")}>
-                看导出效果
-              </Button>
-              <Button onClick={() => handleModeChange("week", "event-planner")}>
-                新增事项
-              </Button>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {activeMode === "today" && (
           <>
