@@ -66,9 +66,6 @@ const ParentHandoffPlan = dynamic(() => import("@/components/dashboard/parent-ha
 const PwaInstallCard = dynamic(() => import("@/components/dashboard/pwa-install-card").then((mod) => mod.PwaInstallCard), {
   loading: DashboardSectionLoading
 });
-const ResourceCenter = dynamic(() => import("@/components/dashboard/resource-center").then((mod) => mod.ResourceCenter), {
-  loading: DashboardSectionLoading
-});
 const SelfEvaluationBoard = dynamic(() => import("@/components/dashboard/self-evaluation-board").then((mod) => mod.SelfEvaluationBoard), {
   loading: DashboardSectionLoading
 });
@@ -364,31 +361,55 @@ export default function Home() {
 
         {activeMode === "records" && (
           <>
-            <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
-            <LearningMaterialsVault childProfiles={managedChildren} />
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">日常沉淀</p>
+                <p className="text-xs text-muted-foreground">高频记录入口：学习过程和资料文件先放在这里。</p>
+              </div>
+              <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+                <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
+                <LearningMaterialsVault childProfiles={managedChildren} />
+              </div>
+            </section>
 
-            <div className="grid gap-5 xl:grid-cols-2">
-              <SelfEvaluationBoard childProfiles={managedChildren} />
-              <TutorFeedbackBoard childProfiles={managedChildren} />
-            </div>
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">反馈记录</p>
+                <p className="text-xs text-muted-foreground">孩子自评和家教反馈先作为中频模块，后续按实际使用再加强。</p>
+              </div>
+              <div className="grid gap-5 xl:grid-cols-2">
+                <SelfEvaluationBoard childProfiles={managedChildren} />
+                <TutorFeedbackBoard childProfiles={managedChildren} />
+              </div>
+            </section>
 
-            <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-              <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
-              <ChildManagement
-                childProfiles={managedChildren}
-                setChildren={setManagedChildren}
-                selectedChildId={selectedChildId}
-                onSelectChild={setSelectedChildId}
-              />
-            </div>
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">孩子档案</p>
+                <p className="text-xs text-muted-foreground">孩子信息不需要每天改，但需要长期保持准确。</p>
+              </div>
+              <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+                <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
+                <ChildManagement
+                  childProfiles={managedChildren}
+                  setChildren={setManagedChildren}
+                  selectedChildId={selectedChildId}
+                  onSelectChild={setSelectedChildId}
+                />
+              </div>
+            </section>
 
-            <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-              <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
-              <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
-            </div>
-
-            <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
-            <ResourceCenter resources={baseResources} childProfiles={managedChildren} />
+            <section className="space-y-3">
+              <div className="flex flex-col gap-1 px-1">
+                <p className="text-sm font-medium text-foreground">长期规划</p>
+                <p className="text-xs text-muted-foreground">把成长趋势、教育路线图和三孩管理节奏放在同一个长期视图。</p>
+              </div>
+              <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+                <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
+                <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
+              </div>
+              <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+            </section>
           </>
         )}
 
