@@ -12,12 +12,15 @@ test("classifies events by date distance and exam priority", () => {
 });
 
 test("sorts by urgency first and then by start time", () => {
-  const sorted = sortEventsByUrgency([
-    { id: "ok", category: "activity" as const, startsAt: "2026-07-20T09:00:00+09:00" },
-    { id: "critical-later", category: "exam" as const, startsAt: "2026-07-02T12:00:00+09:00" },
-    { id: "critical-earlier", category: "exam" as const, startsAt: "2026-07-02T09:00:00+09:00" },
-    { id: "warning", category: "school" as const, startsAt: "2026-07-05T09:00:00+09:00" }
-  ]);
+  const sorted = sortEventsByUrgency(
+    [
+      { id: "ok", category: "activity" as const, startsAt: "2026-07-20T09:00:00+09:00" },
+      { id: "critical-later", category: "exam" as const, startsAt: "2026-07-02T12:00:00+09:00" },
+      { id: "critical-earlier", category: "exam" as const, startsAt: "2026-07-02T09:00:00+09:00" },
+      { id: "warning", category: "school" as const, startsAt: "2026-07-05T09:00:00+09:00" }
+    ],
+    today
+  );
 
   assert.deepEqual(sorted.map((event) => event.id), ["critical-earlier", "critical-later", "warning", "ok"]);
 });

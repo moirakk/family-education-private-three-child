@@ -47,9 +47,9 @@ export function getEventUrgency(event: Pick<CalendarEvent, "category" | "startsA
   return "ok";
 }
 
-export function sortEventsByUrgency<T extends Pick<CalendarEvent, "category" | "startsAt">>(events: T[]) {
+export function sortEventsByUrgency<T extends Pick<CalendarEvent, "category" | "startsAt">>(events: T[], today = new Date()) {
   return [...events].sort((a, b) => {
-    const urgencyDelta = urgencyOrder[getEventUrgency(a)] - urgencyOrder[getEventUrgency(b)];
+    const urgencyDelta = urgencyOrder[getEventUrgency(a, today)] - urgencyOrder[getEventUrgency(b, today)];
     if (urgencyDelta !== 0) return urgencyDelta;
     return +new Date(a.startsAt) - +new Date(b.startsAt);
   });
