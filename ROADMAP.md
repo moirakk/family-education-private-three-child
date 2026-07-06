@@ -13,6 +13,7 @@
 - [x] `sortEventsByUrgency` 补上 `today` 参数透传，修复测试套件"因为日历翻页而周期性变红"的问题（`src/lib/urgency.ts` + `tests/core/urgency.test.ts`）
 - [x] 新增 `.github/workflows/ci.yml`，每次 push/PR 自动跑 typecheck/lint/test/build 四件套
 - [x] 家教反馈页完成手机端重构；家长工作台移除重复填写表单，只保留反馈列表、复制家教链接和删除能力（`src/app/tutor-feedback/page.tsx` + `src/components/dashboard/tutor-feedback-board.tsx`）
+- [x] 完成一次真实的备份 -> 全新 Supabase 测试项目 -> 恢复演练；数据库恢复和 Storage 恢复脚本均跑通，测试项目行数验证通过。
 
 这两项已经在本地验证通过（6/6 测试、build 成功），随本次回复的文件一起发给 Codex 应用即可，不需要它重新设计，只需要应用 + 推送触发 CI 首次运行。
 
@@ -37,18 +38,36 @@
 
 ## P0（下一批要做的）
 
-### 1. 备份 → 恢复演练（半天，建议排在最前面）
+### 1. 备份 → 恢复演练（已完成）
 
-**现状**：`private-backup-all.mjs` / `private-restore-backup.mjs` / `private-restore-storage.mjs` 脚本齐全，`--dry-run` 也有，但从来没有真正跑过一次"导出 → 新 Supabase 项目 → 恢复"的完整演练。
+**完成时间**：2026-07-06
 
-**方案**：
-1. 建一个新的免费 Supabase 项目（专门用来测，不影响生产数据）。
-2. 跑 `npm run private:backup-all` 导出当前生产数据。
-3. 把导出结果指向新项目的连接串，跑 `private-restore-backup.mjs` 和 `private-restore-storage.mjs`（先 `--dry-run` 确认没有报错，再真正执行）。
-4. 打开新项目对应部署的应用，肉眼确认三个孩子的数据、日程、学习记录、资料文件都完整。
-5. 把这次演练的步骤和结果记录下来（哪怕就是几行笔记），下次真正需要恢复时照着做，不用临场摸索。
+**备份来源**：生产站点 `https://family-education-private-three-child.vercel.app`
 
-**验收标准**：新项目里能看到和生产环境一致的三孩数据，资料文件能正常打开。
+**本地备份目录**：`private-backups/restore-rehearsal-2026-07-06`
+
+**测试 Supabase 项目**：`eujuwxcbnkwhdxrtnsan`（Family Education Restore Drill）
+
+**执行结果**：
+- `npm run private:backup -- --base-url https://family-education-private-three-child.vercel.app --out ./private-backups/restore-rehearsal-2026-07-06` 成功。
+- `npm run private:restore -- --file ./private-backups/restore-rehearsal-2026-07-06/database-export.json --storage-manifest ./private-backups/restore-rehearsal-2026-07-06/storage/storage-manifest.json --dry-run` 成功。
+- 在新测试项目执行 `docs/private-supabase-schema.sql` 和 `docs/private-supabase-storage.sql` 成功。
+- 指向测试项目运行 `npm run private:restore` 成功。
+- 指向测试项目运行 `npm run private:restore-storage` 成功。
+
+**恢复后验证**：
+- `families`: 1
+- `family_settings`: 1
+- `children`: 3（伯杨、仲杨、叔杨）
+- `child_intake_profiles`: 3
+- `calendar_events`: 5
+- `calendar_event_children`: 9
+- `education_goals`: 3
+- `resources`: 4
+- `learning_records` / `learning_materials` / `self_evaluations` / `tutor_feedback`: 当前备份中均为 0，恢复后也为 0。
+- `learning-materials` Storage bucket 当前对象数为 0，Storage 恢复脚本已跑通，但还没有真实文件样本可验证 signed download。
+
+**后续注意**：等资料库出现第一批真实上传文件后，需要再做一次轻量 Storage 恢复验证，重点确认文件 body、metadata、signed download 都能恢复。
 
 ### 2. 家教反馈页手机端重构（已完成）
 
