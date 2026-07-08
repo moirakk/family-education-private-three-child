@@ -4,6 +4,22 @@ import { Progress } from "@/components/ui/progress";
 import { getChildTheme } from "@/lib/child-theme";
 import type { Child, EducationGoal, LearningRecord } from "@/lib/types";
 
+const minimumTrendWeeks = 4;
+
+function getLearningWeekKey(dateString: string) {
+  const [year, month, day] = dateString.slice(0, 10).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const dayOfWeek = date.getUTCDay();
+  const mondayOffset = (dayOfWeek + 6) % 7;
+
+  date.setUTCDate(date.getUTCDate() - mondayOffset);
+  return date.toISOString().slice(0, 10);
+}
+
+function getLearningWeekCount(records: LearningRecord[]) {
+  return new Set(records.map((record) => getLearningWeekKey(record.date))).size;
+}
+
 export function GrowthSummary({
   childProfiles,
   records,
@@ -27,6 +43,8 @@ export function GrowthSummary({
             ? Math.round(childGoals.reduce((sum, goal) => sum + goal.progress, 0) / childGoals.length)
             : 0;
           const minutes = childRecords.reduce((sum, record) => sum + record.durationMinutes, 0);
+          const learningWeekCount = getLearningWeekCount(childRecords);
+          const hasEnoughTrendData = learningWeekCount >= minimumTrendWeeks;
           const theme = getChildTheme(child);
 
           return (
@@ -39,9 +57,15 @@ export function GrowthSummary({
                     <p className="truncate text-xs text-muted-foreground">{child.focusAreas.join(" · ")}</p>
                   </div>
                 </div>
-                <span className="text-sm font-semibold">{averageProgress}%</span>
+                <span className="text-sm font-semibold">{hasEnoughTrendData ? `${averageProgress}%` : "积累中"}</span>
               </div>
-              <Progress value={averageProgress} className="mt-3" />
+              {hasEnoughTrendData ? (
+                <Progress value={averageProgress} className="mt-3" />
+              ) : (
+                <div className="mt-3 rounded-xl bg-muted/50 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                  已有 {learningWeekCount} 周记录。满 {minimumTrendWeeks} 周后再显示趋势，避免用太少数据误判孩子状态。
+                </div>
+              )}
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <BookOpenCheck className="h-3.5 w-3.5" />
