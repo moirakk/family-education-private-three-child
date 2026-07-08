@@ -1,226 +1,196 @@
 # Family Education Management System
 
-Private three-child education operations workspace built with Next.js, TypeScript, Supabase, PostgreSQL, and Vercel.
+![CI](https://github.com/moirakk/family-education-private-three-child/actions/workflows/ci.yml/badge.svg)
 
-This repository contains the private custom version for one family. It is intentionally separate from the future public/commercial product track.
+Private family education operations workspace for a three-child household. Built with Next.js 15, TypeScript, TailwindCSS, Supabase PostgreSQL, Supabase Storage, and Vercel.
 
-## Product Purpose
+This repository is the private custom family version. It is intentionally separate from the future public/commercial product track.
 
-Family Education Management System helps parents manage the daily and long-term education operations of a multi-child household:
+## Status
 
-- school schedules
-- tutoring sessions
-- extracurricular activities
-- exams and deadlines
+Production is live:
+
+- App: [family-education-private-three-child.vercel.app](https://family-education-private-three-child.vercel.app/)
+- Repository: [moirakk/family-education-private-three-child](https://github.com/moirakk/family-education-private-three-child)
+- Current access model: parent workspace opens by private link on trusted devices; tutor feedback uses a code-bearing link.
+- Disaster recovery: one full backup -> fresh Supabase restore rehearsal has been completed.
+
+Quality gates used before deployment:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+```
+
+## Product Scope
+
+The product helps parents run daily and long-term education operations across multiple children:
+
+- daily command center
+- weekly calendar and iOS Calendar sync
+- school, tutoring, activity, exam, and family events
+- child profiles and school information
 - learning records
-- study materials and files
-- self-evaluations
+- learning materials and file uploads
+- child self-evaluation
 - tutor feedback
 - education goals and milestones
-- iOS Calendar subscriptions
-- backup and restore workflows
+- export, backup, restore, and Obsidian archive workflows
 
-The current private workspace is designed around a three-child family, but the data model keeps `family_id` and child relationships explicit so the system can evolve into a commercial multi-family SaaS later.
+The current workspace is customized for three children, while the database model still keeps `family_id`, child relationships, and role boundaries explicit so future SaaS extraction remains possible.
 
-## Current Status
+## App Information Architecture
 
-The private MVP is beyond static demo state. It now supports real Supabase-backed workflows for the core modules.
+The app is organized around parent tasks, not feature demos.
 
-Implemented:
+| Mode | Daily intent | Main modules |
+| --- | --- | --- |
+| Today | Decide what needs attention now | daily brief, next actions, urgent events |
+| Week | Plan and review the week | event planner, weekly overview, calendar, iOS sync |
+| Records | Capture learning evidence | learning records, materials, tutor feedback, self-evaluation, archives |
+| Settings | Maintain the system | share links, exports, PWA install, intake data |
 
-- access-code protected private workspace
-- parent/caregiver dashboard access
-- limited tutor feedback entry flow
-- Supabase PostgreSQL schema for private family data
-- Supabase Storage integration for learning materials
-- child CRUD with deletion protection
-- calendar event CRUD
-- learning record CRUD
-- education roadmap CRUD
-- learning materials metadata and file upload
-- self-evaluation CRUD
-- tutor feedback CRUD
-- private JSON export
-- Storage backup and restore scripts
-- iOS Calendar ICS/webcal endpoint
-- PWA manifest, service worker, icons, and offline page
-- mobile four-mode app shell: Today, Week, Records, More
-- production smoke test script
-- production security hardening for signed sessions, private API boundaries, calendar token handling, and health output
-
-Production status:
-
-- Vercel production deployment is live
-- Production URL: `https://family-education-private-three-chil.vercel.app`
-- Private smoke test passed against production
-- real iPhone PWA installation has been verified
-- iOS Calendar feed works through the private calendar token
-
-Still in progress:
-
-- scheduled backups
-- stronger cross-instance access-code rate limiting
-- mobile form simplification
-- polished UI pass for daily parent use
-
-## Product Modes
-
-The dashboard is organized around parent tasks rather than feature showcase sections.
-
-| Mode | Purpose |
-| --- | --- |
-| Today | First-screen command center for urgent tasks, upcoming items, quick actions, and child summaries |
-| Week | Calendar planning, weekly overview, event editing, iOS sync |
-| Records | Learning records, materials, self-evaluations, tutor feedback, child profiles, growth tracking |
-| More | Intake notes, export preview, handoff plan, PWA install, deployment status |
-
-On desktop, modes are switched from a left sidebar. On mobile, they are switched from a fixed bottom tab bar.
+Mobile uses a bottom tab bar. Desktop uses a left sidebar. Low-frequency modules are folded so the family does not have to scroll through an admin console every day.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-  Parent["Parent / Caregiver"] --> Access["Access Code Page"]
-  Tutor["Tutor"] --> TutorAccess["Tutor Access Code"]
+  Parent["Parent / caregiver"] --> App["Next.js PWA"]
+  Tutor["Tutor"] --> TutorLink["Tutor feedback link"]
 
-  Access --> Cookie["Signed httpOnly Session Cookie"]
-  TutorAccess --> Cookie
+  App --> Middleware["Middleware session guard"]
+  TutorLink --> Middleware
 
-  Cookie --> Middleware["Next.js Middleware"]
-  Middleware --> Dashboard["Private Dashboard"]
-  Middleware --> TutorPage["Tutor Feedback Page"]
-  Middleware --> PrivateAPI["/api/private/*"]
-
-  Dashboard --> PrivateAPI
+  Middleware --> Dashboard["Private dashboard"]
+  Middleware --> TutorPage["Tutor feedback page"]
+  Dashboard --> PrivateAPI["/api/private/*"]
   TutorPage --> PrivateAPI
 
-  PrivateAPI --> AdminClient["Supabase Service Role Client"]
-  AdminClient --> Postgres["Supabase PostgreSQL"]
-  AdminClient --> Storage["Supabase Storage"]
+  PrivateAPI --> SupabaseAdmin["Server-only Supabase service role client"]
+  SupabaseAdmin --> Postgres["Supabase PostgreSQL"]
+  SupabaseAdmin --> Storage["Supabase Storage"]
 
-  Calendar["iOS Calendar"] --> ICS["/api/calendar/ios?token=..."]
-  ICS --> Postgres
+  IOS["iOS Calendar"] --> CalendarFeed["/api/calendar/ios?token=..."]
+  CalendarFeed --> Postgres
 
-  Backup["Backup Scripts"] --> Postgres
-  Backup --> Storage
+  Scripts["Backup / restore scripts"] --> Postgres
+  Scripts --> Storage
 ```
 
 ## Security Model
 
-This private version uses a lightweight no-login model:
+This private version uses a lightweight no-login model designed for a trusted family deployment:
 
-- access code verifies role
-- successful login issues a signed `httpOnly` session cookie
-- cookies use `SameSite=Strict`
-- parent/caregiver can access the full dashboard
-- tutor can only access `/tutor-feedback` and limited private endpoints
-- viewer role is defined but not productized for the dashboard
-- Supabase service role key is server-only
-- `src/lib/supabase-admin.ts` imports `server-only`
-- private API writes verify `family_id` and child ownership
-- middleware returns JSON 403 for private API rejections
-- `/api/health` returns only `{ ok: true }` publicly and detailed checks only after private login
-- `/api/calendar/ios` requires either a valid calendar token or a signed private session in private production mode
-- service worker does not cache private API responses
+- Parent workspace can run in `PRIVATE_PARENT_ACCESS_MODE=open` for trusted-device PWA use.
+- Tutor access stays limited to `/tutor-feedback?code=...`.
+- Successful access issues a signed `httpOnly` cookie.
+- Cookies use `Secure` and `SameSite=Strict`.
+- Middleware guards private pages and `/api/private/*`.
+- Private API writes validate family and child ownership in application code.
+- Supabase service role key is server-only and protected by `server-only`.
+- The iOS calendar feed requires either a valid calendar token or a signed private session.
+- The service worker does not cache private API responses or HTML documents.
 
-Important limitation:
+Known limitation:
 
-The access-code rate limit is currently cookie + best-effort in-memory protection. For Vercel multi-instance production hardening, use a shared rate-limit store such as Upstash Redis.
+- Access-code rate limiting is still best-effort/in-process. If parent access is switched back to code mode for broader sharing, move rate limiting to a shared store such as Upstash Redis.
 
 ## Data Storage
 
-Long-term family data lives in Supabase.
+Long-term data lives in Supabase.
 
 PostgreSQL stores:
 
-- family workspace settings
-- children
-- child intake profiles
-- calendar events
-- event-child relationships
+- family settings
+- children and intake profiles
+- calendar events and event-child links
 - learning records
-- education goals
-- milestones
-- resources
+- education goals and milestones
+- resource metadata
 - learning material metadata
 - self-evaluations
 - tutor feedback
 
-Supabase Storage stores:
-
-- uploaded worksheets
-- files
-- notes exported as files
-- other learning materials
-
-The database stores file metadata and `storage_path`; file bodies live in a private Supabase Storage bucket.
-
-## iOS Calendar Sync
-
-The app exposes a one-way ICS feed:
-
-```text
-/api/calendar/ios?token=<family_settings.calendar_token>
-```
-
-Parents can subscribe from iOS Calendar using `webcal://`.
-
-This is intentionally one-way. Edits should happen in the web app, then flow into iOS Calendar. Full CalDAV two-way sync is out of scope for this private MVP.
-
-In private production mode, the calendar endpoint no longer falls back to demo data when no token is provided. Token-based calendar access is validated server-side with Supabase service role access.
+Supabase Storage stores uploaded learning materials. The database stores metadata plus `storage_path`; file bodies live in the private `learning-materials` bucket.
 
 ## Repository Structure
 
 ```text
 .
+├── .github/
+│   ├── pull_request_template.md
+│   └── workflows/ci.yml
 ├── docs/
-│   ├── claude-current-review-2026-06-23.md
-│   ├── private-current-status-for-claude.md
-│   ├── private-pwa-deployment-guide.md
+│   ├── README.md
+│   ├── private-core-architecture.md
+│   ├── private-product-code-map.md
 │   ├── private-supabase-schema.sql
 │   ├── private-supabase-storage.sql
 │   ├── private-supabase-vercel-runbook.md
-│   └── private-three-child-debug-brief.md
+│   └── private-pwa-deployment-guide.md
 ├── public/
 │   ├── offline.html
 │   └── sw.js
 ├── scripts/
+│   ├── private-backup-all.mjs
 │   ├── private-backup-storage.mjs
 │   ├── private-check-env.mjs
-│   ├── private-generate-secrets.mjs
+│   ├── private-export-obsidian.mjs
 │   ├── private-restore-backup.mjs
 │   ├── private-restore-storage.mjs
 │   └── private-smoke-test.mjs
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── access/
-│   │   │   ├── calendar/ios/
-│   │   │   ├── health/
-│   │   │   └── private/
 │   │   ├── access/
 │   │   ├── tutor-feedback/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components/
 │   │   ├── dashboard/
+│   │   ├── system/
 │   │   └── ui/
 │   ├── lib/
-│   │   ├── child-theme.ts
-│   │   ├── private-access.ts
-│   │   ├── supabase-admin.ts
-│   │   ├── urgency.ts
-│   │   └── types.ts
 │   └── middleware.ts
+├── ROADMAP.md
 ├── .env.example
 ├── .nvmrc
-├── package.json
-└── README.md
+└── package.json
+```
+
+See [docs/README.md](docs/README.md) for the full documentation map.
+
+## Local Development
+
+Use Node 22:
+
+```bash
+nvm use
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://127.0.0.1:3000
+```
+
+Run the full local verification suite:
+
+```bash
+npm run typecheck
+npm run lint
+npm run test
+npm run build
 ```
 
 ## Environment Variables
 
-Create `.env.local` from `.env.example`.
+Copy `.env.example` to `.env.local`.
 
 Required for private Supabase mode:
 
@@ -230,81 +200,35 @@ NEXT_PUBLIC_PRIVATE_FAMILY_ID="family-uuid"
 NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="publishable-or-anon-key"
 SUPABASE_SERVICE_ROLE_KEY="server-only-service-role-key"
-PRIVATE_PARENT_ACCESS_CODE="parent-access-code"
 PRIVATE_SESSION_SECRET="long-random-session-secret"
 SUPABASE_LEARNING_MATERIALS_BUCKET="learning-materials"
 ```
 
-Optional:
+Access mode:
 
 ```bash
-PRIVATE_CAREGIVER_ACCESS_CODE="caregiver-access-code"
-PRIVATE_TUTOR_ACCESS_CODE="tutor-access-code"
-PRIVATE_VIEWER_ACCESS_CODE="viewer-access-code"
+PRIVATE_PARENT_ACCESS_MODE="open" # trusted-device private deployment
+PRIVATE_PARENT_ACCESS_CODE="fallback-parent-code"
+PRIVATE_TUTOR_ACCESS_CODE="tutor-code"
 ```
 
-Never commit `.env.local`.
+Never commit `.env.local`, Supabase service keys, access codes, or calendar tokens.
 
-## Local Development
+## Supabase Setup
 
-Use Node 22:
+Run these SQL files in a Supabase project:
 
-```bash
-nvm use
+```text
+docs/private-supabase-schema.sql
+docs/private-supabase-storage.sql
+docs/private-pilot-seed-template.sql
 ```
 
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run development server:
-
-```bash
-npm run dev
-```
-
-Run production build:
-
-```bash
-npm run build
-```
-
-Run checks:
-
-```bash
-npm run typecheck
-npm run lint
-```
-
-## Private Smoke Test
-
-After starting the app:
-
-```bash
-npm run start
-npm run private:smoke -- --base-url http://127.0.0.1:3000 --expect-ready --deep-private
-```
-
-The smoke test checks:
-
-- `/api/health`
-- access page
-- PWA manifest
-- icons
-- service worker
-- offline page
-- private access login
-- unauthenticated API rejection
-- protected dashboard
-- tutor access boundaries
-- iOS calendar feed
-- private export
+Then configure the same project values in Vercel environment variables and redeploy.
 
 ## Backup And Restore
 
-Create a full private backup:
+Create a full backup:
 
 ```bash
 npm run private:backup -- --out ./private-backups/latest
@@ -317,58 +241,32 @@ This creates:
 - `storage/files/**`
 - `backup-manifest.json`
 
-The backup manifest includes dry-run restore commands.
-
-Database export is also available from:
-
-```text
-/api/private/export
-```
-
-Storage-only backup:
-
-```bash
-npm run private:backup-storage -- --out ./private-storage-backup
-```
-
-Database restore dry run:
+Dry-run restore:
 
 ```bash
 npm run private:restore -- \
   --file ./private-backups/latest/database-export.json \
   --storage-manifest ./private-backups/latest/storage/storage-manifest.json \
   --dry-run
-```
 
-Storage restore dry run:
-
-```bash
 npm run private:restore-storage -- --dir ./private-backups/latest/storage --dry-run
 ```
 
-Database restore:
+Production recovery should always be rehearsed in a fresh Supabase project before trusting the backup path.
 
-```bash
-npm run private:restore -- --file ./backup.json
+## iOS Calendar Sync
+
+The app exposes a one-way ICS feed:
+
+```text
+/api/calendar/ios?token=<family_settings.calendar_token>
 ```
 
-Database restore with Storage manifest verification:
-
-```bash
-npm run private:restore -- --file ./backup.json --storage-manifest ./private-storage-backup/storage-manifest.json
-```
-
-Storage restore:
-
-```bash
-npm run private:restore-storage -- --dir ./private-storage-backup
-```
-
-Before trusting backups for long-term use, restore into a fresh Supabase project and verify signed downloads from the app.
+iOS Calendar should subscribe through `webcal://`. Edits should happen inside the web app and flow out to iOS Calendar. Two-way CalDAV sync is intentionally out of scope for this private MVP.
 
 ## Obsidian Export
 
-Generate an Obsidian-compatible Markdown vault from a database export:
+Generate an Obsidian-compatible archive from a database export:
 
 ```bash
 npm run private:obsidian -- \
@@ -376,73 +274,52 @@ npm run private:obsidian -- \
   --out ./Family-Education-Vault
 ```
 
-The vault includes:
+Obsidian is useful for long-term reading, search, and archive review. It is not the source of truth for live schedules.
 
-- `00 Dashboard.md`
-- child profile pages
-- unified calendar page
-- learning records page
-- materials index
-- education roadmap
-- self-evaluations
-- tutor feedback
-- export metadata
+## Deployment
 
-Obsidian is recommended for long-term reading, search, and archive review. iOS reminders should still use the app's webcal calendar subscription.
+Vercel production deploy:
 
-## Deployment Plan
+```bash
+npx vercel --prod --yes
+```
 
-1. Keep this repository private.
-2. Import this repository into Vercel.
-3. Add all required environment variables in Vercel.
-4. Run `docs/private-supabase-schema.sql` in Supabase.
-5. Run `docs/private-supabase-storage.sql` in Supabase.
-6. Redeploy after environment variable changes.
-7. Open `/api/health` and confirm `ready=ok`.
-8. Run the private smoke test against the Vercel URL.
-9. Install the PWA on a real iPhone.
-10. Subscribe to the iOS Calendar feed using the real production `webcal://` URL.
+After deploy, make sure the correct production alias points to the new deployment:
 
-## Quality Gates
+```bash
+npx vercel alias set <deployment-url> family-education-private-three-child.vercel.app
+```
 
-Before giving the production URL to parents:
+Known project naming quirk: the Vercel CLI has previously auto-aliased a typo domain missing the final `d` in `child`. Always verify the final production URL.
 
-- `npm run typecheck`
-- `npm run lint`
-- `npm run build`
-- private smoke test passes
-- Supabase tables exist
-- Storage bucket exists
-- parent access code works
-- tutor access code only opens tutor flow
-- export works
-- backup scripts run
-- iPhone PWA install works
+## Quality Checklist
+
+Before sharing with parents:
+
+- local checks pass
+- GitHub Actions CI is green
+- production build succeeds
+- `/api/health` responds
+- parent PWA opens on iPhone
+- tutor link only opens tutor feedback
 - iOS Calendar subscription works
+- export works
+- latest backup can dry-run restore
+- no secrets are committed
 
-## Product Roadmap
+## Roadmap
 
-Private version priorities:
+See [ROADMAP.md](ROADMAP.md).
 
-1. iPhone PWA and Calendar verification
-2. daily parent workflow polish
-3. mobile quick-entry forms
-4. scheduled backup automation
-5. stronger rate limiting
-6. family handoff guide
+Near-term focus:
 
-Commercial version later:
+- real-material upload verification
+- scheduled backup automation
+- continued mobile UI polish
+- stronger shared rate limiting if parent mode changes from open to code
 
-1. Supabase Auth
-2. multi-family tenancy
-3. formal roles and invitations
-4. row-level security
-5. audit logs
-6. billing
-7. generalized onboarding
+Commercial track remains separate and should not be mixed into this private deployment until multi-tenant auth, RLS, audit logs, and billing are intentionally designed.
 
-## Important Notes
+## Privacy Notice
 
-This repository may contain private family workflow assumptions. Do not make it public without removing private context, seed data, and operational notes.
-
-Supabase keys, access codes, and calendar tokens must stay in local/Vercel environment variables only.
+This repository may contain private family workflow assumptions and operational notes. Keep it private. Do not make it public without removing private context, seed data, access patterns, and family-specific documentation.
