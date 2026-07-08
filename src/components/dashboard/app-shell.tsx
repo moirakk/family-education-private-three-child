@@ -4,8 +4,8 @@ import {
   BookOpen,
   CalendarDays,
   LayoutDashboard,
-  LibraryBig,
-  Plus
+  Plus,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ const modeItems = [
   { mode: "today" as const, label: "今天", mobileLabel: "今天", description: "今日事项和下一步", icon: LayoutDashboard },
   { mode: "week" as const, label: "本周", mobileLabel: "本周", description: "日程、周报和日历", icon: CalendarDays },
   { mode: "records" as const, label: "记录", mobileLabel: "记录", description: "学习、资料、反馈和档案", icon: BookOpen },
-  { mode: "more" as const, label: "更多", mobileLabel: "更多", description: "补资料、导出和部署", icon: LibraryBig }
+  { mode: "more" as const, label: "设置", mobileLabel: "设置", description: "分享、备份和安装", icon: Settings }
 ];
 
 const modeLabelByMode = new Map(modeItems.map((item) => [item.mode, item]));

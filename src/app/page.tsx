@@ -99,6 +99,7 @@ const hashModeMap: Record<string, DashboardMode> = {
   roadmap: "records",
   resources: "records",
   more: "more",
+  settings: "more",
   intake: "more",
   "share-links": "more",
   "export-preview": "more",
@@ -139,6 +140,8 @@ export default function Home() {
   const [activeMode, setActiveMode] = useState<DashboardMode>("today");
   const [showTodayMetrics, setShowTodayMetrics] = useState(false);
   const [showWeeklyReview, setShowWeeklyReview] = useState(false);
+  const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
+  const [showArchiveReview, setShowArchiveReview] = useState(false);
 
   function handleModeChange(mode: DashboardMode, targetId?: string) {
     const nextHash = targetId ?? mode;
@@ -212,6 +215,10 @@ export default function Home() {
     [baseCalendarEvents, localCalendarEvents]
   );
   const workspaceLabel = useMemo(() => managedChildren.map((child) => child.firstName).join(" · "), [managedChildren]);
+  const selfEvaluationChildren = useMemo(() => {
+    const primaryChild = managedChildren.find((child) => child.firstName === "伯杨");
+    return primaryChild ? [primaryChild] : managedChildren.slice(0, 1);
+  }, [managedChildren]);
   const averageGoalProgress =
     roadmapGoals.length > 0
       ? Math.round(roadmapGoals.reduce((sum, goal) => sum + goal.progress, 0) / roadmapGoals.length)
@@ -357,52 +364,65 @@ export default function Home() {
           <>
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">日常沉淀</p>
-                <p className="text-xs text-muted-foreground">高频记录入口：学习过程和资料文件先放在这里。</p>
+                <p className="text-sm font-medium text-foreground">日常记录</p>
+                <p className="text-xs text-muted-foreground">高频入口只保留学习记录、资料库和家教反馈。</p>
               </div>
               <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
                 <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
                 <LearningMaterialsVault childProfiles={managedChildren} />
               </div>
+              <TutorFeedbackBoard childProfiles={managedChildren} />
             </section>
 
             <section className="space-y-3">
-              <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">反馈记录</p>
-                <p className="text-xs text-muted-foreground">孩子自评和家教反馈先作为中频模块，后续按实际使用再加强。</p>
-              </div>
-              <div className="grid gap-5 xl:grid-cols-2">
-                <SelfEvaluationBoard childProfiles={managedChildren} />
-                <TutorFeedbackBoard childProfiles={managedChildren} />
-              </div>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-3 text-left"
+                onClick={() => setShowSelfEvaluation((current) => !current)}
+              >
+                <span>
+                  <span className="block text-xs font-medium text-muted-foreground">孩子自评</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">先只给伯杨保留，低年级不强迫结构化反思。</span>
+                </span>
+                <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  {showSelfEvaluation ? "收起" : "展开"}
+                </span>
+              </button>
+              {showSelfEvaluation && <SelfEvaluationBoard childProfiles={selfEvaluationChildren} />}
             </section>
 
             <section className="space-y-3">
-              <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">孩子档案</p>
-                <p className="text-xs text-muted-foreground">孩子信息不需要每天改，但需要长期保持准确。</p>
-              </div>
-              <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-                <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
-                <ChildManagement
-                  childProfiles={managedChildren}
-                  setChildren={setManagedChildren}
-                  selectedChildId={selectedChildId}
-                  onSelectChild={setSelectedChildId}
-                />
-              </div>
-            </section>
-
-            <section className="space-y-3">
-              <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">长期规划</p>
-                <p className="text-xs text-muted-foreground">把成长趋势、教育路线图和三孩管理节奏放在同一个长期视图。</p>
-              </div>
-              <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
-                <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
-                <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
-              </div>
-              <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+              <button
+                type="button"
+                className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-3 text-left"
+                onClick={() => setShowArchiveReview((current) => !current)}
+              >
+                <span>
+                  <span className="block text-xs font-medium text-muted-foreground">档案与回顾</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">孩子档案、成长趋势和教育路线图，月度/季度查看即可。</span>
+                </span>
+                <span className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  {showArchiveReview ? "收起" : "展开"}
+                </span>
+              </button>
+              {showArchiveReview && (
+                <div className="space-y-5">
+                  <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+                    <ChildProfile child={selectedChild} records={learningRecords} goals={roadmapGoals} />
+                    <ChildManagement
+                      childProfiles={managedChildren}
+                      setChildren={setManagedChildren}
+                      selectedChildId={selectedChildId}
+                      onSelectChild={setSelectedChildId}
+                    />
+                  </div>
+                  <div className="grid min-w-0 gap-5 xl:grid-cols-[420px_minmax(0,1fr)]">
+                    <GrowthSummary childProfiles={managedChildren} records={learningRecords} goals={roadmapGoals} />
+                    <EducationRoadmap goals={roadmapGoals} childProfiles={managedChildren} onGoalsChange={setRoadmapGoals} />
+                  </div>
+                  <ThreeChildOperatingMatrix childProfiles={managedChildren} plans={childOperatingPlans} />
+                </div>
+              )}
             </section>
           </>
         )}
@@ -411,15 +431,15 @@ export default function Home() {
           <>
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">初始化资料</p>
-                <p className="text-xs text-muted-foreground">用于第一次和家长对齐学校、固定课表、重要日期和关注点。</p>
+                <p className="text-sm font-medium text-foreground">账号与分享</p>
+                <p className="text-xs text-muted-foreground">家长主入口和家教反馈入口都从这里管理。</p>
               </div>
-              <FamilyIntakeWorkspace childProfiles={managedChildren} />
+              <ShareLinksCard />
             </section>
 
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">备份与导出</p>
+                <p className="text-sm font-medium text-foreground">数据与导出</p>
                 <p className="text-xs text-muted-foreground">导出周报、JSON 备份和 iOS 日历文件，便于长期留存。</p>
               </div>
               <ExportPreviewCenter
@@ -433,18 +453,18 @@ export default function Home() {
 
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">分享入口</p>
-                <p className="text-xs text-muted-foreground">把家长入口装到手机；家教老师只分享课后反馈链接。</p>
+                <p className="text-sm font-medium text-foreground">应用安装</p>
+                <p className="text-xs text-muted-foreground">把网页添加到 iPhone 主屏幕，让家长像 App 一样打开。</p>
               </div>
-              <ShareLinksCard />
+              <PwaInstallCard />
             </section>
 
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">手机安装</p>
-                <p className="text-xs text-muted-foreground">把网页添加到 iPhone 主屏幕，让家长像 App 一样打开。</p>
+                <p className="text-sm font-medium text-foreground">初始化资料</p>
+                <p className="text-xs text-muted-foreground">低频维护：第一次对齐学校、固定课表、重要日期和关注点时使用。</p>
               </div>
-              <PwaInstallCard />
+              <FamilyIntakeWorkspace childProfiles={managedChildren} />
             </section>
           </>
         )}
