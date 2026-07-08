@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, Download, FileUp, ImagePlus, LibraryBig, Pencil, Trash2, UploadCloud, X } from "lucide-react";
+import { Camera, Download, FileUp, ImagePlus, LibraryBig, Pencil, Plus, Trash2, UploadCloud, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,13 @@ function formatFileSize(size?: number) {
   if (!size) return "未记录大小";
   if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function formatMaterialDate(value: string) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "short",
+    day: "numeric"
+  }).format(new Date(value));
 }
 
 function splitTags(value: string) {
@@ -135,6 +142,39 @@ async function deleteLocalFile(blobId: string) {
   });
 }
 
+async function compressImageFile(file: File) {
+  if (!file.type.startsWith("image/")) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxSide = 1600;
+    const ratio = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    if (ratio === 1) return file;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * ratio);
+    canvas.height = Math.round(bitmap.height * ratio);
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+
+    const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, outputType, 0.82));
+    if (!blob || blob.size >= file.size) return file;
+
+    const extension = outputType === "image/png" ? "png" : "jpg";
+    const fileName = file.name.replace(/\.[^/.]+$/, "") || "material";
+    return new File([blob], `${fileName}-compressed.${extension}`, {
+      type: outputType,
+      lastModified: Date.now()
+    });
+  } catch {
+    return file;
+  }
+}
+
 export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child[] }) {
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [form, setForm] = useState<MaterialFormState>(() => createInitialForm(childProfiles));
@@ -142,6 +182,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   const [status, setStatus] = useState("");
   const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showUploadPanel, setShowUploadPanel] = useState(false);
+  const [activeChildFilter, setActiveChildFilter] = useState<"all" | "family" | string>("all");
+  const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>({});
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -176,7 +219,57 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
     window.localStorage.setItem(metadataStorageKey, JSON.stringify(materials));
   }, [materials]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const objectUrls: string[] = [];
+
+    async function loadThumbnails() {
+      const nextUrls: Record<string, string> = {};
+      const imageMaterials = materials.filter((material) => material.mimeType?.startsWith("image/"));
+
+      await Promise.all(
+        imageMaterials.map(async (material) => {
+          try {
+            if (material.localBlobId) {
+              const blob = await getLocalFile(material.localBlobId);
+              if (!blob) return;
+              const objectUrl = URL.createObjectURL(blob);
+              objectUrls.push(objectUrl);
+              nextUrls[material.id] = objectUrl;
+              return;
+            }
+
+            if (isPrivateApiMode() && !material.id.startsWith("local-")) {
+              const data = await getPrivateApi<{ url: string }>(`/api/private/materials?materialId=${encodeURIComponent(material.id)}`);
+              nextUrls[material.id] = data.url;
+            }
+          } catch {
+            // Thumbnail loading is a preview nicety; opening the material still uses the normal download path.
+          }
+        })
+      );
+
+      if (!cancelled) setThumbnailUrls(nextUrls);
+    }
+
+    loadThumbnails();
+
+    return () => {
+      cancelled = true;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [materials]);
+
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
+  const filteredMaterials = useMemo(() => {
+    return materials
+      .filter((material) => {
+        if (activeChildFilter === "all") return true;
+        if (activeChildFilter === "family") return !material.childId;
+        return material.childId === activeChildFilter;
+      })
+      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+  }, [activeChildFilter, materials]);
 
   function resetForm(formElement?: HTMLFormElement | null) {
     setForm(createInitialForm(childProfiles));
@@ -200,10 +293,12 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
     });
     setStatus("正在编辑资料索引；如需替换文件，请先删除后重新上传。");
     setShowAdvanced(true);
+    setShowUploadPanel(true);
   }
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const nextFile = event.target.files?.[0] ?? null;
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0] ?? null;
+    const nextFile = selectedFile ? await compressImageFile(selectedFile) : null;
     setFile(nextFile);
 
     if (nextFile) {
@@ -213,6 +308,9 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
         subject: current.subject || "未分类",
         kind: "file"
       }));
+      if (selectedFile && nextFile.size < selectedFile.size) {
+        setStatus(`已压缩图片：${formatFileSize(selectedFile.size)} → ${formatFileSize(nextFile.size)}。`);
+      }
     }
   }
 
@@ -312,6 +410,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
       setMaterials((current) => [nextMaterial, ...current]);
       setStatus("已保存资料。");
       resetForm(event.currentTarget);
+      setShowUploadPanel(false);
       localSaved = true;
 
       if (!isPrivateApiMode()) return;
@@ -401,7 +500,7 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   }
 
   return (
-    <Card id="materials" className="overflow-hidden border-border bg-card shadow-none">
+    <Card id="materials" className="relative overflow-hidden border-border bg-card shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -409,18 +508,81 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
               <LibraryBig className="h-4 w-4 text-primary" />
               学习资料库
             </CardTitle>
-            <CardDescription>保存试卷、讲义、错题照片、阅读材料和链接；后续可导出为本地资料索引。</CardDescription>
+            <CardDescription>像相册一样沉淀试卷、讲义、错题照片和阅读材料；默认按时间倒序查看。</CardDescription>
           </div>
-          <Badge variant="outline" className="w-fit rounded-full bg-card">{materials.length} 份资料</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="w-fit rounded-full bg-card">{materials.length} 份资料</Badge>
+            <Button
+              type="button"
+              className="hidden h-9 rounded-full sm:inline-flex"
+              onClick={() => {
+                setEditingMaterialId(null);
+                setShowUploadPanel((current) => !current);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              上传资料
+            </Button>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[400px_minmax(0,1fr)]">
-        <form onSubmit={saveMaterial} className="rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
+      <CardContent className="space-y-4">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setActiveChildFilter("all")}
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
+              activeChildFilter === "all" ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            全部资料
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveChildFilter("family")}
+            className={cn(
+              "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
+              activeChildFilter === "family" ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            全家
+          </button>
+          {childProfiles.map((child) => {
+            const theme = getChildTheme(child);
+            const active = activeChildFilter === child.id;
+            return (
+              <button
+                key={child.id}
+                type="button"
+                onClick={() => setActiveChildFilter(child.id)}
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition",
+                  active ? "bg-card text-foreground shadow-sm" : "border-border bg-card text-muted-foreground"
+                )}
+                style={active ? { borderColor: theme.hex, ...theme.surfaceStyle } : undefined}
+              >
+                <span className="h-2 w-2 rounded-full" style={theme.dotStyle} />
+                {child.firstName}
+              </button>
+            );
+          })}
+        </div>
+
+        {(showUploadPanel || editingMaterialId) && (
+        <form onSubmit={saveMaterial} className="rounded-3xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
           <div className="grid gap-4">
             {editingMaterialId && (
               <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
                 正在编辑资料索引
-                <button type="button" onClick={() => resetForm()} className="inline-flex items-center gap-1 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setShowUploadPanel(false);
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-medium"
+                >
                   <X className="h-3.5 w-3.5" />
                   取消
                 </button>
@@ -657,61 +819,105 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
             {status && <p className="text-xs text-muted-foreground">{status}</p>}
           </div>
         </form>
+        )}
 
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-3xl border border-border bg-card p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">资料索引</p>
-              <p className="mt-1 text-xs text-muted-foreground">数据库保存文件本体，导出时生成可搜索索引。</p>
+              <p className="text-sm font-semibold">资料相册</p>
+              <p className="mt-1 text-xs text-muted-foreground">按时间倒序排列，先筛孩子，再打开或编辑资料。</p>
             </div>
-            <Badge variant="secondary" className="rounded-full">Storage</Badge>
+            <Badge variant="secondary" className="rounded-full">{filteredMaterials.length} 项</Badge>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {materials.map((material) => (
-              <div key={material.id} className="rounded-2xl border border-border bg-muted/60 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="rounded-full bg-card">{material.childId ? childById.get(material.childId) : "全家"}</Badge>
-                      <Badge variant="secondary" className="rounded-full">{kindLabels[material.kind] ?? material.kind}</Badge>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+            {filteredMaterials.map((material) => {
+              const child = childProfiles.find((item) => item.id === material.childId);
+              const theme = getChildTheme(child);
+              return (
+              <div key={material.id} className="group overflow-hidden rounded-3xl border border-border bg-muted/50 shadow-sm shadow-black/[0.02]">
+                <button
+                  type="button"
+                  onClick={() => downloadMaterial(material)}
+                  className="block w-full text-left"
+                  aria-label={`打开${material.title}`}
+                >
+                  <div
+                    className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted"
+                    style={material.childId ? theme.surfaceStyle : undefined}
+                  >
+                    <div className="absolute left-3 top-3 rounded-full bg-card/90 px-2 py-1 text-[11px] font-semibold text-foreground shadow-sm">
+                      {formatMaterialDate(material.createdAt)}
                     </div>
-                    <p className="mt-2 text-sm font-semibold">{material.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {material.subject} · {material.fileName ?? "链接/笔记"} · {formatFileSize(material.fileSize)}
-                    </p>
+                    {thumbnailUrls[material.id] ? (
+                      <div
+                        aria-hidden="true"
+                        className="h-full w-full bg-cover bg-center"
+                        style={{ backgroundImage: `url(${thumbnailUrls[material.id]})` }}
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card/90 shadow-sm ring-1 ring-border">
+                        {material.mimeType?.startsWith("image/") ? (
+                          <ImagePlus className="h-6 w-6 text-primary" />
+                      ) : material.kind === "link" || material.kind === "video" ? (
+                        <LibraryBig className="h-6 w-6 text-primary" />
+                      ) : (
+                        <FileUp className="h-6 w-6 text-muted-foreground" />
+                      )}
+                      </div>
+                    )}
                   </div>
+                  <div className="space-y-2 p-3">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant="outline" className="rounded-full bg-card text-[11px]">
+                        {material.childId ? childById.get(material.childId) : "全家"}
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-full text-[11px]">{kindLabels[material.kind] ?? material.kind}</Badge>
+                    </div>
+                    <div>
+                      <p className="line-clamp-2 text-sm font-semibold leading-5">{material.title}</p>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {material.subject} · {material.fileName ?? "链接/笔记"}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+                <div className="flex items-center justify-between border-t border-border/70 px-2 py-1.5">
+                  <span className="truncate px-1 text-[11px] text-muted-foreground">{formatFileSize(material.fileSize)}</span>
                   <div className="flex shrink-0 gap-1">
-                    <Button type="button" variant="ghost" size="icon" onClick={() => downloadMaterial(material)} aria-label="打开资料">
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadMaterial(material)} aria-label="打开资料">
                       <Download className="h-4 w-4 text-muted-foreground" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => editMaterial(material)} aria-label="编辑资料">
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => editMaterial(material)} aria-label="编辑资料">
                       <Pencil className="h-4 w-4 text-muted-foreground" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => deleteMaterial(material)} aria-label="删除资料">
+                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteMaterial(material)} aria-label="删除资料">
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </div>
                 </div>
-                {material.notes && <p className="mt-3 text-xs leading-5 text-muted-foreground">{material.notes}</p>}
-                {material.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {material.tags.map((tag) => (
-                      <span key={tag} className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
-            ))}
-            {materials.length === 0 && (
-              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground md:col-span-2">
+              );
+            })}
+            {filteredMaterials.length === 0 && (
+              <p className="rounded-2xl bg-muted/60 p-4 text-sm text-muted-foreground sm:col-span-3 xl:col-span-4">
                 还没有资料。今天可以先放一份试卷或讲义，让家长看到资料沉淀方式。
               </p>
             )}
           </div>
           <p className="mt-4 text-xs text-muted-foreground">私有在线版会把文件上传到 Supabase Storage；本地模式会保存在当前浏览器。</p>
         </div>
+        <Button
+          type="button"
+          className="fixed bottom-24 right-5 z-30 h-14 w-14 rounded-full shadow-lg shadow-primary/25 sm:hidden"
+          onClick={() => {
+            setEditingMaterialId(null);
+            setShowUploadPanel(true);
+            setTimeout(() => document.getElementById("materials")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+          }}
+          aria-label="上传资料"
+        >
+          <Camera className="h-5 w-5" />
+        </Button>
       </CardContent>
     </Card>
   );
