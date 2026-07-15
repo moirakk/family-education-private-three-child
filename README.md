@@ -163,6 +163,12 @@ Supabase Storage stores uploaded learning materials. The database stores metadat
 
 See [docs/README.md](docs/README.md) for the full documentation map.
 
+Repository governance:
+
+- [CHANGELOG.md](CHANGELOG.md) records major product and operations changes.
+- [SECURITY.md](SECURITY.md) defines private-data and credential-handling rules.
+- GitHub issues and pull requests include privacy and verification checklists.
+
 ## Local Development
 
 Use Node 22:

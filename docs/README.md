@@ -8,6 +8,8 @@ This folder contains product, architecture, deployment, and review notes for the
 | --- | --- |
 | [../README.md](../README.md) | Main repository overview, setup, deployment, and operating model |
 | [../ROADMAP.md](../ROADMAP.md) | Living product and engineering roadmap |
+| [../CHANGELOG.md](../CHANGELOG.md) | Human-readable history of major changes |
+| [../SECURITY.md](../SECURITY.md) | Private-data and credential-handling rules |
 | [private-product-code-map.md](private-product-code-map.md) | Code-level map of modules, APIs, and data flows |
 | [private-core-architecture.md](private-core-architecture.md) | Private-version architecture decisions |
 

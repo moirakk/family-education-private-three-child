@@ -2,9 +2,9 @@
 
 **这份文档是活文档，不是一次性交付物。** 之前几轮我分别发过 `family-education-audit.md`、`family-education-followup.md` 两份独立文档，那种"每轮开一个新文件"的方式已经不适合现在的节奏——从这份文档开始，状态直接在文档里更新（标记"已完成/进行中/未开始"），不再每轮新建文件。这份文档取代前两份，前两份可以归档或删除。
 
-**分支**：`main`
-**本次更新基准提交**：`15a5294 Add family and tutor share links`
-**验证**：`npm run typecheck && npm run lint && npm run test && npm run build` 全部通过
+**主分支**：`main`
+**当前维护基准提交**：`878978f Polish repository documentation`
+**标准验证**：`npm run typecheck && npm run lint && npm run test && npm run build`
 
 ---
 

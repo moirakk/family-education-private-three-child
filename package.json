@@ -2,7 +2,7 @@
   "name": "family-education-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "Production-ready MVP for managing education across multi-child households.",
+  "description": "Private family education operations workspace for a three-child household.",
   "engines": {
     "node": "22.x"
   },
