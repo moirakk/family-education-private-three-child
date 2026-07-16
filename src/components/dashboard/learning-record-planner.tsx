@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { BookOpenCheck, Pencil, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
@@ -59,6 +59,7 @@ export function LearningRecordPlanner({
   const [form, setForm] = useState<RecordFormState>(() => createInitialForm(childProfiles));
   const [syncStatus, setSyncStatus] = useState("");
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
@@ -109,11 +110,13 @@ export function LearningRecordPlanner({
   function resetForm() {
     setForm(createInitialForm(childProfiles));
     setEditingRecordId(null);
+    setShowForm(false);
     setShowAdvanced(false);
   }
 
   function editRecord(record: LearningRecord) {
     setEditingRecordId(record.id);
+    setShowForm(true);
     setForm({
       childId: record.childId,
       subject: record.subject,
@@ -199,25 +202,63 @@ export function LearningRecordPlanner({
               <BookOpenCheck className="h-4 w-4 text-primary" />
               记录学习
             </CardTitle>
-            <CardDescription>
-              手机上快速记一条学习内容，后续沉淀到成长摘要和周报。
-            </CardDescription>
           </div>
           <Badge variant="outline">{records.length} 条新增记录</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <form onSubmit={saveRecord} className="rounded-2xl border border-border bg-card p-4">
-          <div className="grid gap-3">
-            {editingRecordId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
-                正在编辑学习记录
-                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
-                  <X className="h-3.5 w-3.5" />
-                  取消
-                </button>
+      <CardContent className="space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold">最近记录</p>
+            <Button type="button" className="h-10 rounded-xl sm:w-auto" onClick={() => setShowForm(true)}>
+              + 记录学习
+            </Button>
+          </div>
+          {syncStatus && <p className="mt-3 text-xs text-muted-foreground">{syncStatus}</p>}
+          <div className="mt-4 grid gap-3">
+            {records.map((record) => (
+              <div key={record.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">{childById.get(record.childId)}</Badge>
+                    <Badge variant="secondary">{record.date}</Badge>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5">{record.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {record.subject} · {record.durationMinutes} 分钟 · 信心 {record.confidence}/5
+                    {record.score !== undefined ? ` · ${record.score} 分` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
+                  <Button type="button" variant="ghost" size="icon" onClick={() => editRecord(record)} aria-label="编辑学习记录">
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" onClick={() => deleteRecord(record.id)} aria-label="删除学习记录">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
+            ))}
+            {records.length === 0 && (
+              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
+                还没有新增学习记录。今天可以先记录 1-2 条真实学习事项，让家长看到成长追踪如何长期积累。
+              </p>
             )}
+          </div>
+        </div>
+
+        {showForm && (
+          <form onSubmit={saveRecord} className="rounded-2xl border border-border bg-card p-4">
+            <div className="grid gap-3">
+              {editingRecordId && (
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
+                  正在编辑学习记录
+                  <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
+                    <X className="h-3.5 w-3.5" />
+                    取消
+                  </button>
+                </div>
+              )}
             <div className="space-y-2">
               <Label>孩子</Label>
               <div className="grid grid-cols-3 gap-2">
@@ -365,43 +406,9 @@ export function LearningRecordPlanner({
             <Button type="submit" className="h-11 rounded-xl" disabled={!form.childId || !form.subject.trim() || !form.title.trim()}>
               {editingRecordId ? "保存学习记录修改" : "新增学习记录"}
             </Button>
-            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
-          </div>
-        </form>
-
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-sm font-semibold">最近记录</p>
-          <div className="mt-4 grid gap-3">
-            {records.map((record) => (
-              <div key={record.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline">{childById.get(record.childId)}</Badge>
-                    <Badge variant="secondary">{record.date}</Badge>
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-5">{record.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {record.subject} · {record.durationMinutes} 分钟 · 信心 {record.confidence}/5
-                    {record.score !== undefined ? ` · ${record.score} 分` : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
-                  <Button type="button" variant="ghost" size="icon" onClick={() => editRecord(record)} aria-label="编辑学习记录">
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => deleteRecord(record.id)} aria-label="删除学习记录">
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {records.length === 0 && (
-              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
-                还没有新增学习记录。今天可以先记录 1-2 条真实学习事项，让家长看到成长追踪如何长期积累。
-              </p>
-            )}
-          </div>
-        </div>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );

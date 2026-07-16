@@ -5,7 +5,7 @@ import { CalendarPlus, Pencil, Trash2, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -129,6 +129,7 @@ export function FamilyEventPlanner({
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [form, setForm] = useState<EventFormState>(initialForm);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
 
@@ -186,11 +187,13 @@ export function FamilyEventPlanner({
   function resetForm() {
     setForm(initialForm);
     setEditingEventId(null);
+    setShowForm(false);
     setShowAdvanced(false);
   }
 
   function editEvent(event: CalendarEvent) {
     setEditingEventId(event.id);
+    setShowForm(true);
     setForm({
       title: event.title,
       category: event.category,
@@ -292,25 +295,88 @@ export function FamilyEventPlanner({
               <CalendarPlus className="h-4 w-4 text-primary" />
               日程编辑器
             </CardTitle>
-            <CardDescription>
-              手机上快速补课表、考试、活动和家庭事项；新增内容会进入页面日历和 iOS 订阅。
-            </CardDescription>
           </div>
           <Badge variant="outline" className="w-fit rounded-full border-border bg-card">{events.length} 个新增事项</Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[400px_minmax(0,1fr)]">
-        <form onSubmit={saveEvent} className="rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
-          <div className="grid gap-4">
-            {editingEventId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
-                正在编辑日程
-                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
-                  <X className="h-3.5 w-3.5" />
-                  取消
-                </button>
+      <CardContent className="space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold">新增日程</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {selectedChildren.length > 0 ? `正在编辑：${selectedChildren.map((child) => child.firstName).join("、")}` : "先看本周事项，需要时再补充"}
+              </p>
+            </div>
+            <Button type="button" className="h-10 rounded-xl sm:w-auto" onClick={() => setShowForm(true)}>
+              + 新增日程
+            </Button>
+          </div>
+          {syncStatus && <p className="mt-3 text-xs text-muted-foreground">{syncStatus}</p>}
+          <div className="mt-4 grid gap-3">
+            {events.map((event) => (
+              <div key={event.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="rounded-full border-border bg-card">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
+                    <p className="min-w-0 line-clamp-2 text-sm font-semibold">{event.title}</p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {new Date(event.startsAt).toLocaleString("zh-CN", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
+                    {" · "}
+                    {event.location}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {event.childIds.map((childId) => {
+                      const child = childProfiles.find((profile) => profile.id === childId);
+                      if (!child) return null;
+                      const theme = getChildTheme(child);
+                      return (
+                        <span key={childId} className="flex items-center gap-1 rounded-full bg-card px-2 py-1 text-xs text-muted-foreground ring-1 ring-border">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>{child.firstName.slice(0, 1)}</AvatarFallback>
+                          </Avatar>
+                          {child.firstName}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => editEvent(event)} aria-label="编辑日程">
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
+            ))}
+            {events.length === 0 && (
+              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
+                还没有新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 日历订阅。
+              </p>
             )}
+          </div>
+        </div>
+
+        {showForm && (
+          <form onSubmit={saveEvent} className="rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/[0.02] sm:p-4">
+            <div className="grid gap-4">
+              {editingEventId && (
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
+                  正在编辑日程
+                  <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
+                    <X className="h-3.5 w-3.5" />
+                    取消
+                  </button>
+                </div>
+              )}
 
             <div className="rounded-2xl bg-muted/60 p-3">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">快速录入</p>
@@ -462,68 +528,9 @@ export function FamilyEventPlanner({
             <Button className="h-11 rounded-xl" type="submit" disabled={!form.title.trim() || !form.startsAt || form.childIds.length === 0}>
               {editingEventId ? "保存日程修改" : "新增到日历"}
             </Button>
-            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
-          </div>
-        </form>
-
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">新增日程</p>
-            <p className="text-xs text-muted-foreground">
-              {selectedChildren.length > 0 ? `正在编辑：${selectedChildren.map((child) => child.firstName).join("、")}` : "选择孩子后添加事项"}
-            </p>
-          </div>
-          <div className="mt-4 grid gap-3">
-            {events.map((event) => (
-              <div key={event.id} className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-muted/60 p-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="rounded-full border-border bg-card">{categoryOptions.find((category) => category.value === event.category)?.label}</Badge>
-                    <p className="min-w-0 line-clamp-2 text-sm font-semibold">{event.title}</p>
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {new Date(event.startsAt).toLocaleString("zh-CN", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit"
-                    })}
-                    {" · "}
-                    {event.location}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {event.childIds.map((childId) => {
-                      const child = childProfiles.find((profile) => profile.id === childId);
-                      if (!child) return null;
-                      const theme = getChildTheme(child);
-                      return (
-                        <span key={childId} className="flex items-center gap-1 rounded-full bg-card px-2 py-1 text-xs text-muted-foreground ring-1 ring-border">
-                          <Avatar className="h-4 w-4">
-                            <AvatarFallback style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>{child.firstName.slice(0, 1)}</AvatarFallback>
-                          </Avatar>
-                          {child.firstName}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => editEvent(event)} aria-label="编辑日程">
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" className="rounded-full" onClick={() => deleteEvent(event.id)} aria-label="删除日程">
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {events.length === 0 && (
-              <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
-                还没有新增日程。今天可以边和家长沟通边补，补完后立刻进入总览和 iOS 日历订阅。
-              </p>
-            )}
-          </div>
-        </div>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );
