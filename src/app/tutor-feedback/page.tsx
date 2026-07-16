@@ -134,7 +134,7 @@ export default function TutorFeedbackPage() {
             <div>
               <CardTitle className="text-2xl tracking-tight">家教课后反馈</CardTitle>
               <CardDescription className="mt-2 leading-6">
-                只填写本次课后反馈，不开放完整家庭工作台。必填项控制在 4 个以内。
+                只填写本次课后反馈，不开放完整家庭工作台。带 * 的为必填，其余可以跳过。
               </CardDescription>
             </div>
           </CardHeader>
@@ -145,7 +145,7 @@ export default function TutorFeedbackPage() {
                 <div className="mt-3 grid gap-3">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <Label>孩子</Label>
+                      <Label>孩子 *</Label>
                       <span className="text-xs text-muted-foreground">必选</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
@@ -174,7 +174,7 @@ export default function TutorFeedbackPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <Label htmlFor="tutor-name">老师姓名</Label>
+                      <Label htmlFor="tutor-name">老师姓名 *</Label>
                       <Input
                         id="tutor-name"
                         placeholder="例如：王老师"
@@ -184,7 +184,7 @@ export default function TutorFeedbackPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="subject">科目</Label>
+                      <Label htmlFor="subject">科目 *</Label>
                       <Input
                         id="subject"
                         placeholder="数学 / 英语"
@@ -215,7 +215,7 @@ export default function TutorFeedbackPage() {
 
               <section className="grid gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="focus">2. 本次重点</Label>
+                  <Label htmlFor="focus">2. 本次重点 *</Label>
                   <Textarea
                     id="focus"
                     placeholder="本节课讲了什么、解决了什么问题"

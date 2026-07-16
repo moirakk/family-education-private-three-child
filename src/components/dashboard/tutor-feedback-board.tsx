@@ -19,6 +19,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   const [feedbackItems, setFeedbackItems] = useState<TutorFeedback[]>([]);
   const [syncStatus, setSyncStatus] = useState("");
   const [tutorFeedbackUrl, setTutorFeedbackUrl] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
@@ -68,6 +69,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
 
   async function deleteFeedback(feedbackId: string) {
     const previousFeedback = feedbackItems;
+    setConfirmingDeleteId(null);
     setFeedbackItems((current) => current.filter((feedback) => feedback.id !== feedbackId));
 
     if (isPrivateApiMode() && !feedbackId.startsWith("local-")) {
@@ -137,9 +139,30 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                     {feedback.sessionDate} · {feedback.durationMinutes} 分钟 · 效果 {feedback.rating}/5
                   </p>
                 </div>
-                <Button type="button" variant="ghost" size="icon" className="shrink-0 rounded-full" onClick={() => deleteFeedback(feedback.id)} aria-label="删除家教反馈">
-                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                {confirmingDeleteId === feedback.id ? (
+                  <div className="flex shrink-0 flex-col items-end gap-2 rounded-2xl border border-destructive/20 bg-destructive/5 p-2 text-right sm:flex-row sm:items-center">
+                    <span className="text-xs font-medium text-destructive">删除这条反馈？</span>
+                    <div className="flex gap-1">
+                      <Button type="button" variant="destructive" size="sm" className="h-8 rounded-full px-3" onClick={() => deleteFeedback(feedback.id)}>
+                        确认删除
+                      </Button>
+                      <Button type="button" variant="ghost" size="sm" className="h-8 rounded-full px-3" onClick={() => setConfirmingDeleteId(null)}>
+                        取消
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 rounded-full"
+                    onClick={() => setConfirmingDeleteId(feedback.id)}
+                    aria-label="删除家教反馈"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
               </div>
               <p className="mt-3 text-sm leading-6 text-foreground">{feedback.focus}</p>
               {feedback.performance && <p className="mt-2 text-xs leading-5 text-muted-foreground">表现：{feedback.performance}</p>}
