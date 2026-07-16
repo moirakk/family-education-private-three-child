@@ -171,7 +171,7 @@ export function FamilyIntakeWorkspace({ childProfiles }: { childProfiles: Child[
           <div>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4 text-primary" />
-              家长现场补充工作台
+              孩子建档资料
             </CardTitle>
             <CardDescription>
               框架已经搭好，今天和家长见面时直接补学校、固定课表、重要日期和关注点。

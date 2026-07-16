@@ -461,7 +461,7 @@ export default function Home() {
 
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
-                <p className="text-sm font-medium text-foreground">初始化资料</p>
+                <p className="text-sm font-medium text-foreground">孩子建档资料</p>
                 <p className="text-xs text-muted-foreground">低频维护：第一次对齐学校、固定课表、重要日期和关注点时使用。</p>
               </div>
               <FamilyIntakeWorkspace childProfiles={managedChildren} />

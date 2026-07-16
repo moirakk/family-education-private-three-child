@@ -32,28 +32,37 @@ export function WeeklyOverview({ events, childProfiles }: { events: CalendarEven
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {events.map((event) => (
-            <div key={event.id} className="rounded-xl border border-border bg-muted/50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${categoryTone[event.category]}`} />
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{event.category}</span>
+          {events.map((event) => {
+            const singleChild = event.childIds.length === 1 ? childById.get(event.childIds[0]) : null;
+            const singleChildTheme = singleChild ? getChildTheme(singleChild) : null;
+
+            return (
+              <div
+                key={event.id}
+                className={`rounded-xl border border-border bg-muted/50 p-3 ${singleChild ? "border-l-[3px]" : ""}`}
+                style={singleChildTheme?.borderStyle}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${categoryTone[event.category]}`} />
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{event.category}</span>
+                </div>
+                <p className="mt-3 text-sm font-semibold">{event.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{format(new Date(event.startsAt), "EEE, h:mm a")}</p>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {event.childIds.map((childId) => {
+                    const child = childById.get(childId);
+                    const theme = getChildTheme(child);
+                    return (
+                      <span key={childId} className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border">
+                        {event.childIds.length > 1 && <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle" style={theme.dotStyle} />}
+                        {child?.firstName ?? "Family"}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-              <p className="mt-3 text-sm font-semibold">{event.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{format(new Date(event.startsAt), "EEE, h:mm a")}</p>
-              <div className="mt-3 flex flex-wrap gap-1">
-                {event.childIds.map((childId) => {
-                  const child = childById.get(childId);
-                  const theme = getChildTheme(child);
-                  return (
-                    <span key={childId} className="rounded-full bg-card px-2 py-0.5 text-xs text-muted-foreground ring-1 ring-border">
-                      <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle" style={theme.dotStyle} />
-                      {child?.firstName ?? "Family"}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

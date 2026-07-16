@@ -41,6 +41,8 @@ export function PwaInstallCard() {
     setIsStandalone(isStandaloneDisplay());
   }
 
+  if (isStandalone) return null;
+
   return (
     <Card className="border-border bg-card shadow-none">
       <CardHeader>

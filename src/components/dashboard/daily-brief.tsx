@@ -86,7 +86,7 @@ export function DailyBrief({
             {nextEvent ? "今天先看这一件。" : "今天节奏很干净。"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {nextEvent ? "先处理最近事项，再补学习记录和资料。" : "没有紧急事项，可以补一条学习记录，或者看看本周安排。"}
+            {nextEvent ? "先处理最近事项，再补学习记录和资料。" : "没有紧急事项。"}
           </p>
 
           {nextEvent ? (

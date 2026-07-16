@@ -80,6 +80,8 @@ export function TodayCommandCenter({
           <div className="mt-3 flex flex-col">
             {nextEvents.map((event, index) => {
               const urgency = getEventUrgency(event);
+              const singleChild = event.childIds.length === 1 ? childProfiles.find((profile) => profile.id === event.childIds[0]) : null;
+              const singleChildTheme = singleChild ? getChildTheme(singleChild) : null;
 
               return (
                 <button
@@ -87,15 +89,17 @@ export function TodayCommandCenter({
                   type="button"
                   onClick={() => onModeChange("week", "calendar")}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 text-left transition hover:bg-muted/40",
+                    "flex items-center gap-3 py-2.5 pl-2 text-left transition hover:bg-muted/40",
+                    singleChild && "border-l-[3px]",
                     index > 0 && "border-t border-border"
                   )}
+                  style={singleChildTheme?.borderStyle}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-foreground">{event.title}</p>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{formatEventTime(event.startsAt)}</span>
-                      {event.childIds.slice(0, 3).map((childId) => {
+                      {event.childIds.length > 1 && event.childIds.slice(0, 3).map((childId) => {
                         const child = childProfiles.find((profile) => profile.id === childId);
                         const theme = getChildTheme(child);
                         return <span key={childId} className="h-1.5 w-1.5 rounded-full" style={theme.dotStyle} />;

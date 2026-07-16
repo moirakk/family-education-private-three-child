@@ -59,7 +59,7 @@ export function ShareLinksCard() {
               <Link2 className="h-4 w-4 text-primary" />
               分享入口
             </CardTitle>
-            <CardDescription>家长直接打开工作台；家教老师只拿课后反馈链接。</CardDescription>
+            <CardDescription>家长直接打开主入口；家教老师只拿课后反馈链接。</CardDescription>
           </div>
           <Badge variant="outline" className="w-fit gap-1 rounded-full bg-card">
             <ShieldCheck className="h-3.5 w-3.5" />
@@ -90,7 +90,7 @@ export function ShareLinksCard() {
 
         <div className="rounded-2xl border border-border bg-muted/40 p-3">
           <p className="text-sm font-semibold text-foreground">家教反馈入口</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">这个链接只进入课后反馈页，不开放完整家庭工作台。</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">这个链接只进入课后反馈页，不开放完整家庭页面。</p>
           <p className="mt-3 break-all rounded-xl bg-card px-3 py-2 text-xs text-muted-foreground ring-1 ring-border">
             {links.tutorFeedbackUrl || "家教链接未配置"}
           </p>
