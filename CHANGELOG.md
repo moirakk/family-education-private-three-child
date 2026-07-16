@@ -4,6 +4,12 @@ This project follows a lightweight human-readable changelog. Dates use the Asia/
 
 ## 2026-07-16
 
+### Reliability
+
+- Corrected the full-backup script default production URL.
+- Updated the full-backup script so trusted-link parent mode can obtain a parent session without requiring `PRIVATE_PARENT_ACCESS_CODE`.
+- Aligned older operational docs with the current private GitHub repository and production URL.
+
 ### Repository
 
 - Reworked the repository README into a clearer product, architecture, setup, deployment, and operations entry point.

@@ -240,6 +240,8 @@ Create a full backup:
 npm run private:backup -- --out ./private-backups/latest
 ```
 
+The backup script uses `PRIVATE_PARENT_ACCESS_CODE` when present. In the current trusted-device `PRIVATE_PARENT_ACCESS_MODE=open` deployment, it can also obtain a parent session by visiting the app root.
+
 This creates:
 
 - `database-export.json`

@@ -5,7 +5,7 @@
 Private GitHub repository:
 
 ```text
-https://github.com/moirahoumiki/family-education-private-three-child
+https://github.com/moirakk/family-education-private-three-child
 ```
 
 Use this private repository for the three-child custom version. Do not deploy the public portfolio repository for private family use.
@@ -13,7 +13,7 @@ Use this private repository for the three-child custom version. Do not deploy th
 Current production URL:
 
 ```text
-https://family-education-private-three-chil.vercel.app
+https://family-education-private-three-child.vercel.app
 ```
 
 Latest production smoke status:
@@ -231,8 +231,8 @@ Add the same values from `.env.local` to Vercel:
 Deploy from:
 
 ```text
-Repository: moirahoumiki/family-education-private-three-child
-Branch: codex/private-three-child-pilot
+Repository: moirakk/family-education-private-three-child
+Branch: main
 ```
 
 Recommended Vercel import settings:
@@ -250,7 +250,7 @@ After deployment, run:
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://family-education-private-three-chil.vercel.app \
+  --base-url https://family-education-private-three-child.vercel.app \
   --parent-code "$PRIVATE_PARENT_ACCESS_CODE" \
   --calendar-token "<family_settings.calendar_token>" \
   --expect-ready \

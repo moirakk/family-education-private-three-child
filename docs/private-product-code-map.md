@@ -5,19 +5,19 @@
 当前线上地址：
 
 ```text
-https://family-education-private-three-chil.vercel.app
+https://family-education-private-three-child.vercel.app
 ```
 
 当前 GitHub 私有仓库：
 
 ```text
-https://github.com/moirahoumiki/family-education-private-three-child
+https://github.com/moirakk/family-education-private-three-child
 ```
 
 当前分支：
 
 ```text
-codex/private-three-child-pilot
+main
 ```
 
 ## 1. 一句话理解这个系统
@@ -522,13 +522,13 @@ flowchart TD
 私有仓库：
 
 ```text
-moirahoumiki/family-education-private-three-child
+moirakk/family-education-private-three-child
 ```
 
 当前分支：
 
 ```text
-codex/private-three-child-pilot
+main
 ```
 
 方法：
@@ -551,7 +551,7 @@ family-education-private-three-child
 生产 URL：
 
 ```text
-https://family-education-private-three-chil.vercel.app
+https://family-education-private-three-child.vercel.app
 ```
 
 方法：
@@ -648,7 +648,7 @@ npm run build
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://family-education-private-three-chil.vercel.app \
+  --base-url https://family-education-private-three-child.vercel.app \
   --expect-ready \
   --deep-private
 ```

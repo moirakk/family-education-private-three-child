@@ -8,7 +8,7 @@ import { loadLocalEnv } from "./private-env.mjs";
 
 loadLocalEnv();
 
-const defaultProductionUrl = "https://family-education-private-three-chil.vercel.app";
+const defaultProductionUrl = "https://family-education-private-three-child.vercel.app";
 
 function getArgValue(name) {
   const index = process.argv.indexOf(name);
@@ -33,7 +33,8 @@ function usage() {
   console.log("- --out <dir>        Output directory. Defaults to timestamped private-backup-*.");
   console.log("");
   console.log("Required env:");
-  console.log("- PRIVATE_PARENT_ACCESS_CODE or PRIVATE_ACCESS_CODE");
+  console.log("- PRIVATE_PARENT_ACCESS_CODE or PRIVATE_ACCESS_CODE when parent access mode is code.");
+  console.log("- In open parent access mode, the script can obtain a session by visiting the app root.");
   console.log("- NEXT_PUBLIC_SUPABASE_URL");
   console.log("- SUPABASE_SERVICE_ROLE_KEY");
   console.log("- SUPABASE_LEARNING_MATERIALS_BUCKET, defaults to learning-materials");
@@ -53,28 +54,46 @@ function collectCookies(response) {
   return cookies.map((cookie) => cookie.split(";")[0]).join("; ");
 }
 
-async function exportDatabase(baseUrl, outputRoot) {
+async function getParentSessionCookie(baseUrl) {
   const parentCode = process.env.PRIVATE_PARENT_ACCESS_CODE || process.env.PRIVATE_ACCESS_CODE;
-  if (!parentCode) throw new Error("PRIVATE_PARENT_ACCESS_CODE or PRIVATE_ACCESS_CODE is required");
 
-  const loginResponse = await fetch(new URL("/api/access", baseUrl), {
-    method: "POST",
-    redirect: "manual",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({
-      code: parentCode,
-      next: "/"
-    })
-  });
+  if (parentCode) {
+    const loginResponse = await fetch(new URL("/api/access", baseUrl), {
+      method: "POST",
+      redirect: "manual",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        code: parentCode,
+        next: "/"
+      })
+    });
 
-  if (loginResponse.status !== 303 && loginResponse.status !== 307) {
-    throw new Error(`Access login failed with status ${loginResponse.status}`);
+    if (loginResponse.status !== 303 && loginResponse.status !== 307) {
+      throw new Error(`Access login failed with status ${loginResponse.status}`);
+    }
+
+    const cookie = collectCookies(loginResponse);
+    if (!cookie.includes("family_private_session=")) throw new Error("Access login did not return a private session cookie.");
+    return cookie;
   }
 
-  const cookie = collectCookies(loginResponse);
-  if (!cookie.includes("family_private_session=")) throw new Error("Access login did not return a private session cookie.");
+  const openModeResponse = await fetch(new URL("/", baseUrl), {
+    method: "GET",
+    redirect: "manual"
+  });
+
+  const cookie = collectCookies(openModeResponse);
+  if (!cookie.includes("family_private_session=")) {
+    throw new Error("Could not obtain a private session. Set PRIVATE_PARENT_ACCESS_CODE or enable PRIVATE_PARENT_ACCESS_MODE=open.");
+  }
+
+  return cookie;
+}
+
+async function exportDatabase(baseUrl, outputRoot) {
+  const cookie = await getParentSessionCookie(baseUrl);
 
   const exportResponse = await fetch(new URL("/api/private/export", baseUrl), {
     headers: {

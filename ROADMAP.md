@@ -3,7 +3,7 @@
 **这份文档是活文档，不是一次性交付物。** 之前几轮我分别发过 `family-education-audit.md`、`family-education-followup.md` 两份独立文档，那种"每轮开一个新文件"的方式已经不适合现在的节奏——从这份文档开始，状态直接在文档里更新（标记"已完成/进行中/未开始"），不再每轮新建文件。这份文档取代前两份，前两份可以归档或删除。
 
 **主分支**：`main`
-**当前维护基准提交**：`878978f Polish repository documentation`
+**当前维护基准提交**：`a6bc90e Add repository governance docs`
 **标准验证**：`npm run typecheck && npm run lint && npm run test && npm run build`
 
 ---
@@ -18,6 +18,7 @@
 - [x] 资料库完成相册化第一版：孩子筛选、时间倒序网格、手机上传入口、图片压缩和图片缩略图预览已接入。
 - [x] 记录页完成分组：日常记录默认展开，孩子自评和档案与回顾折叠；自评入口只给伯杨保留；成长摘要在记录不足 4 周时显示"数据积累中"。
 - [x] 底部 tab 已将"更多"改为"设置"，内容按账号与分享、数据与导出、应用安装、初始化资料重新排序。
+- [x] 修正备份脚本默认生产域名；备份脚本已兼容当前 `PRIVATE_PARENT_ACCESS_MODE=open`，没有家长访问码时也能通过首页签发 parent session 后导出。
 
 上述事项均已进入当前主线；每轮代码改动继续以 typecheck、lint、test、build 作为合并前验证标准。
 

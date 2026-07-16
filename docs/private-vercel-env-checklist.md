@@ -11,7 +11,7 @@ family-education-private-three-child
 Production URL:
 
 ```text
-https://family-education-private-three-chil.vercel.app
+https://family-education-private-three-child.vercel.app
 ```
 
 Environment:
@@ -74,7 +74,7 @@ Redeploy the project, then run:
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://family-education-private-three-chil.vercel.app \
+  --base-url https://family-education-private-three-child.vercel.app \
   --expect-ready \
   --deep-private
 ```

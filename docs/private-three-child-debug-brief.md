@@ -63,7 +63,7 @@ npm run private:smoke -- --base-url http://127.0.0.1:3000 --expect-ready --deep-
 当前私有版分支：
 
 ```text
-codex/private-three-child-pilot
+main
 ```
 
 最近关键提交：

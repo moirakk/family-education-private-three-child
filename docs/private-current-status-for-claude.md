@@ -50,7 +50,7 @@ Node 目标版本：
 当前私用版在本地私有分支推进：
 
 ```text
-codex/private-three-child-pilot
+main
 ```
 
 最近核心提交：
