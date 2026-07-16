@@ -72,7 +72,7 @@ The expected daily pattern is intentionally small:
 
 For the next two weeks, avoid feature expansion. Only collect issues and fix actual blockers.
 
-Record observations in this shape:
+Use [private-observation-log.md](private-observation-log.md) as the living observation log. Record observations in this shape:
 
 | Date | Person | Device | What happened | Severity | Decision |
 | --- | --- | --- | --- | --- | --- |
@@ -125,6 +125,7 @@ If asking Fable or Claude to review the product, send:
 2. `README.md`.
 3. `ROADMAP.md`.
 4. This document.
-5. Screenshots from a real iPhone if available.
+5. `docs/private-observation-log.md`.
+6. Screenshots from a real iPhone if available.
 
 Ask reviewers to focus on production usability, privacy risks, and what should be observed during real family use. Avoid asking for new feature ideas until the two-week observation period has real feedback.
