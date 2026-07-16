@@ -23,6 +23,7 @@ This folder contains product, architecture, deployment, and review notes for the
 | [private-supabase-vercel-runbook.md](private-supabase-vercel-runbook.md) | Supabase + Vercel deployment runbook |
 | [private-vercel-env-checklist.md](private-vercel-env-checklist.md) | Vercel environment variable checklist |
 | [private-pwa-deployment-guide.md](private-pwa-deployment-guide.md) | iPhone PWA and iOS Calendar deployment guide |
+| [private-production-handoff-and-observation.md](private-production-handoff-and-observation.md) | Production handoff, parent/tutor setup, and two-week observation checklist |
 
 ## Product Planning
 
