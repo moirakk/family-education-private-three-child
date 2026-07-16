@@ -12,6 +12,7 @@ This project follows a lightweight human-readable changelog. Dates use the Asia/
 
 ### Repository
 
+- Added a redacted Fable review brief for UI, information architecture, and long-term-use review.
 - Reworked the repository README into a clearer product, architecture, setup, deployment, and operations entry point.
 - Added a documentation map in `docs/README.md`.
 - Added a pull request template with verification and privacy checks.

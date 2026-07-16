@@ -45,6 +45,7 @@ These files are useful when asking Claude, Fable, or another reviewer for analys
 | [claude-current-review-2026-06-23.md](claude-current-review-2026-06-23.md) | Security and architecture review brief |
 | [private-current-status-for-claude.md](private-current-status-for-claude.md) | Current-status handoff for external code review |
 | [private-three-child-debug-brief.md](private-three-child-debug-brief.md) | Debug-oriented overview |
+| [private-next-optimization-brief-for-fable.md](private-next-optimization-brief-for-fable.md) | Current Fable review brief for UI, IA, and long-term-use critique |
 
 ## Maintenance Notes
 
