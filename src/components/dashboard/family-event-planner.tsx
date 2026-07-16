@@ -121,10 +121,12 @@ function mapApiEvent(data: {
 
 export function FamilyEventPlanner({
   childProfiles,
-  onEventsChange
+  onEventsChange,
+  openFormRequest = 0
 }: {
   childProfiles: Child[];
   onEventsChange: (events: CalendarEvent[]) => void;
+  openFormRequest?: number;
 }) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [form, setForm] = useState<EventFormState>(initialForm);
@@ -132,6 +134,10 @@ export function FamilyEventPlanner({
   const [showForm, setShowForm] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [syncStatus, setSyncStatus] = useState("");
+
+  useEffect(() => {
+    if (openFormRequest > 0) setShowForm(true);
+  }, [openFormRequest]);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);

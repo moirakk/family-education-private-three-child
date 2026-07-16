@@ -50,10 +50,12 @@ function createInitialForm(childProfiles: Child[]): RecordFormState {
 
 export function LearningRecordPlanner({
   childProfiles,
-  onRecordsChange
+  onRecordsChange,
+  openFormRequest = 0
 }: {
   childProfiles: Child[];
   onRecordsChange: (records: LearningRecord[]) => void;
+  openFormRequest?: number;
 }) {
   const [records, setRecords] = useState<LearningRecord[]>([]);
   const [form, setForm] = useState<RecordFormState>(() => createInitialForm(childProfiles));
@@ -61,6 +63,10 @@ export function LearningRecordPlanner({
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    if (openFormRequest > 0) setShowForm(true);
+  }, [openFormRequest]);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);

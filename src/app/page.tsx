@@ -142,8 +142,14 @@ export default function Home() {
   const [showWeeklyReview, setShowWeeklyReview] = useState(false);
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
   const [showArchiveReview, setShowArchiveReview] = useState(false);
+  const [eventFormRequest, setEventFormRequest] = useState(0);
+  const [learningRecordFormRequest, setLearningRecordFormRequest] = useState(0);
+  const [materialUploadRequest, setMaterialUploadRequest] = useState(0);
 
   function handleModeChange(mode: DashboardMode, targetId?: string) {
+    if (targetId === "event-planner") setEventFormRequest((current) => current + 1);
+    if (targetId === "learning-records") setLearningRecordFormRequest((current) => current + 1);
+    if (targetId === "materials") setMaterialUploadRequest((current) => current + 1);
     const nextHash = targetId ?? mode;
     setActiveMode(mode);
     window.history.replaceState(null, "", `#${nextHash}`);
@@ -319,7 +325,11 @@ export default function Home() {
 
         {activeMode === "week" && (
           <>
-            <FamilyEventPlanner childProfiles={managedChildren} onEventsChange={setLocalCalendarEvents} />
+            <FamilyEventPlanner
+              childProfiles={managedChildren}
+              onEventsChange={setLocalCalendarEvents}
+              openFormRequest={eventFormRequest}
+            />
 
             <section className="space-y-3">
               <div className="flex flex-col gap-1 px-1">
@@ -368,8 +378,12 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground">高频入口只保留学习记录、资料库和家教反馈。</p>
               </div>
               <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-                <LearningRecordPlanner childProfiles={managedChildren} onRecordsChange={setLocalLearningRecords} />
-                <LearningMaterialsVault childProfiles={managedChildren} />
+                <LearningRecordPlanner
+                  childProfiles={managedChildren}
+                  onRecordsChange={setLocalLearningRecords}
+                  openFormRequest={learningRecordFormRequest}
+                />
+                <LearningMaterialsVault childProfiles={managedChildren} openUploadRequest={materialUploadRequest} />
               </div>
               <TutorFeedbackBoard childProfiles={managedChildren} />
             </section>

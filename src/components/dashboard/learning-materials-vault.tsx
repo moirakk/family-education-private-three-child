@@ -175,7 +175,13 @@ async function compressImageFile(file: File) {
   }
 }
 
-export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child[] }) {
+export function LearningMaterialsVault({
+  childProfiles,
+  openUploadRequest = 0
+}: {
+  childProfiles: Child[];
+  openUploadRequest?: number;
+}) {
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [form, setForm] = useState<MaterialFormState>(() => createInitialForm(childProfiles));
   const [file, setFile] = useState<File | null>(null);
@@ -188,6 +194,10 @@ export function LearningMaterialsVault({ childProfiles }: { childProfiles: Child
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const galleryInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (openUploadRequest > 0) setShowUploadPanel(true);
+  }, [openUploadRequest]);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(metadataStorageKey);

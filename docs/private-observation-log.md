@@ -35,6 +35,9 @@ Use the table below for lightweight notes. If something is reproducible or needs
 
 | Date | Reporter | Device | Flow | What happened | Severity | Action |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-07-16 | Moira | iPhone Safari | Local mobile smoke test | App opened successfully over the home LAN at `192.168.1.107:3000`; Today rendered without horizontal overflow. | Pass | Continue testing real entry flows on the same device. |
+| 2026-07-16 | Moira | iPhone Safari | Production launch | Both current `*.vercel.app` aliases were unreachable from the phone, while the LAN build worked. This isolates the blocker to public hosting/domain reachability rather than the application build. | Blocker | Provide a phone-reachable HTTPS production domain before parent handoff. |
+| 2026-07-16 | Codex | 390px mobile viewport | Quick entry | Header shortcuts originally navigated to the correct section but required a second tap to expand the form. Event, learning-record, and material shortcuts now open their forms directly; all three flows were rechecked with no horizontal overflow. | Annoying | Fixed and covered by the local mobile smoke test. |
 | TBD | Moira | iPhone PWA | Parent install | Confirm home-screen launch after production deployment | TBD | Observe |
 | TBD | Moira | iPhone PWA | Records upload | Upload one real learning material and confirm thumbnail/download | TBD | Observe |
 | TBD | Tutor | Mobile browser | Tutor feedback | Submit one real post-lesson feedback | TBD | Observe |
@@ -44,8 +47,10 @@ Use the table below for lightweight notes. If something is reproducible or needs
 
 - [ ] Parent opens the app from the iPhone home screen.
 - [ ] Parent can understand Today without explanation.
-- [ ] Parent can add or edit one event from Week.
-- [ ] Parent can upload one real material from Records.
+- [x] Parent can open the event form from Today or Week in one tap.
+- [ ] Parent can save or edit one real event from Week.
+- [x] Parent can open the material upload panel from Today in one tap.
+- [ ] Parent can upload one real material from Records and reopen it.
 - [ ] Tutor feedback link opens only the tutor page.
 - [ ] One tutor feedback submission appears in parent Records.
 - [ ] iOS Calendar subscription works on the parent phone.
