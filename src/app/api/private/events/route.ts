@@ -10,6 +10,9 @@ type EventPayload = {
   location?: string;
   description?: string;
   childIds?: string[];
+  allDay?: boolean;
+  recurrenceRule?: string;
+  recurrenceEnd?: string;
 };
 
 function mapEventRow(data: {
@@ -19,6 +22,10 @@ function mapEventRow(data: {
   starts_at: string;
   ends_at: string | null;
   location: string | null;
+  description: string | null;
+  recurrence_rule: string | null;
+  recurrence_end: string | null;
+  all_day: boolean;
 }, childIds: string[]) {
   return {
     id: data.id,
@@ -27,6 +34,10 @@ function mapEventRow(data: {
     starts_at: data.starts_at,
     ends_at: data.ends_at,
     location: data.location,
+    description: data.description,
+    recurrence_rule: data.recurrence_rule,
+    recurrence_end: data.recurrence_end,
+    all_day: data.all_day,
     childIds
   };
 }
@@ -56,8 +67,11 @@ export async function POST(request: Request) {
         ends_at: payload.endsAt ?? null,
         location: optionalString(payload.location) ?? "",
         description: optionalString(payload.description) ?? ""
+        ,recurrence_rule: optionalString(payload.recurrenceRule)
+        ,recurrence_end: optionalString(payload.recurrenceEnd)
+        ,all_day: Boolean(payload.allDay)
       })
-      .select("id,title,category,starts_at,ends_at,location")
+      .select("id,title,category,starts_at,ends_at,location,description,recurrence_rule,recurrence_end,all_day")
       .single();
 
     if (error) {
@@ -106,10 +120,13 @@ export async function PUT(request: Request) {
         ends_at: payload.endsAt ?? null,
         location: optionalString(payload.location) ?? "",
         description: optionalString(payload.description) ?? ""
+        ,recurrence_rule: optionalString(payload.recurrenceRule)
+        ,recurrence_end: optionalString(payload.recurrenceEnd)
+        ,all_day: Boolean(payload.allDay)
       })
       .eq("family_id", familyId)
       .eq("id", eventId)
-      .select("id,title,category,starts_at,ends_at,location")
+      .select("id,title,category,starts_at,ends_at,location,description,recurrence_rule,recurrence_end,all_day")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

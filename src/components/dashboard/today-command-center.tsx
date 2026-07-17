@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Check, MessageSquareText, SmilePlus, Upload } from "lucide-react";
+import { Check } from "lucide-react";
 import type { DashboardMode } from "@/components/dashboard/app-shell";
 import { getChildTheme } from "@/lib/child-theme";
 import type { CalendarEvent, Child } from "@/lib/types";
@@ -33,47 +33,25 @@ function formatEventTime(value: string) {
 export function TodayCommandCenter({
   childProfiles,
   events,
-  onModeChange
+  onModeChange,
+  selectedChildId
 }: {
   childProfiles: Child[];
   events: CalendarEvent[];
   onModeChange: (mode: DashboardMode, targetId?: string) => void;
+  selectedChildId?: string | null;
 }) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const nextEvents = sortEventsByUrgency(events.filter((event) => new Date(event.startsAt) >= todayStart)).slice(0, 3);
+  const visibleEvents = selectedChildId ? events.filter((event) => event.childIds.includes(selectedChildId)) : events;
+  const nextEvents = sortEventsByUrgency(visibleEvents.filter((event) => new Date(event.startsAt) >= todayStart)).slice(0, 3);
 
   return (
     <section className="rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-foreground">今日行动</p>
-          <p className="mt-1 text-xs text-muted-foreground">最常用的家长入口放在这里。</p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 sm:w-[320px]">
-          <button
-            type="button"
-            onClick={() => onModeChange("week", "event-planner")}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-          >
-            <CalendarPlus className="h-4 w-4" />
-            新增日程
-          </button>
-          <button
-            type="button"
-            onClick={() => onModeChange("records", "materials")}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-medium text-foreground transition hover:bg-muted/50"
-          >
-            <Upload className="h-4 w-4" />
-            上传资料
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-3 rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
+      <div className="rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-foreground">下一步提醒</p>
-          <span className="text-xs text-muted-foreground">按紧急度排序</span>
+          <button type="button" className="text-xs font-medium text-primary" onClick={() => onModeChange("week", "calendar")}>查看全部</button>
         </div>
 
         {nextEvents.length > 0 ? (
@@ -119,28 +97,9 @@ export function TodayCommandCenter({
               <Check className="h-3.5 w-3.5" />
               暂无近期提醒
             </p>
-            <p className="mt-1 pl-[22px] text-xs text-muted-foreground">补一条学习记录，让系统开始沉淀趋势。</p>
+            <p className="mt-1 pl-[22px] text-xs text-muted-foreground">目前没有需要处理的近期事项。</p>
           </div>
         )}
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => onModeChange("records", "self-evaluation")}
-            className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground hover:bg-muted/60"
-          >
-            <SmilePlus className="h-4 w-4" />
-            孩子自评
-          </button>
-          <button
-            type="button"
-            onClick={() => onModeChange("records", "tutor-feedback")}
-            className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 p-2.5 text-xs text-foreground hover:bg-muted/60"
-          >
-            <MessageSquareText className="h-4 w-4" />
-            家教反馈
-          </button>
-        </div>
       </div>
     </section>
   );

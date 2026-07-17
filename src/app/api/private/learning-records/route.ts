@@ -8,6 +8,9 @@ type LearningRecordPayload = {
   date?: string;
   durationMinutes?: number;
   score?: number;
+  maxScore?: number;
+  examType?: "quiz" | "monthly" | "midterm" | "final" | "other";
+  notes?: string;
   confidence?: number;
 };
 
@@ -30,9 +33,12 @@ export async function POST(request: Request) {
         record_date: payload.date || new Date().toISOString().slice(0, 10),
         duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
         score: numberOrNull(payload.score),
+        max_score: numberOrNull(payload.maxScore),
+        exam_type: payload.examType ?? "quiz",
+        notes: payload.notes?.trim() || null,
         confidence: scoreOneToFive(payload.confidence)
       })
-      .select("id,child_id,subject,title,record_date,duration_minutes,score,confidence,created_at")
+      .select("id,child_id,subject,title,record_date,duration_minutes,score,max_score,exam_type,notes,confidence,created_at")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -63,11 +69,14 @@ export async function PUT(request: Request) {
         record_date: payload.date || new Date().toISOString().slice(0, 10),
         duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
         score: numberOrNull(payload.score),
+        max_score: numberOrNull(payload.maxScore),
+        exam_type: payload.examType ?? "quiz",
+        notes: payload.notes?.trim() || null,
         confidence: scoreOneToFive(payload.confidence)
       })
       .eq("family_id", familyId)
       .eq("id", recordId)
-      .select("id,child_id,subject,title,record_date,duration_minutes,score,confidence,created_at")
+      .select("id,child_id,subject,title,record_date,duration_minutes,score,max_score,exam_type,notes,confidence,created_at")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

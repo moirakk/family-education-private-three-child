@@ -16,6 +16,9 @@ type GoalPayload = {
   status?: GoalStatus;
   progress?: number;
   milestones?: MilestonePayload[];
+  planType?: EducationGoal["planType"];
+  customType?: string;
+  syncToCalendar?: boolean;
 };
 
 type GoalRow = {
@@ -26,6 +29,9 @@ type GoalRow = {
   target_date: string | null;
   status: GoalStatus;
   progress: number;
+  plan_type?: EducationGoal["planType"] | null;
+  custom_type?: string | null;
+  sync_to_calendar?: boolean;
 };
 
 type MilestoneRow = {
@@ -36,7 +42,7 @@ type MilestoneRow = {
   completed_at: string | null;
 };
 
-const allowedStatuses = new Set<GoalStatus>(["planned", "in_progress", "achieved", "at_risk"]);
+const allowedStatuses = new Set<GoalStatus>(["planned", "in_progress", "achieved", "at_risk", "cancelled"]);
 
 function cleanStatus(value: unknown): GoalStatus {
   return typeof value === "string" && allowedStatuses.has(value as GoalStatus) ? (value as GoalStatus) : "planned";
@@ -83,7 +89,10 @@ function mapGoal(goal: GoalRow, milestones: MilestoneRow[]): EducationGoal {
       title: milestone.title,
       dueDate: milestone.due_date ?? "",
       completed: Boolean(milestone.completed_at)
-    }))
+    })),
+    planType: goal.plan_type ?? "other",
+    customType: goal.custom_type ?? undefined,
+    syncToCalendar: goal.sync_to_calendar ?? true
   };
 }
 
@@ -94,7 +103,7 @@ async function loadGoalWithMilestones(
 ) {
   const goalResult = await supabase
     .from("education_goals")
-    .select("id,child_id,title,subject,target_date,status,progress")
+    .select("id,child_id,title,subject,target_date,status,progress,plan_type,custom_type,sync_to_calendar")
     .eq("family_id", familyId)
     .eq("id", goalId)
     .single();
@@ -134,6 +143,9 @@ export async function POST(request: Request) {
         target_date: optionalString(payload.targetDate),
         status: cleanStatus(payload.status),
         progress: cleanProgress(payload.progress)
+        ,plan_type: payload.planType ?? "other"
+        ,custom_type: optionalString(payload.customType)
+        ,sync_to_calendar: payload.syncToCalendar !== false
       })
       .select("id")
       .single();
@@ -181,6 +193,9 @@ export async function PUT(request: Request) {
         target_date: optionalString(payload.targetDate),
         status: cleanStatus(payload.status),
         progress: cleanProgress(payload.progress)
+        ,plan_type: payload.planType ?? "other"
+        ,custom_type: optionalString(payload.customType)
+        ,sync_to_calendar: payload.syncToCalendar !== false
       })
       .eq("family_id", familyId)
       .eq("id", goalId)

@@ -1,381 +1,63 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
-import { CheckCircle2, Circle, Flag, Pencil, Plus, Trash2, X } from "lucide-react";
+import { CalendarDays, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, EducationGoal, GoalStatus } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-type GoalFormState = {
-  childId: string;
-  title: string;
-  subject: string;
-  targetDate: string;
-  status: GoalStatus;
-  progress: string;
-  milestonesText: string;
-};
+type PlanType = NonNullable<EducationGoal["planType"]>;
+type FormState = { childId: string; title: string; targetDate: string; planType: PlanType; customType: string; status: "planned" | "achieved" | "cancelled"; syncToCalendar: boolean };
+const planTypes: { value: PlanType; label: string }[] = [{ value: "exam", label: "考试" }, { value: "competition", label: "比赛" }, { value: "school", label: "升学" }, { value: "other", label: "其他" }];
+const statusLabels: Record<string, string> = { planned: "计划中", achieved: "已完成", cancelled: "已取消", in_progress: "计划中", at_risk: "计划中" };
+function today() { return new Date().toISOString().slice(0, 10); }
+function initial(children: Child[]): FormState { return { childId: children[0]?.id ?? "", title: "", targetDate: today(), planType: "exam", customType: "", status: "planned", syncToCalendar: true }; }
 
-const statusOptions: { value: GoalStatus; label: string }[] = [
-  { value: "planned", label: "计划中" },
-  { value: "in_progress", label: "推进中" },
-  { value: "achieved", label: "已达成" },
-  { value: "at_risk", label: "需关注" }
-];
-
-const statusLabels: Record<GoalStatus, string> = {
-  planned: "计划中",
-  in_progress: "推进中",
-  achieved: "已达成",
-  at_risk: "需关注"
-};
-
-function todayDate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function createInitialForm(childProfiles: Child[]): GoalFormState {
-  return {
-    childId: childProfiles[0]?.id ?? "",
-    title: "",
-    subject: "",
-    targetDate: todayDate(),
-    status: "planned",
-    progress: "0",
-    milestonesText: ""
-  };
-}
-
-function formatDate(value: string, pattern: string) {
-  if (!value) return "待定";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "待定" : format(date, pattern);
-}
-
-function serializeMilestones(goal: EducationGoal) {
-  return goal.milestones
-    .map((milestone) => `${milestone.dueDate || todayDate()} | ${milestone.title}${milestone.completed ? " | done" : ""}`)
-    .join("\n");
-}
-
-function parseMilestones(value: string) {
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      const parts = line.split("|").map((part) => part.trim());
-      const looksLikeDate = /^\d{4}-\d{2}-\d{2}$/.test(parts[0] ?? "");
-      const dueDate = looksLikeDate ? parts[0] : "";
-      const title = looksLikeDate ? parts[1] : parts[0];
-      const completedMarker = looksLikeDate ? parts[2] : parts[1];
-
-      return {
-        id: `local-milestone-${Date.now()}-${index}`,
-        title: title || "待补充里程碑",
-        dueDate,
-        completed: ["done", "完成", "yes", "true"].includes((completedMarker ?? "").toLowerCase())
-      };
-    });
-}
-
-function buildGoalFromForm(form: GoalFormState, goalId?: string): EducationGoal {
-  return {
-    id: goalId ?? `local-goal-${Date.now()}`,
-    childId: form.childId,
-    title: form.title.trim(),
-    subject: form.subject.trim() || "综合规划",
-    targetDate: form.targetDate || todayDate(),
-    status: form.status,
-    progress: Math.min(100, Math.max(0, Number(form.progress) || 0)),
-    milestones: parseMilestones(form.milestonesText)
-  };
-}
-
-export function EducationRoadmap({
-  goals,
-  childProfiles,
-  onGoalsChange
-}: {
-  goals: EducationGoal[];
-  childProfiles: Child[];
-  onGoalsChange?: (goals: EducationGoal[]) => void;
-}) {
-  const [roadmapGoals, setRoadmapGoals] = useState<EducationGoal[]>(goals);
-  const [form, setForm] = useState<GoalFormState>(() => createInitialForm(childProfiles));
-  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
-  const [syncStatus, setSyncStatus] = useState("");
-
-  useEffect(() => {
-    setRoadmapGoals(goals);
-  }, [goals]);
-
-  useEffect(() => {
-    onGoalsChange?.(roadmapGoals);
-  }, [onGoalsChange, roadmapGoals]);
-
-  const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
-
-  function resetForm() {
-    setForm(createInitialForm(childProfiles));
-    setEditingGoalId(null);
-  }
-
-  function updateGoals(nextGoals: EducationGoal[]) {
-    const sortedGoals = [...nextGoals].sort((a, b) => +new Date(a.targetDate) - +new Date(b.targetDate));
-    setRoadmapGoals(sortedGoals);
-    onGoalsChange?.(sortedGoals);
-  }
-
-  function editGoal(goal: EducationGoal) {
-    setEditingGoalId(goal.id);
-    setForm({
-      childId: goal.childId,
-      title: goal.title,
-      subject: goal.subject,
-      targetDate: goal.targetDate || todayDate(),
-      status: goal.status,
-      progress: String(goal.progress),
-      milestonesText: serializeMilestones(goal)
-    });
-    setSyncStatus("");
-  }
-
-  async function saveGoal(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!form.childId || !form.title.trim()) return;
-
-    const previousGoals = roadmapGoals;
-    const nextGoal = buildGoalFromForm(form, editingGoalId ?? undefined);
-
-    if (editingGoalId) {
-      updateGoals(roadmapGoals.map((goal) => (goal.id === editingGoalId ? nextGoal : goal)));
-      resetForm();
-
-      if (isPrivateApiMode() && !editingGoalId.startsWith("local-")) {
-        try {
-          setSyncStatus("正在同步路线图修改...");
-          const savedGoal = await putPrivateApi<EducationGoal>(
-            `/api/private/roadmap?goalId=${encodeURIComponent(editingGoalId)}`,
-            nextGoal
-          );
-          updateGoals(previousGoals.map((goal) => (goal.id === editingGoalId ? savedGoal : goal)));
-          setSyncStatus("路线图修改已同步到数据库。");
-        } catch (error) {
-          updateGoals(previousGoals);
-          setSyncStatus(error instanceof Error ? `修改失败，已恢复：${error.message}` : "修改失败，已恢复。");
-        }
-      }
-      return;
-    }
-
-    updateGoals([nextGoal, ...roadmapGoals]);
-    resetForm();
-
+export function EducationRoadmap({ goals, childProfiles, onGoalsChange }: { goals: EducationGoal[]; childProfiles: Child[]; onGoalsChange?: (goals: EducationGoal[]) => void }) {
+  const [items, setItems] = useState(goals);
+  const [form, setForm] = useState(() => initial(childProfiles));
+  const [selectedChild, setSelectedChild] = useState(childProfiles[0]?.id ?? "");
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [status, setStatus] = useState("");
+  useEffect(() => setItems(goals), [goals]);
+  const visible = useMemo(() => items.filter((item) => item.childId === selectedChild).sort((a, b) => a.targetDate.localeCompare(b.targetDate)), [items, selectedChild]);
+  const upcoming = visible.filter((item) => !["achieved", "cancelled"].includes(item.status));
+  const history = visible.filter((item) => ["achieved", "cancelled"].includes(item.status)).reverse();
+  function update(next: EducationGoal[]) { setItems(next); onGoalsChange?.(next); }
+  function reset() { setForm(initial(childProfiles)); setEditingId(null); setShowForm(false); }
+  function edit(item: EducationGoal) { setForm({ childId: item.childId, title: item.title, targetDate: item.targetDate || today(), planType: item.planType ?? "other", customType: item.customType ?? "", status: item.status === "achieved" || item.status === "cancelled" ? item.status : "planned", syncToCalendar: item.syncToCalendar !== false }); setEditingId(item.id); setShowForm(true); }
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (!form.childId || !form.title.trim() || !form.targetDate || (form.planType === "other" && !form.customType.trim())) { setStatus("请完整填写孩子、类型、事项名称和日期。" ); return; }
+    const next: EducationGoal = { id: editingId ?? `local-goal-${Date.now()}`, childId: form.childId, title: form.title.trim(), targetDate: form.targetDate, subject: form.planType === "other" ? form.customType.trim() : planTypes.find((item) => item.value === form.planType)?.label ?? "其他", status: form.status as GoalStatus, progress: form.status === "achieved" ? 100 : 0, milestones: [], planType: form.planType, customType: form.planType === "other" ? form.customType.trim() : undefined, syncToCalendar: form.syncToCalendar };
+    const previous = items; update(editingId ? items.map((item) => item.id === editingId ? next : item) : [...items, next]); reset();
     if (!isPrivateApiMode()) return;
-
-    try {
-      setSyncStatus("正在同步新目标到数据库...");
-      const savedGoal = await postPrivateApi<EducationGoal>("/api/private/roadmap", nextGoal);
-      updateGoals(roadmapGoals.map((goal) => goal.id === nextGoal.id ? savedGoal : goal).concat(savedGoal).filter((goal, index, all) => all.findIndex((item) => item.id === goal.id) === index));
-      setSyncStatus("新目标已同步到数据库。");
-    } catch (error) {
-      setSyncStatus(error instanceof Error ? `本机已保存，数据库同步失败：${error.message}` : "本机已保存，数据库同步失败。");
-    }
+    try { setStatus("正在保存成长计划..."); const saved = editingId ? await putPrivateApi<EducationGoal>(`/api/private/roadmap?goalId=${encodeURIComponent(editingId)}`, next) : await postPrivateApi<EducationGoal>("/api/private/roadmap", next); update((editingId ? previous.filter((item) => item.id !== editingId) : previous).concat(saved)); setStatus("成长计划已保存。" ); }
+    catch (error) { update(previous); setStatus(error instanceof Error ? `保存失败，已恢复：${error.message}` : "保存失败，已恢复。" ); }
   }
+  async function remove(id: string) { const previous = items; setConfirmDeleteId(null); update(items.filter((item) => item.id !== id)); if (!isPrivateApiMode() || id.startsWith("local-")) return; try { await deletePrivateApi(`/api/private/roadmap?goalId=${encodeURIComponent(id)}`); setStatus("成长计划已删除。" ); } catch (error) { update(previous); setStatus(error instanceof Error ? `删除失败：${error.message}` : "删除失败。" ); } }
+  return <Card id="roadmap" className="border-border bg-card shadow-none"><CardHeader><div className="flex items-center justify-between gap-3"><CardTitle>成长计划</CardTitle><Button onClick={() => setShowForm(true)}><Plus className="mr-2 h-4 w-4" />新增计划</Button></div></CardHeader><CardContent className="space-y-4">
+    <div className="grid grid-cols-3 gap-2">{childProfiles.map((child) => <button key={child.id} type="button" onClick={() => setSelectedChild(child.id)} className={cn("rounded-xl border p-2.5 text-sm", selectedChild === child.id ? "border-foreground bg-foreground text-background" : "border-border")}>{child.firstName}</button>)}</div>
+    <PlanList items={upcoming} edit={edit} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} remove={remove} />
+    {history.length ? <details className="rounded-2xl border border-border p-3"><summary className="cursor-pointer text-sm font-medium">历史计划（{history.length}）</summary><div className="mt-3"><PlanList items={history} edit={edit} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} remove={remove} /></div></details> : null}
+    {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
+    {showForm ? <form onSubmit={save} className="rounded-2xl border border-border p-4"><div className="mb-4 flex items-center justify-between"><p className="font-medium">{editingId ? "编辑计划" : "新增计划"}</p><button type="button" onClick={reset}><X className="h-4 w-4" /></button></div><div className="grid gap-4">
+      <div><Label>孩子 *</Label><div className="mt-2 grid grid-cols-3 gap-2">{childProfiles.map((child) => <button key={child.id} type="button" onClick={() => setForm((v) => ({ ...v, childId: child.id }))} className={cn("rounded-xl border p-2 text-sm", form.childId === child.id ? "border-foreground bg-foreground text-background" : "border-border")}>{child.firstName}</button>)}</div></div>
+      <div><Label>类型 *</Label><div className="mt-2 grid grid-cols-4 gap-2">{planTypes.map((item) => <button key={item.value} type="button" onClick={() => setForm((v) => ({ ...v, planType: item.value }))} className={cn("rounded-xl border p-2 text-sm", form.planType === item.value ? "border-foreground bg-foreground text-background" : "border-border")}>{item.label}</button>)}</div>{form.planType === "other" ? <Input className="mt-2" placeholder="自定义类型" value={form.customType} onChange={(e) => setForm((v) => ({ ...v, customType: e.target.value }))} /> : null}</div>
+      <div><Label htmlFor="plan-title">计划名称 *</Label><Input id="plan-title" placeholder="例如：KET 考试" value={form.title} onChange={(e) => setForm((v) => ({ ...v, title: e.target.value }))} /></div>
+      <div className="grid grid-cols-2 gap-3"><div><Label htmlFor="plan-date">日期 *</Label><Input id="plan-date" type="date" value={form.targetDate} onChange={(e) => setForm((v) => ({ ...v, targetDate: e.target.value }))} /></div><div><Label>状态</Label><select className="mt-2 h-10 w-full rounded-xl border border-border bg-card px-3 text-sm" value={form.status} onChange={(e) => setForm((v) => ({ ...v, status: e.target.value as FormState["status"] }))}><option value="planned">计划中</option><option value="achieved">已完成</option><option value="cancelled">已取消</option></select></div></div>
+      <label className="flex items-center justify-between rounded-xl border border-border p-3 text-sm"><span>同步到 iOS 日历</span><input type="checkbox" className="h-5 w-5" checked={form.syncToCalendar} onChange={(e) => setForm((v) => ({ ...v, syncToCalendar: e.target.checked }))} /></label>
+      <Button type="submit">保存计划</Button>
+    </div></form> : null}
+  </CardContent></Card>;
+}
 
-  async function deleteGoal(goalId: string) {
-    const previousGoals = roadmapGoals;
-    updateGoals(roadmapGoals.filter((goal) => goal.id !== goalId));
-    if (editingGoalId === goalId) resetForm();
-
-    if (isPrivateApiMode() && !goalId.startsWith("local-")) {
-      try {
-        setSyncStatus("正在从数据库删除目标...");
-        await deletePrivateApi(`/api/private/roadmap?goalId=${encodeURIComponent(goalId)}`);
-        setSyncStatus("目标已从数据库删除。");
-      } catch (error) {
-        updateGoals(previousGoals);
-        setSyncStatus(error instanceof Error ? `删除失败，已恢复：${error.message}` : "删除失败，已恢复。");
-      }
-    }
-  }
-
-  return (
-    <Card id="roadmap" className="border-border bg-card shadow-none">
-      <CardHeader>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle>教育路线图</CardTitle>
-            <CardDescription>按孩子管理目标、里程碑和测评准备节奏。</CardDescription>
-          </div>
-          <Badge variant="success" className="gap-1">
-            <Flag className="h-3 w-3" />
-            {roadmapGoals.length} 条路线
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <form onSubmit={saveGoal} className="rounded-2xl border border-border bg-card p-4">
-          <div className="grid gap-3">
-            {editingGoalId && (
-              <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
-                正在编辑路线
-                <button type="button" onClick={resetForm} className="inline-flex items-center gap-1 text-xs font-medium">
-                  <X className="h-3.5 w-3.5" />
-                  取消
-                </button>
-              </div>
-            )}
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="space-y-1.5">
-                <Label>孩子</Label>
-                <Select value={form.childId} onValueChange={(value) => setForm((current) => ({ ...current, childId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择孩子" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {childProfiles.map((child) => (
-                      <SelectItem key={child.id} value={child.id}>
-                        {child.firstName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="goal-date">目标日期</Label>
-                <Input
-                  id="goal-date"
-                  type="date"
-                  value={form.targetDate}
-                  onChange={(event) => setForm((current) => ({ ...current, targetDate: event.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="goal-title">目标</Label>
-              <Input
-                id="goal-title"
-                placeholder="例如：初一适应与数学基础稳定"
-                value={form.title}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="space-y-1.5">
-                <Label htmlFor="goal-subject">领域</Label>
-                <Input
-                  id="goal-subject"
-                  placeholder="数学 / 英语 / 综合"
-                  value={form.subject}
-                  onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>状态</Label>
-                <Select value={form.status} onValueChange={(value) => setForm((current) => ({ ...current, status: value as GoalStatus }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="goal-progress">进度百分比</Label>
-              <Input
-                id="goal-progress"
-                type="number"
-                min="0"
-                max="100"
-                value={form.progress}
-                onChange={(event) => setForm((current) => ({ ...current, progress: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="goal-milestones">里程碑</Label>
-              <Textarea
-                id="goal-milestones"
-                rows={5}
-                placeholder={"2026-07-15 | 完成入学准备清单\n2026-08-20 | 第一次阶段复盘 | done"}
-                value={form.milestonesText}
-                onChange={(event) => setForm((current) => ({ ...current, milestonesText: event.target.value }))}
-              />
-              <p className="text-xs text-muted-foreground">每行：日期 | 事项 | done，可不写 done。</p>
-            </div>
-            <Button type="submit" className="gap-2">
-              <Plus className="h-4 w-4" />
-              {editingGoalId ? "保存修改" : "新增目标"}
-            </Button>
-            {syncStatus && <p className="text-xs text-muted-foreground">{syncStatus}</p>}
-          </div>
-        </form>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {roadmapGoals.map((goal) => (
-            <div key={goal.id} className="rounded-2xl border border-border bg-card p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold">{goal.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {childById.get(goal.childId) ?? "未分配"} · {goal.subject || "综合规划"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <Badge variant={goal.status === "at_risk" ? "warning" : goal.status === "planned" ? "outline" : "secondary"}>
-                    {statusLabels[goal.status]}
-                  </Badge>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => editGoal(goal)} aria-label="编辑路线">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => void deleteGoal(goal.id)} aria-label="删除路线">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span>目标 {formatDate(goal.targetDate, "MMM d")}</span>
-                <span>{goal.progress}%</span>
-              </div>
-              <Progress value={goal.progress} className="mt-2" />
-              <div className="mt-4 space-y-3">
-                {goal.milestones.length === 0 ? (
-                  <p className="rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">暂无里程碑，家长会议后可补充。</p>
-                ) : (
-                  goal.milestones.map((milestone) => (
-                    <div key={milestone.id} className="flex items-start gap-2 text-sm">
-                      {milestone.completed ? (
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <Circle className="mt-0.5 h-4 w-4 text-muted-foreground/40" />
-                      )}
-                      <div>
-                        <p className="font-medium">{milestone.title}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(milestone.dueDate, "MMM d, yyyy")}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
+function PlanList({ items, edit, confirmDeleteId, setConfirmDeleteId, remove }: { items: EducationGoal[]; edit: (item: EducationGoal) => void; confirmDeleteId: string | null; setConfirmDeleteId: (id: string | null) => void; remove: (id: string) => void }) {
+  return <div className="space-y-2">{items.map((item) => <div key={item.id} className="rounded-2xl border border-border p-3"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{item.planType === "other" ? item.customType || "其他" : planTypes.find((type) => type.value === item.planType)?.label || item.subject}</Badge><Badge variant="secondary">{statusLabels[item.status]}</Badge>{item.syncToCalendar !== false ? <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" /> : null}</div><p className="mt-2 font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.targetDate}{item.status === "planned" && item.targetDate < today() ? " · 已逾期" : ""}</p></div>{confirmDeleteId === item.id ? <div className="flex flex-col gap-1"><Button size="sm" variant="destructive" onClick={() => remove(item.id)}>确认删除</Button><Button size="sm" variant="ghost" onClick={() => setConfirmDeleteId(null)}>取消</Button></div> : <div className="flex"><Button size="icon" variant="ghost" onClick={() => edit(item)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" onClick={() => setConfirmDeleteId(item.id)}><Trash2 className="h-4 w-4" /></Button></div>}</div></div>)}{!items.length ? <p className="rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">暂无计划。</p> : null}</div>;
 }

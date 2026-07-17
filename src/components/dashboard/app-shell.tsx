@@ -14,8 +14,8 @@ export type DashboardMode = "today" | "week" | "records" | "more";
 
 const modeItems = [
   { mode: "today" as const, label: "今天", mobileLabel: "今天", description: "今日事项和下一步", icon: LayoutDashboard },
-  { mode: "week" as const, label: "本周", mobileLabel: "本周", description: "日程、周报和日历", icon: CalendarDays },
-  { mode: "records" as const, label: "记录", mobileLabel: "记录", description: "学习、资料、反馈和档案", icon: BookOpen },
+  { mode: "week" as const, label: "日程", mobileLabel: "日程", description: "月历和家庭安排", icon: CalendarDays },
+  { mode: "records" as const, label: "记录", mobileLabel: "记录", description: "成绩、反馈和成长计划", icon: BookOpen },
   { mode: "more" as const, label: "设置", mobileLabel: "设置", description: "分享、备份和安装", icon: Settings }
 ];
 
@@ -24,7 +24,7 @@ const modeLabelByMode = new Map(modeItems.map((item) => [item.mode, item]));
 const quickAddByMode: Partial<Record<DashboardMode, { label: string; target: DashboardMode }>> = {
   today: { label: "新增日程", target: "week" },
   week: { label: "新增日程", target: "week" },
-  records: { label: "新增记录", target: "records" }
+  records: { label: "录入成绩", target: "records" }
 };
 
 const quickAddTargetIdByMode: Partial<Record<DashboardMode, string>> = {
@@ -108,7 +108,7 @@ export function AppShell({
         <div className="mt-auto pt-8">
           <div className="rounded-2xl border border-border bg-muted/40 p-3">
             <p className="text-xs font-medium text-foreground">私有家庭工作区</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">数据由访问码保护；日程、资料和反馈统一沉淀。</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">日程、成绩与家教反馈长期保存并定期备份。</p>
           </div>
         </div>
       </aside>

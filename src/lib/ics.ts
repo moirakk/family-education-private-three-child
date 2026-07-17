@@ -20,6 +20,11 @@ function formatIcsDate(value: string | Date) {
   return new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
+function formatIcsDay(value: string | Date) {
+  const date = new Date(value);
+  return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
 function addMinutes(value: string, minutes: number) {
   return new Date(new Date(value).getTime() + minutes * 60 * 1000);
 }
@@ -51,17 +56,25 @@ export function buildEducationCalendarIcs({
     const category = categoryLabels[event.category];
     const location = event.location.trim();
 
+    const startLine = event.allDay ? `DTSTART;VALUE=DATE:${formatIcsDay(event.startsAt)}` : `DTSTART:${formatIcsDate(event.startsAt)}`;
+    const endLine = event.allDay
+      ? `DTEND;VALUE=DATE:${formatIcsDay(new Date(new Date(event.startsAt).getTime() + 24 * 60 * 60 * 1000))}`
+      : `DTEND:${formatIcsDate(event.endsAt ? event.endsAt : addMinutes(event.startsAt, 60))}`;
     lines.push(
       "BEGIN:VEVENT",
       `UID:${escapeIcsText(event.id)}@family-education-dashboard.local`,
       `DTSTAMP:${now}`,
-      `DTSTART:${formatIcsDate(event.startsAt)}`,
-      `DTEND:${formatIcsDate(event.endsAt ? event.endsAt : addMinutes(event.startsAt, 45))}`,
+      startLine,
+      endLine,
       `SUMMARY:${escapeIcsText(event.title)}`,
       `DESCRIPTION:${escapeIcsText([childNames, category].filter(Boolean).join(" · "))}`,
       `CATEGORIES:${escapeIcsText(category)}`,
       "END:VEVENT"
     );
+
+    if (event.recurrenceRule) {
+      lines.splice(lines.length - 1, 0, `RRULE:${event.recurrenceRule}`);
+    }
 
     if (location) {
       lines.splice(lines.length - 2, 0, `LOCATION:${escapeIcsText(location)}`);

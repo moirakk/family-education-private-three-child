@@ -22,6 +22,10 @@ type EventRow = {
   starts_at: string;
   ends_at: string | null;
   location: string | null;
+  description?: string | null;
+  recurrence_rule?: string | null;
+  recurrence_end?: string | null;
+  all_day?: boolean;
 };
 
 type EventChildRow = {
@@ -37,6 +41,9 @@ type LearningRecordRow = {
   record_date: string;
   duration_minutes: number | null;
   score: number | null;
+  max_score?: number | null;
+  exam_type?: LearningRecord["examType"] | null;
+  notes?: string | null;
   confidence: number | null;
 };
 
@@ -48,6 +55,9 @@ type GoalRow = {
   target_date: string | null;
   status: GoalStatus;
   progress: number;
+  plan_type?: EducationGoal["planType"] | null;
+  custom_type?: string | null;
+  sync_to_calendar?: boolean;
 };
 
 type MilestoneRow = {
@@ -98,9 +108,9 @@ export async function GET() {
       supabase.from("families").select("id,name,timezone,locale").eq("id", familyId).single(),
       supabase.from("family_settings").select("family_id,calendar_name").eq("family_id", familyId).single(),
       supabase.from("children").select("id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas").eq("family_id", familyId).order("created_at"),
-      supabase.from("calendar_events").select("id,title,category,starts_at,ends_at,location").eq("family_id", familyId).order("starts_at"),
-      supabase.from("learning_records").select("id,child_id,subject,title,record_date,duration_minutes,score,confidence").eq("family_id", familyId).order("record_date", { ascending: false }),
-      supabase.from("education_goals").select("id,child_id,title,subject,target_date,status,progress").eq("family_id", familyId),
+      supabase.from("calendar_events").select("*").eq("family_id", familyId).order("starts_at"),
+      supabase.from("learning_records").select("*").eq("family_id", familyId).order("record_date", { ascending: false }),
+      supabase.from("education_goals").select("*").eq("family_id", familyId),
       supabase.from("resources").select("id,child_id,kind,title,subject,tags,updated_at").eq("family_id", familyId).order("updated_at", { ascending: false })
     ]);
 
@@ -154,6 +164,10 @@ export async function GET() {
           startsAt: event.starts_at,
           endsAt: event.ends_at ?? undefined,
           location: event.location ?? "",
+          notes: event.description ?? undefined,
+          recurrenceRule: event.recurrence_rule ?? undefined,
+          recurrenceEnd: event.recurrence_end ?? undefined,
+          allDay: Boolean(event.all_day),
           childIds: childIdsByEvent.get(event.id) ?? []
         })
       ),
@@ -166,6 +180,9 @@ export async function GET() {
           date: record.record_date,
           durationMinutes: record.duration_minutes ?? 0,
           score: record.score ?? undefined,
+          maxScore: record.max_score ?? undefined,
+          examType: record.exam_type ?? "quiz",
+          notes: record.notes ?? undefined,
           confidence: record.confidence ?? 3
         })
       ),
@@ -178,6 +195,9 @@ export async function GET() {
           targetDate: goal.target_date ?? "",
           status: goal.status,
           progress: goal.progress,
+          planType: goal.plan_type ?? "other",
+          customType: goal.custom_type ?? undefined,
+          syncToCalendar: goal.sync_to_calendar ?? true,
           milestones: (milestonesByGoal.get(goal.id) ?? []).map((milestone) => ({
             id: milestone.id,
             title: milestone.title,

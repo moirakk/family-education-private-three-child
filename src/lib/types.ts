@@ -21,6 +21,10 @@ export type CalendarEvent = {
   endsAt?: string;
   location: string;
   childIds: string[];
+  notes?: string;
+  allDay?: boolean;
+  recurrenceRule?: string;
+  recurrenceEnd?: string;
 };
 
 export type LearningRecord = {
@@ -31,10 +35,14 @@ export type LearningRecord = {
   date: string;
   durationMinutes: number;
   score?: number;
+  maxScore?: number;
+  examType?: "quiz" | "monthly" | "midterm" | "final" | "other";
+  notes?: string;
+  /** Legacy fields retained while old backups are still supported. */
   confidence: number;
 };
 
-export type GoalStatus = "planned" | "in_progress" | "achieved" | "at_risk";
+export type GoalStatus = "planned" | "in_progress" | "achieved" | "at_risk" | "cancelled";
 
 export type EducationGoal = {
   id: string;
@@ -50,6 +58,9 @@ export type EducationGoal = {
     dueDate: string;
     completed: boolean;
   }[];
+  planType?: "exam" | "competition" | "school" | "other";
+  customType?: string;
+  syncToCalendar?: boolean;
 };
 
 export type Resource = {

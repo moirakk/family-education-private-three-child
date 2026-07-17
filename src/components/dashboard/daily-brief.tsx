@@ -2,7 +2,7 @@ import { ChevronRight, Sparkles } from "lucide-react";
 import type { DashboardMode } from "@/components/dashboard/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { getChildTheme } from "@/lib/child-theme";
-import type { CalendarEvent, Child, LearningRecord } from "@/lib/types";
+import type { CalendarEvent, Child } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getEventUrgency, type Urgency } from "@/lib/urgency";
 
@@ -42,26 +42,25 @@ export function DailyBrief({
   events,
   onModeChange,
   onSelectChild,
-  records
+  selectedChildId
 }: {
   childProfiles: Child[];
   events: CalendarEvent[];
   onModeChange: (mode: DashboardMode, targetId?: string) => void;
   onSelectChild?: (childId: string) => void;
-  records: LearningRecord[];
+  selectedChildId?: string | null;
 }) {
   const today = new Date();
   const todayStart = startOfDay(today);
   const todayEnd = endOfDay(today);
-  const upcomingEvents = events.filter((event) => new Date(event.startsAt) >= todayStart);
+  const visibleEvents = selectedChildId ? events.filter((event) => event.childIds.includes(selectedChildId)) : events;
+  const upcomingEvents = visibleEvents.filter((event) => new Date(event.startsAt) >= todayStart);
   const todayEvents = upcomingEvents.filter((event) => new Date(event.startsAt) <= todayEnd);
   const nextEvent = upcomingEvents[0];
   const nextUrgency = nextEvent ? getEventUrgency(nextEvent, today) : null;
-  const totalMinutes = records.reduce((sum, record) => sum + record.durationMinutes, 0);
 
   function goToChild(childId: string) {
     onSelectChild?.(childId);
-    onModeChange("records", "children");
   }
 
   return (
@@ -77,16 +76,13 @@ export function DailyBrief({
               <span className="rounded-full border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
                 今日 {todayEvents.length}
               </span>
-              <span className="rounded-full border border-border bg-card px-2 py-1 text-[11px] text-muted-foreground">
-                {totalMinutes}m
-              </span>
             </div>
           </div>
           <h2 className="mt-2 font-voice text-2xl leading-snug text-foreground sm:text-[1.7rem]">
-            {nextEvent ? "今天先看这一件。" : "今天节奏很干净。"}
+            {nextEvent ? "下一项安排" : "今天没有安排"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {nextEvent ? "先处理最近事项，再补学习记录和资料。" : "没有紧急事项。"}
+            {nextEvent ? `${formatTime(nextEvent.startsAt)} · ${nextEvent.title}` : "可以从新增日程开始安排。"}
           </p>
 
           {nextEvent ? (
@@ -119,7 +115,10 @@ export function DailyBrief({
                 key={child.id}
                 type="button"
                 onClick={() => goToChild(child.id)}
-                className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-muted/40 px-2.5 py-2 text-left transition hover:bg-muted/70"
+                className={cn(
+                  "flex min-w-0 items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition hover:bg-muted/70",
+                  selectedChildId === child.id ? "border-foreground bg-muted" : "border-border bg-muted/40"
+                )}
               >
                 <span
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium"
