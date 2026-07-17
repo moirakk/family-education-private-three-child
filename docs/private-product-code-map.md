@@ -5,8 +5,10 @@
 当前线上地址：
 
 ```text
-https://family-education-private-three-child.vercel.app
+https://bzs-family-edu.netlify.app
 ```
+
+> 生产运营以 `docs/private-production-runbook.md` 为准。本文件中保留的 Vercel 内容记录了早期部署阶段，当前仅作为备用托管参考。
 
 当前 GitHub 私有仓库：
 
@@ -26,10 +28,10 @@ main
 
 它不是本地 demo，而是：
 
-- 页面部署在 Vercel
+- 页面正式部署在 Netlify，Vercel 仅作备用
 - 数据存在 Supabase PostgreSQL
 - 学习资料文件存在 Supabase Storage
-- 家长通过访问码进入
+- 家长通过不公开的正式链接进入
 - 家教通过独立访问码进入反馈页
 - iPhone 可以添加到主屏幕，当作网页 App 使用
 - iOS Calendar 可以订阅系统日程
@@ -540,7 +542,7 @@ main
 
 - 伯仲叔定制版不会公开暴露。
 
-### 15.2 Vercel
+### 15.2 Netlify 正式部署与 Vercel 备用
 
 项目：
 
@@ -548,17 +550,17 @@ main
 family-education-private-three-child
 ```
 
-生产 URL：
+正式生产 URL：
 
 ```text
-https://family-education-private-three-child.vercel.app
+https://bzs-family-edu.netlify.app
 ```
 
 方法：
 
-- Vercel 连接项目。
+- Netlify 连接 GitHub `main` 并自动部署。
 - 手动导入 `.env.local` 环境变量。
-- `npx vercel --prod --yes` 部署。
+- Vercel 保留为需要时手动部署的备用。
 
 效果：
 
@@ -589,7 +591,7 @@ docs/private-vercel-env-checklist.md
 
 效果：
 
-- 本地和 Vercel 使用同一套配置。
+- 本地和 Netlify 使用同一套配置。
 - 密钥不进入 GitHub。
 
 ## 16. 备份和恢复
@@ -648,7 +650,7 @@ npm run build
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://family-education-private-three-child.vercel.app \
+  --base-url https://bzs-family-edu.netlify.app \
   --expect-ready \
   --deep-private
 ```

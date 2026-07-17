@@ -20,8 +20,10 @@ This folder contains product, architecture, deployment, and review notes for the
 | [private-supabase-schema.sql](private-supabase-schema.sql) | PostgreSQL schema, constraints, indexes, RLS policies, and calendar feed RPC |
 | [private-supabase-storage.sql](private-supabase-storage.sql) | Storage bucket and policy setup |
 | [private-pilot-seed-template.sql](private-pilot-seed-template.sql) | Initial private-family seed template |
-| [private-supabase-vercel-runbook.md](private-supabase-vercel-runbook.md) | Supabase + Vercel deployment runbook |
-| [private-vercel-env-checklist.md](private-vercel-env-checklist.md) | Vercel environment variable checklist |
+| [private-production-runbook.md](private-production-runbook.md) | Canonical Netlify, Supabase, release, backup, and incident runbook |
+| [private-production-mobile-acceptance.md](private-production-mobile-acceptance.md) | Real iPhone production acceptance checklist |
+| [private-supabase-vercel-runbook.md](private-supabase-vercel-runbook.md) | Legacy detailed Supabase + Vercel setup reference |
+| [private-vercel-env-checklist.md](private-vercel-env-checklist.md) | Legacy Vercel fallback environment checklist |
 | [private-pwa-deployment-guide.md](private-pwa-deployment-guide.md) | iPhone PWA and iOS Calendar deployment guide |
 | [private-production-handoff-and-observation.md](private-production-handoff-and-observation.md) | Production handoff, parent/tutor setup, and two-week observation checklist |
 | [private-observation-log.md](private-observation-log.md) | Living observation log for real parent/tutor use |
@@ -53,5 +55,6 @@ These files are useful when asking Claude, Fable, or another reviewer for analys
 
 - `README.md` is the canonical public-facing/private-repo entry point.
 - `ROADMAP.md` is the living status tracker. Prefer updating it instead of adding a new one-off status file.
+- `private-production-runbook.md` is the canonical operations document. Older Vercel deployment documents are fallback references, not the family handoff source.
 - SQL files in this folder should be treated as operational artifacts. Changes to schema or storage policy should be reviewed carefully and tested against a non-production Supabase project first.
 - Review briefs may become stale. When in doubt, trust `README.md`, `ROADMAP.md`, and the source code over older external-review notes.

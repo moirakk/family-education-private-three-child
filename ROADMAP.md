@@ -5,6 +5,7 @@
 **主分支**：`main`
 **当前维护基准提交**：`a6bc90e Add repository governance docs`
 **标准验证**：`npm run typecheck && npm run lint && npm run test && npm run build`
+**当前正式家长入口**：`https://bzs-family-edu.netlify.app`
 
 ---
 
@@ -50,7 +51,7 @@
 
 **完成时间**：2026-07-06
 
-**备份来源**：生产站点 `https://family-education-private-three-child.vercel.app`
+**当时演练的备份来源（历史记录）**：`https://family-education-private-three-child.vercel.app`
 
 **本地备份目录**：`private-backups/restore-rehearsal-2026-07-06`
 
@@ -131,6 +132,7 @@
 ## 待决策清单
 
 - 设置页"同步数据库"按钮的用途需要向家长解释清楚或移除。
+- 两周真实使用后决定是否继续保留 Vercel 备用部署；观察期内家长只使用 Netlify 正式入口。
 
 ---
 

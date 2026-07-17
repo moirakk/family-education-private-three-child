@@ -8,7 +8,7 @@ import { loadLocalEnv } from "./private-env.mjs";
 
 loadLocalEnv();
 
-const defaultProductionUrl = "https://family-education-private-three-child.vercel.app";
+const defaultProductionUrl = "https://bzs-family-edu.netlify.app";
 
 function getArgValue(name) {
   const index = process.argv.indexOf(name);

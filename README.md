@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/moirakk/family-education-private-three-child/actions/workflows/ci.yml/badge.svg)
 
-Private family education operations workspace for a three-child household. Built with Next.js 15, TypeScript, TailwindCSS, Supabase PostgreSQL, Supabase Storage, and Vercel.
+Private family education operations workspace for a three-child household. Built with Next.js 15, TypeScript, TailwindCSS, Supabase PostgreSQL, and Supabase Storage. Netlify is the primary production host; Vercel is retained only as a fallback deployment target.
 
 This repository is the private custom family version. It is intentionally separate from the future public/commercial product track.
 
@@ -10,8 +10,9 @@ This repository is the private custom family version. It is intentionally separa
 
 Production is live:
 
-- App: [family-education-private-three-child.vercel.app](https://family-education-private-three-child.vercel.app/)
+- App: [bzs-family-edu.netlify.app](https://bzs-family-edu.netlify.app/)
 - Repository: [moirakk/family-education-private-three-child](https://github.com/moirakk/family-education-private-three-child)
+- Hosting: Netlify Free, deployed automatically from `main`
 - Current access model: parent workspace opens by private link on trusted devices; tutor feedback uses a code-bearing link.
 - Disaster recovery: one full backup -> fresh Supabase restore rehearsal has been completed.
 
@@ -286,19 +287,21 @@ Obsidian is useful for long-term reading, search, and archive review. It is not 
 
 ## Deployment
 
-Vercel production deploy:
+Primary production deployment:
+
+```text
+https://bzs-family-edu.netlify.app
+```
+
+Netlify is connected to the private GitHub repository and automatically deploys `main`. The production build uses `npm run build`, Node.js 22, and the environment variables documented in [docs/private-production-runbook.md](docs/private-production-runbook.md).
+
+Vercel remains an optional fallback host. A manual fallback deploy can be created with:
 
 ```bash
 npx vercel --prod --yes
 ```
 
-After deploy, make sure the correct production alias points to the new deployment:
-
-```bash
-npx vercel alias set <deployment-url> family-education-private-three-child.vercel.app
-```
-
-Known project naming quirk: the Vercel CLI has previously auto-aliased a typo domain missing the final `d` in `child`. Always verify the final production URL.
+Do not hand a fallback URL to parents unless it has passed the same mobile acceptance checklist as the primary Netlify URL.
 
 ## Quality Checklist
 
@@ -321,9 +324,10 @@ See [ROADMAP.md](ROADMAP.md).
 
 Near-term focus:
 
-- real-material upload verification
+- complete the real iPhone production acceptance checklist
+- real-material upload and reopen verification
 - scheduled backup automation
-- continued mobile UI polish
+- two-week real-use observation before further UI changes
 - stronger shared rate limiting if parent mode changes from open to code
 
 Commercial track remains separate and should not be mixed into this private deployment until multi-tenant auth, RLS, audit logs, and billing are intentionally designed.

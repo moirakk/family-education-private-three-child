@@ -20,7 +20,7 @@ function isHelp() {
 }
 
 function usage() {
-  console.log("Usage: npm run private:smoke -- --base-url https://your-domain.vercel.app [options]");
+  console.log("Usage: npm run private:smoke -- --base-url https://your-production-domain [options]");
   console.log("");
   console.log("Options:");
   console.log("- --parent-code <code>       Test private access login and protected dashboard.");

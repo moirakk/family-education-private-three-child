@@ -7,7 +7,7 @@
 ## 1. Review Links
 
 - 私有 GitHub 仓库：<https://github.com/moirakk/family-education-private-three-child>
-- 线上家长入口：<https://family-education-private-three-child.vercel.app/>
+- 线上家长入口：<https://bzs-family-edu.netlify.app/>
 - 家教反馈入口：`/tutor-feedback?code=<redacted-tutor-code>`
 
 安全说明：

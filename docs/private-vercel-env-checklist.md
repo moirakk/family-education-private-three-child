@@ -1,4 +1,6 @@
-# Vercel Environment Variables Checklist
+# Legacy Vercel Fallback Environment Variables Checklist
+
+> Vercel is no longer the canonical family host. Use `docs/private-production-runbook.md` for the active Netlify production environment. This file is retained only for rebuilding the engineering fallback.
 
 > Use this checklist to manually copy values from `.env.local` into Vercel. Do not paste these values into chat or commit them to Git.
 
@@ -8,11 +10,7 @@ Project:
 family-education-private-three-child
 ```
 
-Production URL:
-
-```text
-https://family-education-private-three-child.vercel.app
-```
+Fallback URL: verify the current alias in the Vercel dashboard before use. Do not share it with parents until it passes mobile acceptance.
 
 Environment:
 
@@ -74,7 +72,7 @@ Redeploy the project, then run:
 
 ```bash
 npm run private:smoke -- \
-  --base-url https://family-education-private-three-child.vercel.app \
+  --base-url https://your-current-vercel-fallback.example \
   --expect-ready \
   --deep-private
 ```

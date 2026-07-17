@@ -1,4 +1,6 @@
-# Private Supabase + Vercel Runbook
+# Legacy Private Supabase + Vercel Runbook
+
+> Legacy reference: the canonical production host is now Netlify. Use `docs/private-production-runbook.md` for current deployment, backup, and incident operations. Keep this document only for the older Vercel setup details.
 
 > Goal: make Family Education Management System persist data long-term for the private family version.
 
@@ -10,7 +12,7 @@ https://github.com/moirakk/family-education-private-three-child
 
 Use this private repository for the three-child custom version. Do not deploy the public portfolio repository for private family use.
 
-Current production URL:
+Historical Vercel production URL:
 
 ```text
 https://family-education-private-three-child.vercel.app

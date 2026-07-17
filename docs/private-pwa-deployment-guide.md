@@ -1,5 +1,7 @@
 # 伯仲叔私有 PWA 交付部署指南
 
+> 当前正式部署与交付流程见 `docs/private-production-runbook.md` 和 `docs/private-production-mobile-acceptance.md`。本文保留早期 Vercel + 家长访问码方案作为历史参考，不再作为家长交付依据。
+
 > 目标：把你电脑上的定制版，变成家长可打开的私有链接。
 
 ## 最终交付形态

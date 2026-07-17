@@ -8,7 +8,9 @@ Do not paste secrets, access codes, calendar tokens, Supabase keys, or `.env.loc
 
 | Item | Status |
 | --- | --- |
-| Production URL | `https://family-education-private-three-child.vercel.app/` |
+| Production URL | `https://bzs-family-edu.netlify.app/` |
+| Primary hosting | Netlify Free, auto-deployed from GitHub `main` |
+| Fallback hosting | Vercel deployment retained for engineering fallback only |
 | GitHub repository | `https://github.com/moirakk/family-education-private-three-child` |
 | Parent access model | Trusted-device private link mode |
 | Tutor access model | Dedicated tutor feedback link with code-bearing URL |
@@ -43,6 +45,8 @@ Use this when installing the system on a parent device.
 8. Check the four bottom tabs: Today, Week, Records, Settings.
 9. In Settings, copy or verify the tutor feedback link if needed.
 10. Do not share the parent production URL outside trusted family devices.
+
+Use only the Netlify production URL for the family handoff. Do not mix primary and fallback URLs on parent devices.
 
 ## Tutor Handoff Flow
 
@@ -98,6 +102,8 @@ Run these checks during real use:
 - Tutor feedback appears in parent Records.
 - iOS Calendar subscription shows expected events.
 - Export/backup still works after real data exists.
+
+The detailed device-by-device steps are in [private-production-mobile-acceptance.md](private-production-mobile-acceptance.md).
 
 ## Known Decisions
 
