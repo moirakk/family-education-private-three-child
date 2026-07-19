@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { getAccessRoleFromRequest, jsonError } from "@/app/api/private/_utils";
+import {
+  assertChildBelongsToFamily,
+  getAccessRoleFromRequest,
+  getPrivateWriteContext,
+  jsonError,
+  requireString
+} from "@/app/api/private/_utils";
+import { createParentInviteToken, createTutorInviteToken } from "@/lib/private-access";
 
 function getRequestOrigin(request: Request) {
   const url = new URL(request.url);
@@ -22,15 +29,43 @@ export async function GET(request: Request) {
     }
 
     const origin = getRequestOrigin(request);
-    const tutorCode = process.env.PRIVATE_TUTOR_ACCESS_CODE;
-
+    const parentInviteToken = await createParentInviteToken();
     return NextResponse.json({
       data: {
-        parentUrl: `${origin}/`,
-        tutorFeedbackUrl: tutorCode ? `${origin}/tutor-feedback?code=${encodeURIComponent(tutorCode)}` : null
+        parentUrl: `${origin}/?family=${encodeURIComponent(parentInviteToken)}`,
+        tutorFeedbackUrl: null
       }
     });
   } catch (error) {
     return jsonError(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const role = getAccessRoleFromRequest(request);
+    if (role !== "parent" && role !== "caregiver") {
+      return NextResponse.json({ error: "Tutor links are only available to family operators." }, { status: 403 });
+    }
+
+    const payload = (await request.json()) as { childId?: string; tutorName?: string; subject?: string };
+    const childId = requireString(payload.childId, "childId");
+    const tutorName = requireString(payload.tutorName, "tutorName");
+    const subject = requireString(payload.subject, "subject");
+    if (tutorName.length > 60 || subject.length > 40) {
+      return NextResponse.json({ error: "Tutor name or subject is too long." }, { status: 400 });
+    }
+
+    const { familyId, supabase } = getPrivateWriteContext();
+    await assertChildBelongsToFamily(supabase, familyId, childId);
+
+    const inviteToken = await createTutorInviteToken({ childId, tutorName, subject });
+    return NextResponse.json({
+      data: {
+        tutorFeedbackUrl: `${getRequestOrigin(request)}/tutor-feedback?invite=${encodeURIComponent(inviteToken)}`
+      }
+    });
+  } catch (error) {
+    return jsonError(error, error instanceof Error && error.message.includes("required") ? 400 : 500);
   }
 }

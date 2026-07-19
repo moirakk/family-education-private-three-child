@@ -86,7 +86,7 @@ async function getParentSessionCookie(baseUrl) {
 
   const cookie = collectCookies(openModeResponse);
   if (!cookie.includes("family_private_session=")) {
-    throw new Error("Could not obtain a private session. Set PRIVATE_PARENT_ACCESS_CODE or enable PRIVATE_PARENT_ACCESS_MODE=open.");
+    throw new Error("Could not obtain a private session. Set PRIVATE_PARENT_ACCESS_CODE for automated backups.");
   }
 
   return cookie;

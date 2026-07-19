@@ -63,7 +63,7 @@ Current private-family decision:
 PRIVATE_PARENT_ACCESS_MODE=open
 ```
 
-The parent URL must therefore remain private. Tutor access continues through the dedicated code-bearing tutor link.
+In this deployment, `open` means signed-link mode: the family link grants a parent cookie without asking the parent to type a code, while the bare site origin does not grant dashboard access. Tutor access uses a separately signed link scoped to one child, tutor, and subject. Rotating the corresponding parent or tutor access code and redeploying revokes previously generated links.
 
 After changing any `NEXT_PUBLIC_*` variable, trigger a new production deploy because the value is embedded at build time.
 

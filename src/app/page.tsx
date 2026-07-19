@@ -189,7 +189,7 @@ export default function Home() {
         {activeMode === "more" ? (
           <>
             <CalendarSyncCard currentEvents={events} childProfiles={children} />
-            <ShareLinksCard />
+            <ShareLinksCard childProfiles={children} />
             <ExportPreviewCenter childProfiles={children} events={events} goals={goals} records={records} resources={resources} />
             <GradeSettings childProfiles={children} setChildren={setChildren} />
             <PwaInstallCard />

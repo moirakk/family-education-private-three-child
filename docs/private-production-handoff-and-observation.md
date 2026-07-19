@@ -13,7 +13,7 @@ Do not paste secrets, access codes, calendar tokens, Supabase keys, or `.env.loc
 | Fallback hosting | Vercel deployment retained for engineering fallback only |
 | GitHub repository | `https://github.com/moirakk/family-education-private-three-child` |
 | Parent access model | Trusted-device private link mode |
-| Tutor access model | Dedicated tutor feedback link with code-bearing URL |
+| Tutor access model | Signed link scoped to one child, tutor, and subject |
 | Database | Supabase PostgreSQL |
 | File storage | Supabase Storage bucket for learning materials |
 | Mobile install | PWA via Safari "Add to Home Screen" |

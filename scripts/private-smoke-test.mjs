@@ -24,7 +24,6 @@ function usage() {
   console.log("");
   console.log("Options:");
   console.log("- --parent-code <code>       Test private access login and protected dashboard.");
-  console.log("- --tutor-code <code>        Test tutor-limited access boundaries.");
   console.log("- --calendar-token <token>   Test real iOS webcal feed.");
   console.log("- --expect-ready             Require /api/health readyForPrivateDeploy=true.");
   console.log("- --deep-private             Test /api/private/export with the parent session cookie.");
@@ -32,20 +31,17 @@ function usage() {
   console.log("Env fallbacks:");
   console.log("- PRIVATE_SMOKE_BASE_URL");
   console.log("- PRIVATE_PARENT_ACCESS_CODE");
-  console.log("- PRIVATE_TUTOR_ACCESS_CODE");
   console.log("- PRIVATE_CALENDAR_TOKEN");
 }
 
 function createContext() {
   const baseUrl = new URL(getArgValue("--base-url") || process.env.PRIVATE_SMOKE_BASE_URL || defaultBaseUrl);
   const parentCode = getArgValue("--parent-code") || process.env.PRIVATE_PARENT_ACCESS_CODE || process.env.PRIVATE_ACCESS_CODE || "";
-  const tutorCode = getArgValue("--tutor-code") || process.env.PRIVATE_TUTOR_ACCESS_CODE || "";
   const calendarToken = getArgValue("--calendar-token") || process.env.PRIVATE_CALENDAR_TOKEN || "";
 
   return {
     baseUrl: baseUrl.origin,
     parentCode,
-    tutorCode,
     calendarToken,
     expectReady: hasArg("--expect-ready"),
     deepPrivate: hasArg("--deep-private"),
@@ -176,27 +172,6 @@ async function checkLogin(ctx) {
   return "session cookie issued";
 }
 
-async function loginWithCode(ctx, code, next = "/") {
-  const body = new URLSearchParams({
-    code,
-    next
-  });
-  const { response } = await fetchText(ctx, "/api/access", {
-    method: "POST",
-    body,
-    headers: {
-      "content-type": "application/x-www-form-urlencoded"
-    }
-  });
-
-  assert(response.status === 303 || response.status === 307, `expected redirect, got ${response.status}`);
-  const location = response.headers.get("location") || "";
-  assert(!location.includes(code), "redirect location leaked access code");
-  const cookie = collectCookies(response);
-  assert(cookie.includes("family_private_session="), "private session cookie missing");
-  return { cookie, location };
-}
-
 async function checkProtectedDashboard(ctx) {
   if (!ctx.parentCode) return "skipped; no parent code";
   const { response, text } = await fetchText(ctx, "/");
@@ -218,17 +193,36 @@ async function checkUnauthenticatedPrivateApi(ctx) {
 }
 
 async function checkTutorBoundaries(ctx) {
-  if (!ctx.tutorCode) return "skipped; no tutor code";
+  if (!ctx.parentCode || !ctx.cookie) return "skipped; no parent session";
 
   const originalCookie = ctx.cookie;
-  const { cookie, location } = await loginWithCode(ctx, ctx.tutorCode, "/");
-  assert(location.includes("/tutor-feedback"), "tutor login should redirect to tutor feedback");
-  ctx.cookie = cookie;
+  const snapshotResult = await fetchJson(ctx, "/api/private/snapshot");
+  const child = snapshotResult.json.data?.children?.[0];
+  assert(child?.id, "snapshot must contain a child for tutor link generation");
+
+  const linkResult = await fetchJson(ctx, "/api/private/share-links", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ childId: child.id, tutorName: "Smoke Test Tutor", subject: "数学" })
+  });
+  assert(linkResult.response.status === 200, `tutor link expected 200, got ${linkResult.response.status}`);
+  const tutorUrl = linkResult.json.data?.tutorFeedbackUrl;
+  assert(typeof tutorUrl === "string" && tutorUrl.includes("/tutor-feedback?invite="), "scoped tutor link missing");
+
+  ctx.cookie = "";
+  const { response: inviteResponse } = await fetchText(ctx, tutorUrl);
+  assert(inviteResponse.status === 307 || inviteResponse.status === 308, `tutor invite expected redirect, got ${inviteResponse.status}`);
+  const tutorCookie = collectCookies(inviteResponse);
+  assert(tutorCookie.includes("family_private_session="), "tutor session cookie missing");
+  assert(tutorCookie.includes("family_tutor_invite="), "tutor scope cookie missing");
+  ctx.cookie = tutorCookie;
 
   try {
     const contextResult = await fetchJson(ctx, "/api/private/tutor-context");
     assert(contextResult.response.status === 200, `tutor context expected 200, got ${contextResult.response.status}`);
-    assert(Array.isArray(contextResult.json.data?.children), "tutor context must return children array");
+    assert(contextResult.json.data?.children?.length === 1, "tutor context must return exactly one child");
+    assert(contextResult.json.data?.children?.[0]?.id === child.id, "tutor context child scope mismatch");
+    assert(contextResult.json.data?.tutorScope?.subject === "数学", "tutor context subject scope mismatch");
 
     const feedbackResult = await fetchText(ctx, "/api/private/tutor-feedback");
     assert(feedbackResult.response.status === 403, `tutor GET feedback expected 403, got ${feedbackResult.response.status}`);
@@ -236,7 +230,7 @@ async function checkTutorBoundaries(ctx) {
     const exportResult = await fetchText(ctx, "/api/private/export");
     assert(exportResult.response.status === 403, `tutor export expected 403, got ${exportResult.response.status}`);
 
-    return "context allowed; feedback list/export denied";
+    return "scoped context allowed; feedback list/export denied";
   } finally {
     ctx.cookie = originalCookie;
   }

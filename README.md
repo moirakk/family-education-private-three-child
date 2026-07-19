@@ -13,7 +13,7 @@ Production is live:
 - App: [bzs-family-edu.netlify.app](https://bzs-family-edu.netlify.app/)
 - Repository: [moirakk/family-education-private-three-child](https://github.com/moirakk/family-education-private-three-child)
 - Hosting: Netlify Free, deployed automatically from `main`
-- Current access model: parent workspace opens by private link on trusted devices; tutor feedback uses a code-bearing link.
+- Current access model: parent workspace opens by private link on trusted devices; tutor feedback uses a signed link scoped to one child, tutor, and subject.
 - Disaster recovery: one full backup -> fresh Supabase restore rehearsal has been completed.
 
 Quality gates used before deployment:
@@ -30,14 +30,12 @@ npm run build
 The product helps parents run daily and long-term education operations across multiple children:
 
 - daily command center
-- weekly calendar and iOS Calendar sync
+- schedule planning and iOS Calendar sync
 - school, tutoring, activity, exam, and family events
-- child profiles and school information
-- learning records
-- learning materials and file uploads
-- child self-evaluation
+- grade settings for the three children
+- exam score records and exports
 - tutor feedback
-- education goals and milestones
+- simplified exam, competition, and school growth plans
 - export, backup, restore, and Obsidian archive workflows
 
 The current workspace is customized for three children, while the database model still keeps `family_id`, child relationships, and role boundaries explicit so future SaaS extraction remains possible.
@@ -49,9 +47,9 @@ The app is organized around parent tasks, not feature demos.
 | Mode | Daily intent | Main modules |
 | --- | --- | --- |
 | Today | Decide what needs attention now | daily brief, next actions, urgent events |
-| Week | Plan and review the week | event planner, weekly overview, calendar, iOS sync |
-| Records | Capture learning evidence | learning records, materials, tutor feedback, self-evaluation, archives |
-| Settings | Maintain the system | share links, exports, PWA install, intake data |
+| Schedule | Plan dates and recurring commitments | event planner, unified calendar, iOS sync |
+| Records | Capture outcomes and plans | exam scores, tutor feedback, growth plans |
+| Settings | Maintain the system | scoped share links, exports, grade settings, PWA install |
 
 Mobile uses a bottom tab bar. Desktop uses a left sidebar. Low-frequency modules are folded so the family does not have to scroll through an admin console every day.
 
@@ -86,7 +84,7 @@ flowchart TD
 This private version uses a lightweight no-login model designed for a trusted family deployment:
 
 - Parent workspace can run in `PRIVATE_PARENT_ACCESS_MODE=open` for trusted-device PWA use.
-- Tutor access stays limited to `/tutor-feedback?code=...`.
+- Tutor access stays limited to `/tutor-feedback?invite=...`; each signed invitation is scoped to one child, tutor, and subject and expires after one year.
 - Successful access issues a signed `httpOnly` cookie.
 - Cookies use `Secure` and `SameSite=Strict`.
 - Middleware guards private pages and `/api/private/*`.
@@ -216,8 +214,12 @@ Access mode:
 ```bash
 PRIVATE_PARENT_ACCESS_MODE="open" # trusted-device private deployment
 PRIVATE_PARENT_ACCESS_CODE="fallback-parent-code"
-PRIVATE_TUTOR_ACCESS_CODE="tutor-code"
+PRIVATE_TUTOR_ACCESS_CODE="tutor-link-rotation-secret"
 ```
+
+In `open` mode, parents do not type an access code during normal use: Settings generates a signed one-year family link that issues the parent cookie. The bare site origin does not grant parent access. `unsafe-open` exists only for local troubleshooting and must not be used for production.
+
+`PRIVATE_TUTOR_ACCESS_CODE` is not shown to tutors. It participates in signing scoped tutor links; rotating it and redeploying invalidates previously generated tutor links.
 
 Never commit `.env.local`, Supabase service keys, access codes, or calendar tokens.
 
@@ -241,7 +243,7 @@ Create a full backup:
 npm run private:backup -- --out ./private-backups/latest
 ```
 
-The backup script uses `PRIVATE_PARENT_ACCESS_CODE` when present. In the current trusted-device `PRIVATE_PARENT_ACCESS_MODE=open` deployment, it can also obtain a parent session by visiting the app root.
+The backup script uses `PRIVATE_PARENT_ACCESS_CODE` to obtain a parent session non-interactively. Keep this variable configured even though parents normally use the signed family link instead of typing the code.
 
 This creates:
 
@@ -312,7 +314,7 @@ Before sharing with parents:
 - production build succeeds
 - `/api/health` responds
 - parent PWA opens on iPhone
-- tutor link only opens tutor feedback
+- tutor link only opens the four-field feedback page for its assigned child and subject
 - iOS Calendar subscription works
 - export works
 - latest backup can dry-run restore
@@ -325,7 +327,7 @@ See [ROADMAP.md](ROADMAP.md).
 Near-term focus:
 
 - complete the real iPhone production acceptance checklist
-- real-material upload and reopen verification
+- verify one complete tutor-link submission on a separate phone
 - scheduled backup automation
 - two-week real-use observation before further UI changes
 - stronger shared rate limiting if parent mode changes from open to code

@@ -1,24 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Copy, ExternalLink, MessageSquareText, Trash2 } from "lucide-react";
+import { MessageSquareText, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { Child, TutorFeedback } from "@/lib/types";
 
-type ShareLinks = {
-  parentUrl: string;
-  tutorFeedbackUrl: string | null;
-};
-
 const storageKey = "family-education-private-tutor-feedback-v1";
 
 export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }) {
   const [feedbackItems, setFeedbackItems] = useState<TutorFeedback[]>([]);
   const [syncStatus, setSyncStatus] = useState("");
-  const [tutorFeedbackUrl, setTutorFeedbackUrl] = useState<string | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,22 +44,9 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
         setSyncStatus(error instanceof Error ? `家教反馈读取数据库失败：${error.message}` : "家教反馈读取数据库失败。");
       });
 
-    getPrivateApi<ShareLinks>("/api/private/share-links")
-      .then((links) => {
-        setTutorFeedbackUrl(links.tutorFeedbackUrl);
-      })
-      .catch(() => {
-        setTutorFeedbackUrl(null);
-      });
   }, []);
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
-
-  async function copyTutorLink() {
-    if (!tutorFeedbackUrl) return;
-    await navigator.clipboard.writeText(tutorFeedbackUrl);
-    setSyncStatus("家教专属链接已复制。");
-  }
 
   async function deleteFeedback(feedbackId: string) {
     const previousFeedback = feedbackItems;
@@ -98,32 +79,6 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
         </div>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="rounded-2xl border border-border bg-muted/40 p-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">家教专属链接</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">复制给老师后，老师只会进入课后反馈页。</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" onClick={copyTutorLink} disabled={!tutorFeedbackUrl}>
-                <Copy className="mr-2 h-4 w-4" />
-                复制链接
-              </Button>
-              {tutorFeedbackUrl && (
-                <Button size="sm" variant="outline" asChild>
-                  <a href={tutorFeedbackUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    打开
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
-          <p className="mt-3 break-all rounded-xl bg-card px-3 py-2 text-xs text-muted-foreground ring-1 ring-border">
-            {tutorFeedbackUrl || "家教链接未配置。"}
-          </p>
-        </div>
-
         <div className="grid gap-3">
           {feedbackItems.map((feedback) => (
             <div key={feedback.id} className="rounded-2xl border border-border bg-card p-3">
@@ -135,9 +90,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                       {feedback.subject} · {feedback.tutorName}
                     </p>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {feedback.sessionDate} · {feedback.durationMinutes} 分钟 · 效果 {feedback.rating}/5
-                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{feedback.sessionDate}</p>
                 </div>
                 {confirmingDeleteId === feedback.id ? (
                   <div className="flex shrink-0 flex-col items-end gap-2 rounded-2xl border border-destructive/20 bg-destructive/5 p-2 text-right sm:flex-row sm:items-center">
@@ -167,12 +120,11 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
               <p className="mt-3 text-sm leading-6 text-foreground">{feedback.focus}</p>
               {feedback.performance && <p className="mt-2 text-xs leading-5 text-muted-foreground">表现：{feedback.performance}</p>}
               {feedback.homework && <p className="mt-1 text-xs leading-5 text-muted-foreground">任务：{feedback.homework}</p>}
-              {feedback.nextFocus && <p className="mt-1 text-xs leading-5 text-muted-foreground">下次：{feedback.nextFocus}</p>}
             </div>
           ))}
           {feedbackItems.length === 0 && (
             <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
-              还没有家教反馈。复制上方专属链接发给老师，老师提交后会自动出现在这里。
+              还没有家教反馈。请在“设置 → 分享入口”生成专属链接发给老师，提交后会自动出现在这里。
             </p>
           )}
         </div>

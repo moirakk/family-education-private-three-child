@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
+import {
+  assertChildBelongsToFamily,
+  getAccessRoleFromRequest,
+  getPrivateWriteContext,
+  getTutorInviteScopeFromRequest,
+  jsonError,
+  numberOrNull,
+  optionalString,
+  requireString,
+  scoreOneToFive
+} from "@/app/api/private/_utils";
 import type { TutorFeedback } from "@/lib/types";
 
 type TutorFeedbackPayload = Partial<TutorFeedback>;
@@ -54,9 +64,15 @@ export async function POST(request: Request) {
   try {
     const { familyId, supabase } = getPrivateWriteContext();
     const payload = (await request.json()) as TutorFeedbackPayload;
-    const childId = requireString(payload.childId, "childId");
-    const tutorName = requireString(payload.tutorName, "tutorName");
-    const subject = requireString(payload.subject, "subject");
+    const role = getAccessRoleFromRequest(request);
+    const tutorScope = role === "tutor" ? getTutorInviteScopeFromRequest(request) : null;
+    if (role === "tutor" && !tutorScope) {
+      return NextResponse.json({ error: "A scoped tutor invitation is required." }, { status: 403 });
+    }
+
+    const childId = tutorScope?.childId ?? requireString(payload.childId, "childId");
+    const tutorName = tutorScope?.tutorName ?? requireString(payload.tutorName, "tutorName");
+    const subject = tutorScope?.subject ?? requireString(payload.subject, "subject");
     const focus = requireString(payload.focus, "focus");
     await assertChildBelongsToFamily(supabase, familyId, childId);
 

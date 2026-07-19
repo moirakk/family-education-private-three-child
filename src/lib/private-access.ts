@@ -1,10 +1,20 @@
 export const accessSessionCookieName = "family_private_session";
 export const accessAttemptCookieName = "family_access_attempts";
+export const tutorInviteCookieName = "family_tutor_invite";
 
 export type AccessRole = "parent" | "caregiver" | "tutor" | "viewer";
+export type TutorInviteScope = {
+  childId: string;
+  tutorName: string;
+  subject: string;
+  expiresAt: number;
+};
 
-const sessionTtlSeconds = 60 * 60 * 24 * 90;
+const sessionTtlSeconds = 60 * 60 * 24 * 365;
+const tutorInviteTtlSeconds = 60 * 60 * 24 * 365;
+const parentInviteTtlSeconds = 60 * 60 * 24 * 365;
 const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 export function getConfiguredAccessCodes() {
   return [
@@ -25,7 +35,7 @@ export function getPrivateSessionTtlSeconds() {
 }
 
 export function isParentAutoAccessEnabled() {
-  return (process.env.PRIVATE_PARENT_ACCESS_MODE ?? "open") !== "code";
+  return (process.env.PRIVATE_PARENT_ACCESS_MODE ?? "open") === "unsafe-open";
 }
 
 function getSessionSecret() {
@@ -44,8 +54,35 @@ function toBase64Url(bytes: ArrayBuffer) {
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
-async function signSessionPayload(payload: string) {
-  const key = await crypto.subtle.importKey("raw", encoder.encode(getSessionSecret()), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+function fromBase64Url(value: string) {
+  const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), (character) => character.charCodeAt(0));
+}
+
+function encodeJson(value: unknown) {
+  return toBase64Url(encoder.encode(JSON.stringify(value)).buffer);
+}
+
+function decodeJson<T>(value: string): T | null {
+  try {
+    return JSON.parse(decoder.decode(fromBase64Url(value))) as T;
+  } catch {
+    return null;
+  }
+}
+
+function getTutorInviteSecret() {
+  return `${getSessionSecret()}:tutor-invite:${process.env.PRIVATE_TUTOR_ACCESS_CODE?.trim() || "default"}`;
+}
+
+function getParentInviteSecret() {
+  const parentCode = process.env.PRIVATE_PARENT_ACCESS_CODE || process.env.PRIVATE_ACCESS_CODE;
+  return `${getSessionSecret()}:parent-invite:${parentCode?.trim() || "default"}`;
+}
+
+async function signPayload(payload: string, secret = getSessionSecret()) {
+  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
   return toBase64Url(signature);
 }
@@ -66,7 +103,7 @@ function timingSafeEqual(a: string | undefined, b: string) {
 export async function createAccessSession(role: AccessRole) {
   const expiresAt = Math.floor(Date.now() / 1000) + sessionTtlSeconds;
   const payload = `${role}.${expiresAt}`;
-  const signature = await signSessionPayload(payload);
+  const signature = await signPayload(payload);
   return `${payload}.${signature}`;
 }
 
@@ -79,6 +116,77 @@ export async function verifyAccessSession(value: string | undefined) {
   const expiresAt = Number(expiresAtText);
   if (!Number.isFinite(expiresAt) || expiresAt < Math.floor(Date.now() / 1000)) return null;
 
-  const expectedSignature = await signSessionPayload(`${role}.${expiresAtText}`);
+  const expectedSignature = await signPayload(`${role}.${expiresAtText}`);
   return timingSafeEqual(signature, expectedSignature) ? role : null;
+}
+
+export function getTutorInviteTtlSeconds() {
+  return tutorInviteTtlSeconds;
+}
+
+export async function createParentInviteToken() {
+  const payload = encodeJson({ role: "parent", expiresAt: Math.floor(Date.now() / 1000) + parentInviteTtlSeconds });
+  const signature = await signPayload(payload, getParentInviteSecret());
+  return `${payload}.${signature}`;
+}
+
+export async function verifyParentInviteToken(value: string | undefined) {
+  if (!value) return false;
+
+  const [payload, signature, extra] = value.split(".");
+  if (!payload || !signature || extra) return false;
+
+  const expectedSignature = await signPayload(payload, getParentInviteSecret());
+  if (!timingSafeEqual(signature, expectedSignature)) return false;
+
+  const invite = decodeJson<{ role?: unknown; expiresAt?: unknown }>(payload);
+  return Boolean(
+    invite &&
+      invite.role === "parent" &&
+      Number.isFinite(invite.expiresAt) &&
+      Number(invite.expiresAt) >= Math.floor(Date.now() / 1000)
+  );
+}
+
+export async function createTutorInviteToken(scope: Omit<TutorInviteScope, "expiresAt">) {
+  const payload = encodeJson({
+    childId: scope.childId.trim(),
+    tutorName: scope.tutorName.trim(),
+    subject: scope.subject.trim(),
+    expiresAt: Math.floor(Date.now() / 1000) + tutorInviteTtlSeconds
+  } satisfies TutorInviteScope);
+  const signature = await signPayload(payload, getTutorInviteSecret());
+  return `${payload}.${signature}`;
+}
+
+export async function verifyTutorInviteToken(value: string | undefined): Promise<TutorInviteScope | null> {
+  if (!value) return null;
+
+  const [payload, signature, extra] = value.split(".");
+  if (!payload || !signature || extra) return null;
+
+  const expectedSignature = await signPayload(payload, getTutorInviteSecret());
+  if (!timingSafeEqual(signature, expectedSignature)) return null;
+
+  const scope = decodeJson<TutorInviteScope>(payload);
+  if (
+    !scope ||
+    typeof scope.childId !== "string" ||
+    !scope.childId.trim() ||
+    typeof scope.tutorName !== "string" ||
+    !scope.tutorName.trim() ||
+    typeof scope.subject !== "string" ||
+    !scope.subject.trim() ||
+    !Number.isFinite(scope.expiresAt) ||
+    scope.expiresAt < Math.floor(Date.now() / 1000)
+  ) {
+    return null;
+  }
+
+  return {
+    childId: scope.childId.trim(),
+    tutorName: scope.tutorName.trim(),
+    subject: scope.subject.trim(),
+    expiresAt: scope.expiresAt
+  };
 }

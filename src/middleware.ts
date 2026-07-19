@@ -4,9 +4,14 @@ import {
   createAccessSession,
   getConfiguredAccessCodes,
   getPrivateSessionTtlSeconds,
+  getTutorInviteTtlSeconds,
   isParentAutoAccessEnabled,
   resolveRoleByCode,
+  tutorInviteCookieName,
   verifyAccessSession,
+  verifyParentInviteToken,
+  verifyTutorInviteToken,
+  type TutorInviteScope,
   type AccessRole
 } from "@/lib/private-access";
 
@@ -28,15 +33,19 @@ async function getCookieRole(request: NextRequest): Promise<AccessRole | null> {
   return verifyAccessSession(request.cookies.get(accessSessionCookieName)?.value);
 }
 
+async function getCookieTutorScope(request: NextRequest): Promise<TutorInviteScope | null> {
+  return verifyTutorInviteToken(request.cookies.get(tutorInviteCookieName)?.value);
+}
+
 function hasDashboardAccess(role: AccessRole | null) {
   return Boolean(role && dashboardRoles.has(role));
 }
 
-function hasPrivateApiAccess(pathname: string, method: string, role: AccessRole | null) {
+function hasPrivateApiAccess(pathname: string, method: string, role: AccessRole | null, tutorScope: TutorInviteScope | null) {
   if (!role) return false;
   if (dashboardRoles.has(role)) return true;
 
-  if (role === "tutor") {
+  if (role === "tutor" && tutorScope) {
     if (pathname === "/api/private/tutor-context") return method === "GET";
     if (pathname === "/api/private/tutor-feedback") return method === "POST";
   }
@@ -44,10 +53,18 @@ function hasPrivateApiAccess(pathname: string, method: string, role: AccessRole 
   return false;
 }
 
-function nextWithAccessRole(request: NextRequest, role: AccessRole | null) {
+function nextWithAccessRole(request: NextRequest, role: AccessRole | null, tutorScope: TutorInviteScope | null = null) {
   const headers = new Headers(request.headers);
   if (role) headers.set("x-family-access-role", role);
   else headers.delete("x-family-access-role");
+  headers.delete("x-family-tutor-child-id");
+  headers.delete("x-family-tutor-name");
+  headers.delete("x-family-tutor-subject");
+  if (tutorScope) {
+    headers.set("x-family-tutor-child-id", tutorScope.childId);
+    headers.set("x-family-tutor-name", encodeURIComponent(tutorScope.tutorName));
+    headers.set("x-family-tutor-subject", encodeURIComponent(tutorScope.subject));
+  }
   return NextResponse.next({ request: { headers } });
 }
 
@@ -73,6 +90,30 @@ async function redirectWithIssuedRole(request: NextRequest, pathname: string, ro
   return setAccessSessionCookie(request, NextResponse.redirect(new URL(pathname, request.url)), role);
 }
 
+async function redirectWithParentInvite(request: NextRequest) {
+  const cleanUrl = request.nextUrl.clone();
+  cleanUrl.searchParams.delete("family");
+  return setAccessSessionCookie(request, NextResponse.redirect(cleanUrl), "parent");
+}
+
+async function redirectWithTutorInvite(
+  request: NextRequest,
+  inviteToken: string,
+  scope: TutorInviteScope,
+  currentRole: AccessRole | null
+) {
+  const response = NextResponse.redirect(new URL("/tutor-feedback", request.url));
+  response.cookies.set(tutorInviteCookieName, inviteToken, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: request.nextUrl.protocol === "https:",
+    maxAge: Math.min(getTutorInviteTtlSeconds(), Math.max(0, scope.expiresAt - Math.floor(Date.now() / 1000))),
+    path: "/"
+  });
+
+  return hasDashboardAccess(currentRole) ? response : setAccessSessionCookie(request, response, "tutor");
+}
+
 function safeRedirectPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
@@ -82,31 +123,41 @@ export async function middleware(request: NextRequest) {
   const hasAccessConfig = getConfiguredAccessCodes().length > 0;
   const parentAutoAccess = isParentAutoAccessEnabled();
   const cookieRole = await getCookieRole(request);
+  const tutorScope = await getCookieTutorScope(request);
 
   if (!hasAccessConfig || isPublicAsset(request.nextUrl.pathname)) {
-    return nextWithAccessRole(request, cookieRole);
+    return nextWithAccessRole(request, cookieRole, tutorScope);
   }
 
   if (request.nextUrl.pathname === "/api/access") {
-    return nextWithAccessRole(request, cookieRole);
+    return nextWithAccessRole(request, cookieRole, tutorScope);
+  }
+
+  if (
+    request.method === "GET" &&
+    !request.nextUrl.pathname.startsWith("/api/") &&
+    request.nextUrl.pathname !== "/tutor-feedback" &&
+    (await verifyParentInviteToken(request.nextUrl.searchParams.get("family") ?? undefined))
+  ) {
+    return redirectWithParentInvite(request);
   }
 
   if (request.nextUrl.pathname === "/api/calendar/ios") {
     const token = request.nextUrl.searchParams.get("token");
 
     if (token || hasDashboardAccess(cookieRole)) {
-      return nextWithAccessRole(request, cookieRole);
+      return nextWithAccessRole(request, cookieRole, tutorScope);
     }
 
     return new NextResponse("Calendar feed requires private access.", { status: 401 });
   }
 
   if (request.nextUrl.pathname.startsWith("/api/private")) {
-    if (hasPrivateApiAccess(request.nextUrl.pathname, request.method, cookieRole)) {
-      return nextWithAccessRole(request, cookieRole);
+    if (hasPrivateApiAccess(request.nextUrl.pathname, request.method, cookieRole, tutorScope)) {
+      return nextWithAccessRole(request, cookieRole, tutorScope);
     }
 
-    if (parentAutoAccess) {
+    if (parentAutoAccess && !cookieRole) {
       return nextWithIssuedRole(request, "parent");
     }
 
@@ -114,15 +165,22 @@ export async function middleware(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname === "/tutor-feedback") {
+    const inviteToken = request.nextUrl.searchParams.get("invite");
+    const inviteScope = await verifyTutorInviteToken(inviteToken ?? undefined);
+
+    if (inviteToken && inviteScope) {
+      return redirectWithTutorInvite(request, inviteToken, inviteScope, cookieRole);
+    }
+
     const linkCode = request.nextUrl.searchParams.get("code") || request.nextUrl.searchParams.get("token");
     const linkRole = resolveRoleByCode(linkCode);
 
-    if (linkRole === "tutor") {
+    if (linkRole === "tutor" && tutorScope) {
       return redirectWithIssuedRole(request, "/tutor-feedback", "tutor");
     }
 
-    if (cookieRole && tutorApiRoles.has(cookieRole)) {
-      return nextWithAccessRole(request, cookieRole);
+    if (cookieRole && tutorApiRoles.has(cookieRole) && (cookieRole !== "tutor" || tutorScope)) {
+      return nextWithAccessRole(request, cookieRole, tutorScope);
     }
 
     const accessUrl = new URL("/access", request.url);
@@ -142,14 +200,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(nextPath, request.url));
     }
 
-    return nextWithAccessRole(request, cookieRole);
+    return nextWithAccessRole(request, cookieRole, tutorScope);
   }
 
   if (hasDashboardAccess(cookieRole)) {
-    return nextWithAccessRole(request, cookieRole);
+    return nextWithAccessRole(request, cookieRole, tutorScope);
   }
 
-  if (parentAutoAccess) {
+  if (parentAutoAccess && !cookieRole) {
     return nextWithIssuedRole(request, "parent");
   }
 

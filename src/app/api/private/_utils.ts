@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertPrivateWriteConfigured, getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { AccessRole } from "@/lib/private-access";
+import type { AccessRole, TutorInviteScope } from "@/lib/private-access";
 
 type PrivateSupabaseClient = ReturnType<typeof getSupabaseAdminClient>;
 
@@ -25,6 +25,24 @@ export function jsonError(error: unknown, status = 500) {
 export function getAccessRoleFromRequest(request: Request): AccessRole | null {
   const role = request.headers.get("x-family-access-role");
   return role === "parent" || role === "caregiver" || role === "tutor" || role === "viewer" ? role : null;
+}
+
+export function getTutorInviteScopeFromRequest(request: Request): Omit<TutorInviteScope, "expiresAt"> | null {
+  const childId = request.headers.get("x-family-tutor-child-id")?.trim();
+  const tutorName = request.headers.get("x-family-tutor-name");
+  const subject = request.headers.get("x-family-tutor-subject");
+
+  if (!childId || !tutorName || !subject) return null;
+
+  try {
+    return {
+      childId,
+      tutorName: decodeURIComponent(tutorName).trim(),
+      subject: decodeURIComponent(subject).trim()
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function assertChildBelongsToFamily(supabase: PrivateSupabaseClient, familyId: string, childId: string) {
