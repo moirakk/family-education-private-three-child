@@ -17,7 +17,13 @@ import {
 } from "@/lib/pilot-data";
 
 function LoadingSection() {
-  return <div className="min-h-32 rounded-2xl border border-border bg-card p-4" />;
+  return (
+    <div aria-busy="true" className="min-h-32 animate-pulse rounded-2xl border border-border bg-card p-4">
+      <div className="h-4 w-1/3 rounded-md bg-muted" />
+      <div className="mt-3 h-3 w-2/3 rounded-md bg-muted" />
+      <div className="mt-4 h-16 rounded-xl bg-muted/70" />
+    </div>
+  );
 }
 
 const CalendarSyncCard = dynamic(() => import("@/components/dashboard/calendar-sync-card").then((mod) => mod.CalendarSyncCard), { loading: LoadingSection });

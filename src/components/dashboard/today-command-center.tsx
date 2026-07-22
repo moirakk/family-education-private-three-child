@@ -51,7 +51,7 @@ export function TodayCommandCenter({
       <div className="rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-foreground">下一步提醒</p>
-          <button type="button" className="text-xs font-medium text-primary" onClick={() => onModeChange("week", "calendar")}>查看全部</button>
+          <button type="button" className="-m-2 min-h-11 rounded-lg p-2 text-xs font-medium text-primary" onClick={() => onModeChange("week", "calendar")}>查看全部</button>
         </div>
 
         {nextEvents.length > 0 ? (
@@ -67,7 +67,7 @@ export function TodayCommandCenter({
                   type="button"
                   onClick={() => onModeChange("week", "calendar")}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 pl-2 text-left transition hover:bg-muted/40",
+                    "flex min-h-11 items-center gap-3 py-2.5 pl-2 pr-1 text-left transition hover:bg-muted/40",
                     singleChild && "border-l-[3px]",
                     index > 0 && "border-t border-border"
                   )}
