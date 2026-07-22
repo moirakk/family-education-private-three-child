@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const supabaseFeed = await getCalendarFeedByFamilyId(familyId);
+    const supabaseFeed = await getCalendarFeedByFamilyId(familyId, session);
 
     if (!supabaseFeed) {
       return new Response("Calendar feed is unavailable.", {

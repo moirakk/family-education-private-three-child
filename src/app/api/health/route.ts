@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     supabaseUrl: isConfigured(process.env.NEXT_PUBLIC_SUPABASE_URL),
     supabaseAnonKey: isConfigured(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     supabaseServiceRole: isConfigured(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    supabaseJwtSecret: isConfigured(process.env.SUPABASE_JWT_SECRET),
     privateFamilyId: isConfigured(process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID),
     privateParentAccessCode: isConfigured(process.env.PRIVATE_PARENT_ACCESS_CODE) || isConfigured(process.env.PRIVATE_ACCESS_CODE),
     privateCaregiverAccessCode: isConfigured(process.env.PRIVATE_CAREGIVER_ACCESS_CODE),
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
     checks.supabaseUrl &&
       checks.supabaseAnonKey &&
       checks.supabaseServiceRole &&
+      checks.supabaseJwtSecret &&
       checks.privateFamilyId &&
       checks.privateParentAccessCode &&
       checks.dataMode === "private-api" &&

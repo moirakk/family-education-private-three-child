@@ -1,11 +1,17 @@
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
-import { getSupabaseAdminClient } from "@/lib/supabase-admin";
+import { getSupabaseAnonClient, getSupabaseUserClient } from "@/lib/supabase-user-context";
+import type { AccessRole } from "@/lib/private-access";
 
 export async function getCalendarFeedByToken(token: string) {
-  const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase.from("family_settings").select("family_id").eq("calendar_token", token).maybeSingle();
-  if (error || !data?.family_id) return null;
-  return getCalendarFeedByFamilyId(data.family_id as string);
+  // The feed token is itself the credential. Resolving family_id happens
+  // through a `security definer` RPC (granted to anon) rather than a direct
+  // table select, since the anon role otherwise has no RLS grant on
+  // family_settings. Once resolved, the actual event/children/goal reads go
+  // through a "parent" scoped user-level client so RLS still applies.
+  const anonClient = getSupabaseAnonClient();
+  const { data: familyId, error } = await anonClient.rpc("get_calendar_family_id_by_token", { feed_token: token });
+  if (error || !familyId) return null;
+  return getCalendarFeedByFamilyId(familyId as string, "parent");
 }
 
 type CalendarEventRow = {
@@ -40,8 +46,8 @@ type EventChildRow = {
   child_id: string;
 };
 
-export async function getCalendarFeedByFamilyId(familyId: string) {
-  const supabase = getSupabaseAdminClient();
+export async function getCalendarFeedByFamilyId(familyId: string, accessRole: AccessRole) {
+  const supabase = await getSupabaseUserClient({ familyId, accessRole });
   const [eventsResult, childrenResult, goalsResult] = await Promise.all([
     supabase
       .from("calendar_events")

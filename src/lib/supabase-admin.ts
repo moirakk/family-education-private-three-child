@@ -34,4 +34,8 @@ export function assertPrivateWriteConfigured() {
   if (!process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID) {
     throw new Error("NEXT_PUBLIC_PRIVATE_FAMILY_ID is required before enabling no-login private writes.");
   }
+
+  if (!process.env.SUPABASE_JWT_SECRET) {
+    throw new Error("SUPABASE_JWT_SECRET is required before enabling no-login private writes.");
+  }
 }

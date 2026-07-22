@@ -363,6 +363,13 @@ as $$
     from public.family_members
     where family_id = target_family_id
       and user_id = auth.uid()
+  )
+  or (
+    -- 伯仲叔私有免登录模式：没有真实 Supabase Auth 会话，
+    -- 由服务端在校验完 HMAC 私有访问 cookie 后签发短时 JWT，
+    -- 把 family_id / access_role 作为自定义 claim 放进 auth.jwt()。
+    coalesce((auth.jwt() ->> 'family_id')::uuid, null) = target_family_id
+    and coalesce(auth.jwt() ->> 'access_role', '') in ('parent', 'caregiver', 'viewer')
   );
 $$;
 
@@ -379,8 +386,39 @@ as $$
     where family_id = target_family_id
       and user_id = auth.uid()
       and role in ('owner', 'parent', 'caregiver')
+  )
+  or (
+    coalesce((auth.jwt() ->> 'family_id')::uuid, null) = target_family_id
+    and coalesce(auth.jwt() ->> 'access_role', '') in ('parent', 'caregiver')
   );
 $$;
+
+create or replace function public.is_scoped_tutor_for_child(target_family_id uuid, target_child_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    coalesce((auth.jwt() ->> 'family_id')::uuid, null) = target_family_id
+    and coalesce(auth.jwt() ->> 'access_role', '') = 'tutor'
+    and coalesce((auth.jwt() ->> 'tutor_child_id')::uuid, null) = target_child_id;
+$$;
+
+create or replace function public.get_calendar_family_id_by_token(feed_token text)
+returns uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select family_id
+  from public.family_settings
+  where calendar_token = feed_token;
+$$;
+
+grant execute on function public.get_calendar_family_id_by_token(text) to anon, authenticated;
 
 create or replace function public.get_calendar_feed_by_token(feed_token text)
 returns table (
@@ -421,7 +459,8 @@ $$;
 grant execute on function public.get_calendar_feed_by_token(text) to anon, authenticated;
 
 -- Supabase projects with "Automatically expose new tables" disabled need explicit API grants.
--- Private server APIs use service_role only; browser clients should not receive direct table grants.
+-- service_role remains for offline seeding/migration scripts only; application code no longer
+-- uses the admin client for any request path, so these grants stay but are not application-facing.
 grant usage on schema public to service_role;
 grant all privileges on all tables in schema public to service_role;
 grant all privileges on all sequences in schema public to service_role;
@@ -430,11 +469,32 @@ alter default privileges in schema public grant all privileges on tables to serv
 alter default privileges in schema public grant all privileges on sequences to service_role;
 alter default privileges in schema public grant execute on functions to service_role;
 
+-- 伯仲叔私有免登录模式：应用代码改用签发短时 JWT 的用户级 client 访问 Supabase，
+-- PostgREST 会把这类请求当作 authenticated 角色处理，因此需要显式表级 GRANT，
+-- 真正的行级访问边界由上面的 RLS policy（is_family_member / can_edit_family /
+-- is_scoped_tutor_for_child）负责。
+grant usage on schema public to authenticated;
+grant select on public.families to authenticated;
+grant select, update on public.family_settings to authenticated;
+grant select on public.family_members to authenticated;
+grant select, insert, update, delete on public.children to authenticated;
+grant select, insert, update, delete on public.child_intake_profiles to authenticated;
+grant select, insert, update, delete on public.calendar_events to authenticated;
+grant select, insert, update, delete on public.calendar_event_children to authenticated;
+grant select, insert, update, delete on public.learning_records to authenticated;
+grant select, insert, update, delete on public.education_goals to authenticated;
+grant select, insert, update, delete on public.milestones to authenticated;
+grant select, insert, update, delete on public.resources to authenticated;
+grant select, insert, update, delete on public.learning_materials to authenticated;
+grant select, insert, update, delete on public.self_evaluations to authenticated;
+grant select, insert, update, delete on public.tutor_feedback to authenticated;
+
 drop policy if exists "families select member" on public.families;
 drop policy if exists "family settings select member" on public.family_settings;
 drop policy if exists "family settings update editor" on public.family_settings;
 drop policy if exists "family members select member" on public.family_members;
 drop policy if exists "children select member" on public.children;
+drop policy if exists "children select scoped tutor" on public.children;
 drop policy if exists "children write editor" on public.children;
 drop policy if exists "intake select member" on public.child_intake_profiles;
 drop policy if exists "intake write editor" on public.child_intake_profiles;
@@ -456,6 +516,7 @@ drop policy if exists "self evaluations select member" on public.self_evaluation
 drop policy if exists "self evaluations write editor" on public.self_evaluations;
 drop policy if exists "tutor feedback select member" on public.tutor_feedback;
 drop policy if exists "tutor feedback write editor" on public.tutor_feedback;
+drop policy if exists "tutor feedback insert scoped tutor" on public.tutor_feedback;
 
 create policy "families select member"
 on public.families for select
@@ -477,6 +538,10 @@ using (public.is_family_member(family_id));
 create policy "children select member"
 on public.children for select
 using (public.is_family_member(family_id));
+
+create policy "children select scoped tutor"
+on public.children for select
+using (public.is_scoped_tutor_for_child(family_id, id));
 
 create policy "children write editor"
 on public.children for all
@@ -635,3 +700,9 @@ create policy "tutor feedback write editor"
 on public.tutor_feedback for all
 using (public.can_edit_family(family_id))
 with check (public.can_edit_family(family_id));
+
+-- 家教通过邀请链接只能对被授权的单个孩子提交反馈（POST），
+-- 中间件已限制 tutor 角色只能命中这个路由的 POST 方法。
+create policy "tutor feedback insert scoped tutor"
+on public.tutor_feedback for insert
+with check (public.is_scoped_tutor_for_child(family_id, child_id));

@@ -6,5 +6,6 @@ export const requiredSupabaseEnv = [
 export const privateDeploymentEnv = [
   "PRIVATE_PARENT_ACCESS_CODE",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_JWT_SECRET",
   "NEXT_PUBLIC_FAMILY_DATA_MODE"
 ] as const;
