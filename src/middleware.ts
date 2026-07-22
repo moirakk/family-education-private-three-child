@@ -14,6 +14,7 @@ import {
   type TutorInviteScope,
   type AccessRole
 } from "@/lib/private-access";
+import { isTokenRevoked } from "@/lib/token-revocation";
 
 const dashboardRoles = new Set(["parent", "caregiver"]);
 const tutorApiRoles = new Set(["parent", "caregiver", "tutor"]);
@@ -30,11 +31,19 @@ function isPublicAsset(pathname: string) {
 }
 
 async function getCookieRole(request: NextRequest): Promise<AccessRole | null> {
-  return verifyAccessSession(request.cookies.get(accessSessionCookieName)?.value);
+  const sessionToken = request.cookies.get(accessSessionCookieName)?.value;
+  const role = await verifyAccessSession(sessionToken);
+  if (!role) return null;
+  if (sessionToken && (await isTokenRevoked(sessionToken))) return null;
+  return role;
 }
 
 async function getCookieTutorScope(request: NextRequest): Promise<TutorInviteScope | null> {
-  return verifyTutorInviteToken(request.cookies.get(tutorInviteCookieName)?.value);
+  const inviteToken = request.cookies.get(tutorInviteCookieName)?.value;
+  const scope = await verifyTutorInviteToken(inviteToken);
+  if (!scope) return null;
+  if (inviteToken && (await isTokenRevoked(inviteToken))) return null;
+  return scope;
 }
 
 function hasDashboardAccess(role: AccessRole | null) {
@@ -217,5 +226,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!.*\\..*).*)"]
+  matcher: ["/((?!.*\\..*).*)"],
+  // Token revocation (isTokenRevoked) queries Supabase via
+  // @supabase/supabase-js, which relies on Node.js APIs (e.g.
+  // `process.version`) not available in the Edge runtime. Node.js
+  // middleware is stable as of Next.js 15.5.
+  runtime: "nodejs"
 };

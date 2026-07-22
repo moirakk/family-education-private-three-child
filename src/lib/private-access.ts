@@ -10,11 +10,21 @@ export type TutorInviteScope = {
   expiresAt: number;
 };
 
-const sessionTtlSeconds = 60 * 60 * 24 * 365;
-const tutorInviteTtlSeconds = 60 * 60 * 24 * 365;
-const parentInviteTtlSeconds = 60 * 60 * 24 * 365;
+// Session tokens are refreshed on every access, so a shorter window limits
+// exposure from a stolen device without forcing frequent re-entry of codes.
+const sessionTtlSeconds = 60 * 60 * 24 * 30;
+// Invite links are shared out-of-band (chat, paper) and are harder to
+// rotate on demand, so they get a longer window, capped well under a year.
+const tutorInviteTtlSeconds = 60 * 60 * 24 * 90;
+const parentInviteTtlSeconds = 60 * 60 * 24 * 90;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+
+// Clearly-fake, deliberately different from any real secret so it can never
+// be mistaken for (or accidentally match) a production value. Only used
+// outside production, and only after printing a loud warning.
+const devOnlySessionSecret = "dev-only-insecure-secret-do-not-use-in-prod-0000000000";
+let hasWarnedAboutDevSessionSecret = false;
 
 export function getConfiguredAccessCodes() {
   return [
@@ -46,7 +56,22 @@ function getSessionSecret() {
     throw new Error("PRIVATE_SESSION_SECRET must be set to at least 32 characters in production.");
   }
 
-  return "local-development-insecure-session-secret-do-not-use-in-production";
+  // Development/test fallback only. This is a fixed, publicly-known value
+  // (never treated as a real secret) so it must never be reachable in
+  // production -- the throw above enforces that. We warn loudly instead of
+  // failing silently, since a misconfigured local/staging environment
+  // should be obvious, not a silent security downgrade.
+  if (!hasWarnedAboutDevSessionSecret) {
+    hasWarnedAboutDevSessionSecret = true;
+    console.warn(
+      "[private-access] PRIVATE_SESSION_SECRET is not set (or too short). " +
+        "Using a dev-only insecure secret. This is unsafe for any deployment " +
+        "reachable outside your local machine. Set PRIVATE_SESSION_SECRET " +
+        "(>= 32 chars) via `npm run private:secrets`."
+    );
+  }
+
+  return devOnlySessionSecret;
 }
 
 function toBase64Url(bytes: ArrayBuffer) {
@@ -118,6 +143,18 @@ export async function verifyAccessSession(value: string | undefined) {
 
   const expectedSignature = await signPayload(`${role}.${expiresAtText}`);
   return timingSafeEqual(signature, expectedSignature) ? role : null;
+}
+
+/**
+ * Reads the `expiresAt` (unix seconds) embedded in a session token without
+ * re-verifying its signature. Used only for revocation bookkeeping (e.g. on
+ * logout), where the caller already trusts the cookie it just read back
+ * from the request -- the actual security check remains `verifyAccessSession`.
+ */
+export function getAccessSessionExpiry(value: string): number | null {
+  const [, expiresAtText] = value.split(".");
+  const expiresAt = Number(expiresAtText);
+  return Number.isFinite(expiresAt) ? expiresAt : null;
 }
 
 export function getTutorInviteTtlSeconds() {

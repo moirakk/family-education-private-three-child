@@ -3,9 +3,14 @@ import {
   accessAttemptCookieName,
   accessSessionCookieName,
   createAccessSession,
+  getAccessSessionExpiry,
   getPrivateSessionTtlSeconds,
-  resolveRoleByCode
+  resolveRoleByCode,
+  tutorInviteCookieName,
+  verifyTutorInviteToken
 } from "@/lib/private-access";
+import { checkAccessAttempts, clearAccessAttempts, recordFailedAccessAttempt } from "@/lib/access-rate-limit";
+import { revokeToken } from "@/lib/token-revocation";
 
 type AttemptState = {
   count: number;
@@ -14,39 +19,26 @@ type AttemptState = {
 
 const maxAttempts = 8;
 const windowMs = 10 * 60 * 1000;
-const serverAttempts = new Map<string, AttemptState>();
 
 function safeNextPath(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
 }
 
-function getClientFingerprint(request: NextRequest) {
+function getClientIp(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = request.headers.get("x-real-ip")?.trim();
-  const ip = forwardedFor || realIp || "unknown-ip";
-  const userAgent = request.headers.get("user-agent")?.slice(0, 120) || "unknown-agent";
-  return `${ip}:${userAgent}`;
+  return forwardedFor || realIp || "unknown-ip";
 }
 
-function readServerAttempts(key: string): AttemptState {
-  const attempts = serverAttempts.get(key);
-  if (!attempts || attempts.resetAt < Date.now()) return { count: 0, resetAt: Date.now() + windowMs };
-  return attempts;
+function getClientUserAgent(request: NextRequest) {
+  return request.headers.get("user-agent")?.slice(0, 120) || "unknown-agent";
 }
 
-function writeServerAttempts(key: string, attempts: AttemptState) {
-  serverAttempts.set(key, attempts);
-
-  for (const [attemptKey, attemptValue] of serverAttempts) {
-    if (attemptValue.resetAt < Date.now()) serverAttempts.delete(attemptKey);
-  }
-}
-
-function clearServerAttempts(key: string) {
-  serverAttempts.delete(key);
-}
-
+// Per-cookie counter kept as a fast, no-network first layer (useful even
+// when Supabase is briefly unreachable). The authoritative limit -- the one
+// that actually holds across serverless/edge instances -- is the Supabase
+// `access_attempts` table checked via `checkAccessAttempts` below.
 function readAttempts(request: NextRequest): AttemptState {
   const raw = request.cookies.get(accessAttemptCookieName)?.value;
   if (!raw) return { count: 0, resetAt: Date.now() + windowMs };
@@ -99,11 +91,12 @@ export async function POST(request: NextRequest) {
   const code = formData.get("code");
   const nextPath = safeNextPath(formData.get("next"));
   const secure = request.nextUrl.protocol === "https:";
-  const attemptKey = getClientFingerprint(request);
+  const ip = getClientIp(request);
+  const userAgent = getClientUserAgent(request);
   const attempts = readAttempts(request);
-  const ipAttempts = readServerAttempts(attemptKey);
+  const sharedAttempts = await checkAccessAttempts(ip, userAgent);
 
-  if (attempts.count >= maxAttempts || ipAttempts.count >= maxAttempts) {
+  if (attempts.count >= maxAttempts || sharedAttempts.limited) {
     const response = redirectToAccess(request, nextPath, "locked");
     writeAttempts(response, attempts, secure);
     return response;
@@ -113,7 +106,7 @@ export async function POST(request: NextRequest) {
   if (!role || role === "viewer") {
     const response = redirectToAccess(request, nextPath, "invalid");
     writeAttempts(response, { count: attempts.count + 1, resetAt: attempts.resetAt }, secure);
-    writeServerAttempts(attemptKey, { count: ipAttempts.count + 1, resetAt: ipAttempts.resetAt });
+    await recordFailedAccessAttempt(ip, userAgent);
     return response;
   }
 
@@ -129,7 +122,36 @@ export async function POST(request: NextRequest) {
     path: "/"
   });
   clearAttempts(response, secure);
-  clearServerAttempts(attemptKey);
+  await clearAccessAttempts(ip, userAgent);
 
+  return response;
+}
+
+/**
+ * Logout: revokes the current session (and tutor invite, if present) via
+ * the shared revocation table so the token cannot be replayed even if the
+ * browser cookie is somehow retained, then clears the cookies locally.
+ */
+export async function DELETE(request: NextRequest) {
+  const secure = request.nextUrl.protocol === "https:";
+  const sessionToken = request.cookies.get(accessSessionCookieName)?.value;
+  const tutorInviteToken = request.cookies.get(tutorInviteCookieName)?.value;
+
+  await Promise.all([
+    (async () => {
+      if (!sessionToken) return;
+      const expiresAt = getAccessSessionExpiry(sessionToken);
+      if (expiresAt) await revokeToken(sessionToken, expiresAt, "logout").catch((error) => console.error("[access] failed to revoke session:", error));
+    })(),
+    (async () => {
+      if (!tutorInviteToken) return;
+      const scope = await verifyTutorInviteToken(tutorInviteToken);
+      if (scope) await revokeToken(tutorInviteToken, scope.expiresAt, "logout").catch((error) => console.error("[access] failed to revoke tutor invite:", error));
+    })()
+  ]);
+
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(accessSessionCookieName, "", { httpOnly: true, sameSite: "strict", secure, maxAge: 0, path: "/" });
+  response.cookies.set(tutorInviteCookieName, "", { httpOnly: true, sameSite: "strict", secure, maxAge: 0, path: "/" });
   return response;
 }

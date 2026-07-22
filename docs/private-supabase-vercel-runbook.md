@@ -63,6 +63,8 @@ The default private family id is:
 11111111-1111-1111-1111-111111111111
 ```
 
+After the base schema, apply any incremental migrations under `docs/migrations/` in filename (date) order, including `docs/migrations/2026-07-22-token-security.sql` (adds the `revoked_tokens` and `access_attempts` tables used for token revocation and cross-instance rate limiting; see "Token security" below).
+
 ## 3. Local `.env.local`
 
 Generate private access codes and the calendar-token rotation SQL:
@@ -322,6 +324,15 @@ NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co" \
 SUPABASE_SERVICE_ROLE_KEY="service-role-key" \
 npm run private:restore-storage -- --dir ./family-education-storage-backup
 ```
+
+## 8. Token security
+
+- **Session TTL**: 30 days. Session cookies are HMAC-signed and re-issued on every authenticated request, so 30 days limits exposure from a stolen device without forcing frequent re-entry of the access code.
+- **Tutor/parent invite TTL**: 90 days. These links are shared out-of-band (chat, paper) and are harder to rotate on demand than a session, so they get a longer window, capped well under a year.
+- **`PRIVATE_SESSION_SECRET`**: must be set to at least 32 characters. In `NODE_ENV=production`, a missing/short secret throws at request time instead of silently falling back. Outside production, an obviously-fake `dev-only-*` secret is used and a warning is printed once per process — never rely on this outside your local machine.
+- **Token revocation**: `src/lib/token-revocation.ts` stores SHA-256 hashes of revoked session/invite tokens (never the raw token) in `public.revoked_tokens`, keyed by hash with an `expires_at` used for cleanup. Middleware checks this table (via a 60s in-memory cache to limit Supabase round-trips) on every request. `DELETE /api/access` (the logout button in the dashboard) revokes the caller's current session and tutor-invite cookies. If Supabase is unreachable, revocation checks fail open (request proceeds) rather than locking the family out — acceptable for a private single-family app, but means revocation is best-effort during an outage.
+- **Rate limiting**: `src/lib/access-rate-limit.ts` tracks failed `/api/access` code submissions per SHA-256 fingerprint of IP+User-Agent in `public.access_attempts`, so the limit holds across serverless instances/regions instead of resetting per cold start (which an in-memory `Map` would do). A cookie-based counter is still checked first as a fast path. This is deliberately simple (no Redis/KV) given the single-family scale; if abuse ever exceeds what this table can absorb, consider a dedicated rate-limit service instead of scaling this further.
+- Both new tables (`revoked_tokens`, `access_attempts`) have RLS enabled with no policies, so only the Supabase service role (used server-side only, via `getSupabaseAdminClient`) can read/write them.
 
 Still next step:
 
