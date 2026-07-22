@@ -20,7 +20,8 @@ type FormState = {
 };
 
 const categories: { value: EventCategory; label: string }[] = [
-  { value: "school", label: "学校" }, { value: "tutoring", label: "辅导" }, { value: "activity", label: "活动" }
+  { value: "school", label: "学校" }, { value: "tutoring", label: "辅导" }, { value: "activity", label: "活动" },
+  { value: "exam", label: "测评" }, { value: "family", label: "家庭" }
 ];
 const durations = [{ value: "30", label: "30 分钟" }, { value: "45", label: "45 分钟" }, { value: "60", label: "1 小时" }, { value: "90", label: "1.5 小时" }, { value: "custom", label: "自定义" }];
 const repeats: { value: RepeatType; label: string }[] = [
