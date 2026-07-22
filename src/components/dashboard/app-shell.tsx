@@ -4,6 +4,7 @@ import {
   BookOpen,
   CalendarDays,
   LayoutDashboard,
+  LogOut,
   Plus,
   Settings
 } from "lucide-react";
@@ -47,6 +48,14 @@ export function AppShell({
   const activeItem = modeLabelByMode.get(activeMode) ?? modeItems[0];
   const ActiveIcon = activeItem.icon;
   const quickAdd = quickAddByMode[activeMode];
+
+  async function logout() {
+    try {
+      await fetch("/api/access", { method: "DELETE" });
+    } finally {
+      window.location.href = "/access";
+    }
+  }
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-background lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -110,10 +119,14 @@ export function AppShell({
             <p className="text-xs font-medium text-foreground">私有家庭工作区</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">日程、成绩与家教反馈长期保存并定期备份。</p>
           </div>
+          <Button type="button" variant="ghost" size="sm" className="mt-3 w-full justify-start gap-2 text-muted-foreground" onClick={() => void logout()}>
+            <LogOut className="h-4 w-4" />
+            退出登录
+          </Button>
         </div>
       </aside>
       <div className="flex min-w-0 flex-col overflow-x-hidden">
-        <header className="sticky top-0 z-30 border-b border-border bg-card/90 px-3 py-2.5 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-border bg-card/90 px-3 py-2.5 pt-[calc(0.625rem+env(safe-area-inset-top))] backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex min-w-0 items-center gap-2">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
@@ -124,15 +137,20 @@ export function AppShell({
                 <p className="truncate text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
-            {quickAdd && (
-              <Button size="sm" className="shrink-0 gap-1.5 rounded-full px-3" onClick={() => onModeChange(quickAdd.target, quickAddTargetIdByMode[activeMode])}>
-                <Plus className="h-3.5 w-3.5" />
-                {quickAdd.label}
+            <div className="flex shrink-0 items-center gap-2">
+              {quickAdd && (
+                <Button size="sm" className="h-11 shrink-0 gap-1.5 rounded-full px-4" onClick={() => onModeChange(quickAdd.target, quickAddTargetIdByMode[activeMode])}>
+                  <Plus className="h-3.5 w-3.5" />
+                  {quickAdd.label}
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" className="h-11 w-11 shrink-0 rounded-full px-0 text-muted-foreground" aria-label="退出登录" onClick={() => void logout()}>
+                <LogOut className="h-4 w-4" />
               </Button>
-            )}
+            </div>
           </div>
         </header>
-        <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
+        <main className="min-w-0 overflow-x-hidden px-3 py-3 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-5 lg:px-8 lg:pb-8">{children}</main>
         <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl lg:hidden">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
             {modeItems.map((item) => (
@@ -141,7 +159,7 @@ export function AppShell({
                 type="button"
                 onClick={() => onModeChange(item.mode)}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition duration-200 hover:bg-muted hover:text-foreground",
+                  "flex min-h-11 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition duration-200 hover:bg-muted hover:text-foreground",
                   item.mode === activeMode && "bg-foreground text-background hover:bg-foreground hover:text-background"
                 )}
               >
