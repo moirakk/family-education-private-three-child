@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
-import type { Child } from "@/lib/types";
-
-type ChildPayload = Partial<Child>;
+import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
+import { childInputSchema } from "@/lib/schemas/child";
 
 function arrayOrEmpty(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && Boolean(item.trim())) : [];
@@ -35,7 +33,7 @@ function mapChildRow(data: {
 }
 
 async function countRows(
-  supabase: ReturnType<typeof getPrivateWriteContext>["supabase"],
+  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
   table: string,
   childId: string
 ) {
@@ -45,7 +43,7 @@ async function countRows(
 }
 
 async function getChildDependencyCount(
-  supabase: ReturnType<typeof getPrivateWriteContext>["supabase"],
+  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
   childId: string
 ) {
   const counts = await Promise.all([
@@ -64,9 +62,9 @@ async function getChildDependencyCount(
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as ChildPayload;
-    const firstName = requireString(payload.firstName, "firstName");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(childInputSchema, await request.json());
+    const firstName = payload.firstName;
 
     const { data, error } = await supabase
       .from("children")
@@ -94,10 +92,10 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const childId = new URL(request.url).searchParams.get("childId");
-    const payload = (await request.json()) as ChildPayload;
-    const firstName = requireString(payload.firstName, "firstName");
+    const payload = parseBody(childInputSchema, await request.json());
+    const firstName = payload.firstName;
 
     if (!childId) return NextResponse.json({ error: "childId is required" }, { status: 400 });
 
@@ -128,7 +126,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const childId = new URL(request.url).searchParams.get("childId");
     if (!childId) return NextResponse.json({ error: "childId is required" }, { status: 400 });
 

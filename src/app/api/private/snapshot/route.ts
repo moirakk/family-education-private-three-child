@@ -93,9 +93,9 @@ function mapChild(row: ChildRow): Child {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const [
       familyResult,
       settingsResult,

@@ -7,12 +7,11 @@ import {
   jsonError,
   numberOrNull,
   optionalString,
+  parseBody,
   requireString,
   scoreOneToFive
 } from "@/app/api/private/_utils";
-import type { TutorFeedback } from "@/lib/types";
-
-type TutorFeedbackPayload = Partial<TutorFeedback>;
+import { tutorFeedbackInputSchema } from "@/lib/schemas/tutor-feedback";
 
 function mapFeedbackRow(data: {
   id: string;
@@ -44,9 +43,9 @@ function mapFeedbackRow(data: {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const { data, error } = await supabase
       .from("tutor_feedback")
       .select("id,child_id,tutor_name,subject,session_date,duration_minutes,focus,performance,homework,next_focus,rating,created_at")
@@ -62,8 +61,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as TutorFeedbackPayload;
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(tutorFeedbackInputSchema, await request.json());
     const role = getAccessRoleFromRequest(request);
     const tutorScope = role === "tutor" ? getTutorInviteScopeFromRequest(request) : null;
     if (role === "tutor" && !tutorScope) {
@@ -73,7 +72,7 @@ export async function POST(request: Request) {
     const childId = tutorScope?.childId ?? requireString(payload.childId, "childId");
     const tutorName = tutorScope?.tutorName ?? requireString(payload.tutorName, "tutorName");
     const subject = tutorScope?.subject ?? requireString(payload.subject, "subject");
-    const focus = requireString(payload.focus, "focus");
+    const focus = payload.focus;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
@@ -103,13 +102,13 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const feedbackId = new URL(request.url).searchParams.get("feedbackId");
-    const payload = (await request.json()) as TutorFeedbackPayload;
+    const payload = parseBody(tutorFeedbackInputSchema, await request.json());
     const childId = requireString(payload.childId, "childId");
     const tutorName = requireString(payload.tutorName, "tutorName");
     const subject = requireString(payload.subject, "subject");
-    const focus = requireString(payload.focus, "focus");
+    const focus = payload.focus;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!feedbackId) return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
@@ -142,7 +141,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const feedbackId = new URL(request.url).searchParams.get("feedbackId");
     if (!feedbackId) return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
 

@@ -3,7 +3,7 @@ import { getPrivateWriteContext, jsonError } from "@/app/api/private/_utils";
 
 export async function GET(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const { data, error } = await supabase
       .from("family_settings")
       .select("calendar_token")

@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
-import { assertChildrenBelongToFamily, getPrivateWriteContext, jsonError, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildrenBelongToFamily, getPrivateWriteContext, jsonError, optionalString, parseBody } from "@/app/api/private/_utils";
 import type { EventCategory } from "@/lib/types";
-
-type EventPayload = {
-  title?: string;
-  category?: EventCategory;
-  startsAt?: string;
-  endsAt?: string;
-  location?: string;
-  description?: string;
-  childIds?: string[];
-  allDay?: boolean;
-  recurrenceRule?: string;
-  recurrenceEnd?: string;
-};
+import { eventInputSchema } from "@/lib/schemas/event";
 
 function mapEventRow(data: {
   id: string;
@@ -44,16 +32,13 @@ function mapEventRow(data: {
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as EventPayload;
-    const title = requireString(payload.title, "title");
-    const category = requireString(payload.category, "category") as EventCategory;
-    const startsAt = requireString(payload.startsAt, "startsAt");
-    const childIds = payload.childIds ?? [];
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(eventInputSchema, await request.json());
+    const title = payload.title;
+    const category = payload.category;
+    const startsAt = payload.startsAt;
+    const childIds = payload.childIds;
 
-    if (!childIds.length) {
-      return NextResponse.json({ error: "title, category, startsAt and childIds are required" }, { status: 400 });
-    }
     await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
     const { data, error } = await supabase
@@ -98,17 +83,16 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const url = new URL(request.url);
     const eventId = url.searchParams.get("eventId");
-    const payload = (await request.json()) as EventPayload;
-    const title = requireString(payload.title, "title");
-    const category = requireString(payload.category, "category") as EventCategory;
-    const startsAt = requireString(payload.startsAt, "startsAt");
-    const childIds = payload.childIds ?? [];
+    const payload = parseBody(eventInputSchema, await request.json());
+    const title = payload.title;
+    const category = payload.category;
+    const startsAt = payload.startsAt;
+    const childIds = payload.childIds;
 
     if (!eventId) return NextResponse.json({ error: "eventId is required" }, { status: 400 });
-    if (!childIds.length) return NextResponse.json({ error: "childIds is required" }, { status: 400 });
     await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
     const { data, error } = await supabase
@@ -150,7 +134,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const url = new URL(request.url);
     const eventId = url.searchParams.get("eventId");
 

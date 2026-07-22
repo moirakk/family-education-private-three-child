@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, optionalString, requireString, scoreOneToFive } from "@/app/api/private/_utils";
-import type { SelfEvaluation } from "@/lib/types";
-
-type SelfEvaluationPayload = Partial<SelfEvaluation>;
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, optionalString, parseBody, scoreOneToFive } from "@/app/api/private/_utils";
+import { selfEvaluationInputSchema } from "@/lib/schemas/self-evaluation";
 
 function mapEvaluationRow(data: {
   id: string;
@@ -30,9 +28,9 @@ function mapEvaluationRow(data: {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const { data, error } = await supabase
       .from("self_evaluations")
       .select("id,child_id,evaluation_date,subject,mood,effort,confidence,reflection,next_step,created_at")
@@ -48,11 +46,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as SelfEvaluationPayload;
-    const childId = requireString(payload.childId, "childId");
-    const subject = requireString(payload.subject, "subject");
-    const reflection = requireString(payload.reflection, "reflection");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(selfEvaluationInputSchema, await request.json());
+    const childId = payload.childId;
+    const subject = payload.subject;
+    const reflection = payload.reflection;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
@@ -80,12 +78,12 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const evaluationId = new URL(request.url).searchParams.get("evaluationId");
-    const payload = (await request.json()) as SelfEvaluationPayload;
-    const childId = requireString(payload.childId, "childId");
-    const subject = requireString(payload.subject, "subject");
-    const reflection = requireString(payload.reflection, "reflection");
+    const payload = parseBody(selfEvaluationInputSchema, await request.json());
+    const childId = payload.childId;
+    const subject = payload.subject;
+    const reflection = payload.reflection;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!evaluationId) return NextResponse.json({ error: "evaluationId is required" }, { status: 400 });
@@ -116,7 +114,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const evaluationId = new URL(request.url).searchParams.get("evaluationId");
     if (!evaluationId) return NextResponse.json({ error: "evaluationId is required" }, { status: 400 });
 

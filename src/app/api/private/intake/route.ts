@@ -1,21 +1,12 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, requireString } from "@/app/api/private/_utils";
-
-type IntakePayload = {
-  childId?: string;
-  schoolDetail?: string;
-  weeklySchedule?: string;
-  importantDates?: string;
-  currentGoals?: string;
-  parentConcerns?: string;
-  privateNotes?: string;
-};
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, parseBody } from "@/app/api/private/_utils";
+import { intakeInputSchema } from "@/lib/schemas/intake";
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as IntakePayload;
-    const childId = requireString(payload.childId, "childId");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(intakeInputSchema, await request.json());
+    const childId = payload.childId;
 
     await assertChildBelongsToFamily(supabase, familyId, childId);
 

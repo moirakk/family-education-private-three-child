@@ -1,26 +1,14 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, requireString, scoreOneToFive } from "@/app/api/private/_utils";
-
-type LearningRecordPayload = {
-  childId?: string;
-  subject?: string;
-  title?: string;
-  date?: string;
-  durationMinutes?: number;
-  score?: number;
-  maxScore?: number;
-  examType?: "quiz" | "monthly" | "midterm" | "final" | "other";
-  notes?: string;
-  confidence?: number;
-};
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, parseBody, scoreOneToFive } from "@/app/api/private/_utils";
+import { learningRecordInputSchema } from "@/lib/schemas/learning-record";
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as LearningRecordPayload;
-    const childId = requireString(payload.childId, "childId");
-    const subject = requireString(payload.subject, "subject");
-    const title = requireString(payload.title, "title");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(learningRecordInputSchema, await request.json());
+    const childId = payload.childId;
+    const subject = payload.subject;
+    const title = payload.title;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const { data, error } = await supabase
@@ -50,12 +38,12 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const recordId = new URL(request.url).searchParams.get("recordId");
-    const payload = (await request.json()) as LearningRecordPayload;
-    const childId = requireString(payload.childId, "childId");
-    const subject = requireString(payload.subject, "subject");
-    const title = requireString(payload.title, "title");
+    const payload = parseBody(learningRecordInputSchema, await request.json());
+    const childId = payload.childId;
+    const subject = payload.subject;
+    const title = payload.title;
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     if (!recordId) return NextResponse.json({ error: "recordId is required" }, { status: 400 });
@@ -88,7 +76,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const recordId = new URL(request.url).searchParams.get("recordId");
     if (!recordId) return NextResponse.json({ error: "recordId is required" }, { status: 400 });
 

@@ -1,24 +1,12 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
 import type { EducationGoal, GoalStatus } from "@/lib/types";
+import { goalInputSchema } from "@/lib/schemas/goal";
 
 type MilestonePayload = {
   title?: string;
   dueDate?: string;
   completed?: boolean;
-};
-
-type GoalPayload = {
-  childId?: string;
-  title?: string;
-  subject?: string;
-  targetDate?: string;
-  status?: GoalStatus;
-  progress?: number;
-  milestones?: MilestonePayload[];
-  planType?: EducationGoal["planType"];
-  customType?: string;
-  syncToCalendar?: boolean;
 };
 
 type GoalRow = {
@@ -97,7 +85,7 @@ function mapGoal(goal: GoalRow, milestones: MilestoneRow[]): EducationGoal {
 }
 
 async function loadGoalWithMilestones(
-  supabase: ReturnType<typeof getPrivateWriteContext>["supabase"],
+  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
   familyId: string,
   goalId: string
 ) {
@@ -126,10 +114,10 @@ async function loadGoalWithMilestones(
 
 export async function POST(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as GoalPayload;
-    const childId = requireString(payload.childId, "childId");
-    const title = requireString(payload.title, "title");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(goalInputSchema, await request.json());
+    const childId = payload.childId;
+    const title = payload.title;
     const milestones = cleanMilestones(payload.milestones);
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
@@ -174,11 +162,11 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const goalId = new URL(request.url).searchParams.get("goalId");
-    const payload = (await request.json()) as GoalPayload;
-    const childId = requireString(payload.childId, "childId");
-    const title = requireString(payload.title, "title");
+    const payload = parseBody(goalInputSchema, await request.json());
+    const childId = payload.childId;
+    const title = payload.title;
     const milestones = cleanMilestones(payload.milestones);
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
@@ -229,7 +217,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const goalId = new URL(request.url).searchParams.get("goalId");
     if (!goalId) return NextResponse.json({ error: "goalId is required" }, { status: 400 });
 

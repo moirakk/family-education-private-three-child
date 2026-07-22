@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, requireString } from "@/app/api/private/_utils";
+import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
 import type { LearningMaterial } from "@/lib/types";
-
-type MaterialPayload = Partial<LearningMaterial>;
+import { materialFormInputSchema, materialInputSchema } from "@/lib/schemas/material";
 
 const defaultBucket = "learning-materials";
 
@@ -50,7 +49,7 @@ function safePathSegment(value: string) {
 }
 
 async function handleMultipartUpload(request: Request) {
-  const { familyId, supabase } = getPrivateWriteContext();
+  const { familyId, supabase } = await getPrivateWriteContext(request);
   const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
   const formData = await request.formData();
   const file = formData.get("file");
@@ -59,13 +58,22 @@ async function handleMultipartUpload(request: Request) {
     return NextResponse.json({ error: "file is required" }, { status: 400 });
   }
 
-  const title = requireString(formData.get("title"), "title");
-  const subject = requireString(formData.get("subject"), "subject");
-  const childId = optionalString(formData.get("childId"));
-  const kind = (optionalString(formData.get("kind")) ?? "file") as LearningMaterial["kind"];
-  const notes = optionalString(formData.get("notes"));
-  const externalUrl = optionalString(formData.get("externalUrl"));
-  const tags = optionalString(formData.get("tags"))?.split(",").map((tag) => tag.trim()).filter(Boolean) ?? [];
+  const formPayload = parseBody(materialFormInputSchema, {
+    title: formData.get("title"),
+    subject: formData.get("subject"),
+    childId: formData.get("childId"),
+    kind: formData.get("kind"),
+    notes: formData.get("notes"),
+    externalUrl: formData.get("externalUrl"),
+    tags: formData.get("tags")
+  });
+  const title = formPayload.title;
+  const subject = formPayload.subject;
+  const childId = optionalString(formPayload.childId);
+  const kind = formPayload.kind ?? "file";
+  const notes = optionalString(formPayload.notes);
+  const externalUrl = optionalString(formPayload.externalUrl);
+  const tags = optionalString(formPayload.tags)?.split(",").map((tag) => tag.trim()).filter(Boolean) ?? [];
   const fileName = file.name || `${title}.bin`;
   if (childId) await assertChildBelongsToFamily(supabase, familyId, childId);
   const storagePath = [
@@ -117,10 +125,10 @@ export async function POST(request: Request) {
       return handleMultipartUpload(request);
     }
 
-    const { familyId, supabase } = getPrivateWriteContext();
-    const payload = (await request.json()) as MaterialPayload;
-    const title = requireString(payload.title, "title");
-    const subject = requireString(payload.subject, "subject");
+    const { familyId, supabase } = await getPrivateWriteContext(request);
+    const payload = parseBody(materialInputSchema, await request.json());
+    const title = payload.title;
+    const subject = payload.subject;
     if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
     const { data, error } = await supabase
@@ -151,7 +159,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const url = new URL(request.url);
     const materialId = url.searchParams.get("materialId");
     const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
@@ -194,11 +202,11 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const materialId = new URL(request.url).searchParams.get("materialId");
-    const payload = (await request.json()) as MaterialPayload;
-    const title = requireString(payload.title, "title");
-    const subject = requireString(payload.subject, "subject");
+    const payload = parseBody(materialInputSchema, await request.json());
+    const title = payload.title;
+    const subject = payload.subject;
 
     if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
     if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
@@ -228,7 +236,7 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     const materialId = new URL(request.url).searchParams.get("materialId");
     if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
 

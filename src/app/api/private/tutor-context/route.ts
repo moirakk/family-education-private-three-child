@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     let query = supabase
       .from("children")
       .select("id,first_name,grade,avatar_color")

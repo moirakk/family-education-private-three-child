@@ -4,9 +4,10 @@ import {
   getAccessRoleFromRequest,
   getPrivateWriteContext,
   jsonError,
-  requireString
+  parseBody
 } from "@/app/api/private/_utils";
 import { createParentInviteToken, createTutorInviteToken } from "@/lib/private-access";
+import { tutorShareLinkInputSchema } from "@/lib/schemas/share-link";
 
 function getRequestOrigin(request: Request) {
   const url = new URL(request.url);
@@ -48,15 +49,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tutor links are only available to family operators." }, { status: 403 });
     }
 
-    const payload = (await request.json()) as { childId?: string; tutorName?: string; subject?: string };
-    const childId = requireString(payload.childId, "childId");
-    const tutorName = requireString(payload.tutorName, "tutorName");
-    const subject = requireString(payload.subject, "subject");
+    const payload = parseBody(tutorShareLinkInputSchema, await request.json());
+    const childId = payload.childId;
+    const tutorName = payload.tutorName;
+    const subject = payload.subject;
     if (tutorName.length > 60 || subject.length > 40) {
       return NextResponse.json({ error: "Tutor name or subject is too long." }, { status: 400 });
     }
 
-    const { familyId, supabase } = getPrivateWriteContext();
+    const { familyId, supabase } = await getPrivateWriteContext(request);
     await assertChildBelongsToFamily(supabase, familyId, childId);
 
     const inviteToken = await createTutorInviteToken({ childId, tutorName, subject });
@@ -66,6 +67,6 @@ export async function POST(request: Request) {
       }
     });
   } catch (error) {
-    return jsonError(error, error instanceof Error && error.message.includes("required") ? 400 : 500);
+    return jsonError(error);
   }
 }
