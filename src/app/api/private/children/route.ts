@@ -64,13 +64,11 @@ async function countRows(supabase: PrivateSupabaseClient, table: string, childId
 
 async function getChildDependencyCount(supabase: PrivateSupabaseClient, childId: string) {
   const counts = await Promise.all([
-    countRows(supabase, "child_intake_profiles", childId),
     countRows(supabase, "calendar_event_children", childId),
     countRows(supabase, "learning_records", childId),
     countRows(supabase, "education_goals", childId),
     countRows(supabase, "resources", childId),
     countRows(supabase, "learning_materials", childId),
-    countRows(supabase, "self_evaluations", childId),
     countRows(supabase, "tutor_feedback", childId)
   ]);
 

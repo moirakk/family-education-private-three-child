@@ -12,7 +12,6 @@ const tableOrder = [
   ["families", "id"],
   ["family_settings", "family_id"],
   ["children", "id"],
-  ["child_intake_profiles", "child_id"],
   ["calendar_events", "id"],
   ["calendar_event_children", "event_id,child_id"],
   ["learning_records", "id"],
@@ -20,7 +19,6 @@ const tableOrder = [
   ["milestones", "id"],
   ["resources", "id"],
   ["learning_materials", "id"],
-  ["self_evaluations", "id"],
   ["tutor_feedback", "id"]
 ];
 

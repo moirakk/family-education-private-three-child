@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAccessRoleFromRequest, getPrivateWriteContext, withPrivateErrorHandling } from "@/app/api/private/_utils";
-import { emptyRows, fetchFamilyEducationRows, fetchLinkedEducationRows } from "@/app/api/private/_queries";
+import { fetchFamilyEducationRows, fetchLinkedEducationRows } from "@/app/api/private/_queries";
 
 export const maxDuration = 60;
 
@@ -28,11 +28,10 @@ export const GET = withPrivateErrorHandling(async (request) => {
   }
 
   const { familyId, supabase } = await getPrivateWriteContext(request);
-  const [familyResult, settingsResult, materialsResult, selfEvaluationsResult, tutorFeedbackResult] = await Promise.all([
+  const [familyResult, settingsResult, materialsResult, tutorFeedbackResult] = await Promise.all([
     supabase.from("families").select("*").eq("id", familyId).maybeSingle(),
     supabase.from("family_settings").select("*").eq("family_id", familyId).maybeSingle(),
     supabase.from("learning_materials").select("*").eq("family_id", familyId).order("created_at", { ascending: false }),
-    supabase.from("self_evaluations").select("*").eq("family_id", familyId).order("evaluation_date", { ascending: false }),
     supabase.from("tutor_feedback").select("*").eq("family_id", familyId).order("session_date", { ascending: false })
   ]);
   const [childrenResult, eventsResult, recordsResult, goalsResult, resourcesResult] = await fetchFamilyEducationRows(
@@ -50,24 +49,16 @@ export const GET = withPrivateErrorHandling(async (request) => {
     goalsResult,
     resourcesResult,
     materialsResult,
-    selfEvaluationsResult,
     tutorFeedbackResult
   ]) {
     if (result.error) throw new Error(result.error.message);
   }
 
-  const children = (childrenResult.data ?? []) as Array<{ id: string }>;
   const events = (eventsResult.data ?? []) as Array<{ id: string }>;
   const goals = (goalsResult.data ?? []) as Array<{ id: string }>;
-  const childIds = children.map((child) => child.id);
   const eventIds = events.map((event) => event.id);
   const goalIds = goals.map((goal) => goal.id);
 
-  const [intakeProfiles] = await Promise.all([
-    childIds.length
-      ? supabase.from("child_intake_profiles").select("*").in("child_id", childIds)
-      : Promise.resolve(emptyRows)
-  ]);
   const [eventChildren, milestones] = await fetchLinkedEducationRows(supabase, { eventIds, goalIds });
 
   const data = {
@@ -79,7 +70,6 @@ export const GET = withPrivateErrorHandling(async (request) => {
       families: familyResult.data ? [familyResult.data] : [],
       family_settings: settingsResult.data ? [settingsResult.data] : [],
       children: childrenResult.data ?? [],
-      child_intake_profiles: assertQuery(intakeProfiles),
       calendar_events: eventsResult.data ?? [],
       calendar_event_children: assertQuery(eventChildren),
       learning_records: recordsResult.data ?? [],
@@ -87,7 +77,6 @@ export const GET = withPrivateErrorHandling(async (request) => {
       milestones: assertQuery(milestones),
       resources: resourcesResult.data ?? [],
       learning_materials: materialsResult.data ?? [],
-      self_evaluations: selfEvaluationsResult.data ?? [],
       tutor_feedback: tutorFeedbackResult.data ?? []
     },
     storage: {

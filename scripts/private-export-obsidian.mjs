@@ -223,7 +223,6 @@ function buildDashboard(ctx) {
     "- [[03 Learning/Learning Records|学习记录]]",
     "- [[04 Materials/Materials|学习资料库]]",
     "- [[05 Roadmap/Education Roadmap|教育路线图]]",
-    "- [[06 Feedback/Self Evaluations|孩子自评]]",
     "- [[06 Feedback/Tutor Feedback|家教反馈]]",
     "- [[99 System/Export Metadata|导出元数据]]",
     ""
@@ -236,9 +235,7 @@ function buildChildPage(ctx, child) {
   const records = sortByDate(rowsForChild(ctx, "learning_records", child.id), "record_date", "desc").slice(0, 20);
   const goals = rowsForChild(ctx, "education_goals", child.id);
   const materials = sortByDate(rowsForChild(ctx, "learning_materials", child.id), "created_at", "desc").slice(0, 20);
-  const evaluations = sortByDate(rowsForChild(ctx, "self_evaluations", child.id), "evaluation_date", "desc").slice(0, 12);
   const feedback = sortByDate(rowsForChild(ctx, "tutor_feedback", child.id), "session_date", "desc").slice(0, 12);
-  const intake = (ctx.tables.child_intake_profiles ?? []).find((profile) => profile.child_id === child.id);
 
   return [
     frontmatter({
@@ -262,19 +259,6 @@ function buildChildPage(ctx, child) {
         ["项目/班型", child.school_program],
         ["兴趣", (child.interests ?? []).join("、")],
         ["重点方向", (child.focus_areas ?? []).join("、")]
-      ]
-    ),
-    "## 家长补充资料",
-    "",
-    table(
-      ["字段", "内容"],
-      [
-        ["学校详情", intake?.school_detail],
-        ["每周安排", intake?.weekly_schedule],
-        ["重要日期", intake?.important_dates],
-        ["当前目标", intake?.current_goals],
-        ["家长关注", intake?.parent_concerns],
-        ["私密备注", intake?.private_notes]
       ]
     ),
     "## 近期日程",
@@ -324,20 +308,6 @@ function buildChildPage(ctx, child) {
         material.kind,
         material.external_url || material.storage_path || material.file_name,
         material.notes
-      ])
-    ),
-    "## 自我评价",
-    "",
-    table(
-      ["日期", "科目", "心情", "投入", "信心", "反思", "下一步"],
-      evaluations.map((evaluation) => [
-        dateOnly(evaluation.evaluation_date),
-        evaluation.subject,
-        evaluation.mood,
-        evaluation.effort,
-        evaluation.confidence,
-        evaluation.reflection,
-        evaluation.next_step
       ])
     ),
     "## 家教反馈",
@@ -459,28 +429,6 @@ function buildRoadmapPage(ctx) {
   ].join("\n");
 }
 
-function buildSelfEvaluationsPage(ctx) {
-  const evaluations = sortByDate(ctx.tables.self_evaluations ?? [], "evaluation_date", "desc");
-  return [
-    frontmatter({ type: "self_evaluations", generated_at: new Date().toISOString() }),
-    "# 孩子自我评价",
-    "",
-    table(
-      ["日期", "孩子", "科目", "心情", "投入", "信心", "反思", "下一步"],
-      evaluations.map((evaluation) => [
-        dateOnly(evaluation.evaluation_date),
-        ctx.childNameById.get(evaluation.child_id),
-        evaluation.subject,
-        evaluation.mood,
-        evaluation.effort,
-        evaluation.confidence,
-        evaluation.reflection,
-        evaluation.next_step
-      ])
-    )
-  ].join("\n");
-}
-
 function buildTutorFeedbackPage(ctx) {
   const feedback = sortByDate(ctx.tables.tutor_feedback ?? [], "session_date", "desc");
   return [
@@ -558,7 +506,6 @@ async function main() {
   await writeMarkdown(outputRoot, "03 Learning/Learning Records.md", buildLearningPage(ctx));
   await writeMarkdown(outputRoot, "04 Materials/Materials.md", buildMaterialsPage(ctx));
   await writeMarkdown(outputRoot, "05 Roadmap/Education Roadmap.md", buildRoadmapPage(ctx));
-  await writeMarkdown(outputRoot, "06 Feedback/Self Evaluations.md", buildSelfEvaluationsPage(ctx));
   await writeMarkdown(outputRoot, "06 Feedback/Tutor Feedback.md", buildTutorFeedbackPage(ctx));
   await writeMarkdown(outputRoot, "99 System/Export Metadata.md", buildMetadataPage(ctx));
 
