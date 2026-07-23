@@ -7,14 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getPrivateApi, isPrivateApiMode, postPrivateApi } from "@/lib/private-api-client";
+import { useShareLinks, type ShareLinks } from "@/hooks/use-share-links";
+import { postPrivateApi } from "@/lib/private-api-client";
 import type { Child } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-type ShareLinks = {
-  parentUrl: string;
-  tutorFeedbackUrl: string | null;
-};
 
 const tutorSubjects = ["语文", "数学", "英语", "其他"] as const;
 
@@ -27,7 +23,8 @@ function createLocalLinks(): ShareLinks {
 }
 
 export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
-  const [links, setLinks] = useState<ShareLinks>(() => createLocalLinks());
+  const { shareLinks, shareLinksError } = useShareLinks();
+  const [localLinks, setLocalLinks] = useState<ShareLinks>({ parentUrl: "", tutorFeedbackUrl: null });
   const [selectedChildId, setSelectedChildId] = useState(childProfiles[0]?.id ?? "");
   const [tutorName, setTutorName] = useState("");
   const [subject, setSubject] = useState<(typeof tutorSubjects)[number]>("数学");
@@ -36,23 +33,21 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [status, setStatus] = useState("");
 
+  const links = shareLinks ?? localLinks;
+
+  useEffect(() => {
+    setLocalLinks(createLocalLinks());
+  }, []);
+
+  useEffect(() => {
+    if (shareLinksError) {
+      setStatus(`分享链接读取失败：${shareLinksError}`);
+    }
+  }, [shareLinksError]);
+
   useEffect(() => {
     if (!selectedChildId && childProfiles[0]?.id) setSelectedChildId(childProfiles[0].id);
   }, [childProfiles, selectedChildId]);
-
-  useEffect(() => {
-    if (!isPrivateApiMode()) {
-      setLinks(createLocalLinks());
-      return;
-    }
-
-    getPrivateApi<ShareLinks>("/api/private/share-links")
-      .then(setLinks)
-      .catch((error) => {
-        setLinks(createLocalLinks());
-        setStatus(error instanceof Error ? `分享链接读取失败：${error.message}` : "分享链接读取失败。");
-      });
-  }, []);
 
   function resetGeneratedLink() {
     setGeneratedTutorUrl(null);

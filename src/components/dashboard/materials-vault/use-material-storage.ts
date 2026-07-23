@@ -1,6 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useRemoteMaterials } from "@/hooks/use-remote-materials";
 import { getLocalFile } from "@/lib/local-file-store";
 import { getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { LearningMaterial } from "@/lib/types";
@@ -12,6 +13,8 @@ export function useMaterialsPersistence(
   setMaterials: Dispatch<SetStateAction<LearningMaterial[]>>,
   setStatus: Dispatch<SetStateAction<string>>
 ) {
+  const { remoteMaterials, remoteMaterialsError } = useRemoteMaterials();
+
   useEffect(() => {
     const raw = window.localStorage.getItem(metadataStorageKey);
     if (!raw) return;
@@ -24,19 +27,19 @@ export function useMaterialsPersistence(
   }, [setMaterials]);
 
   useEffect(() => {
-    if (!isPrivateApiMode()) return;
+    if (!remoteMaterials) return;
 
-    getPrivateApi<LearningMaterial[]>("/api/private/materials")
-      .then((remoteMaterials) => {
-        setMaterials((current) => {
-          const localOnly = current.filter((material) => material.id.startsWith("local-"));
-          return [...remoteMaterials, ...localOnly];
-        });
-      })
-      .catch((error) => {
-        setStatus(error instanceof Error ? `资料库读取数据库失败：${error.message}` : "资料库读取数据库失败。");
-      });
-  }, [setMaterials, setStatus]);
+    setMaterials((current) => {
+      const localOnly = current.filter((material) => material.id.startsWith("local-"));
+      return [...remoteMaterials, ...localOnly];
+    });
+  }, [remoteMaterials, setMaterials]);
+
+  useEffect(() => {
+    if (remoteMaterialsError) {
+      setStatus(`资料库读取数据库失败：${remoteMaterialsError.message}`);
+    }
+  }, [remoteMaterialsError, setStatus]);
 
   useEffect(() => {
     window.localStorage.setItem(metadataStorageKey, JSON.stringify(materials));

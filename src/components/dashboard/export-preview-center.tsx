@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDatabaseBackup } from "@/hooks/use-database-backup";
 import { buildEducationCalendarIcs } from "@/lib/ics";
-import { getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { CalendarEvent, Child, EducationGoal, LearningRecord, Resource } from "@/lib/types";
 
 type LocalExportData = {
@@ -80,10 +80,7 @@ export function ExportPreviewCenter({
     tutorFeedback: null
   });
   const [copied, setCopied] = useState<string | null>(null);
-  const [databaseBackup, setDatabaseBackup] = useState<unknown | null>(null);
-  const [backupStatus, setBackupStatus] = useState<"local" | "loading" | "database" | "failed">(
-    isPrivateApiMode() ? "loading" : "local"
-  );
+  const { databaseBackup, backupStatus } = useDatabaseBackup();
 
   useEffect(() => {
     setLocalData({
@@ -94,27 +91,6 @@ export function ExportPreviewCenter({
       selfEvaluations: readJsonStorage(localStorageKeys.selfEvaluations),
       tutorFeedback: readJsonStorage(localStorageKeys.tutorFeedback)
     });
-  }, []);
-
-  useEffect(() => {
-    if (!isPrivateApiMode()) return;
-
-    let isActive = true;
-
-    getPrivateApi<unknown>("/api/private/export")
-      .then((data) => {
-        if (!isActive) return;
-        setDatabaseBackup(data);
-        setBackupStatus("database");
-      })
-      .catch(() => {
-        if (!isActive) return;
-        setBackupStatus("failed");
-      });
-
-    return () => {
-      isActive = false;
-    };
   }, []);
 
   const reportText = useMemo(() => {

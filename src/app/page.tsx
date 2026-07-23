@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell, type DashboardMode } from "@/components/dashboard/app-shell";
 import { DailyBrief } from "@/components/dashboard/daily-brief";
 import { TodayCommandCenter } from "@/components/dashboard/today-command-center";
-import type { FamilySnapshot } from "@/lib/core-types";
-import { isFamilyDataModeMisconfigured, isPrivateApiMode } from "@/lib/private-api-client";
+import { useFamilySnapshot } from "@/hooks/use-family-snapshot";
+import { isFamilyDataModeMisconfigured } from "@/lib/private-api-client";
 import { mergeRemoteAndLocal } from "@/lib/reconciled-collection";
 import {
   pilotCalendarEvents,
@@ -77,16 +77,19 @@ function scrollToTarget(targetId?: string, attempt = 0) {
 
 export default function Home() {
   const misconfigured = isFamilyDataModeMisconfigured();
-  const [children, setChildren] = useState(pilotChildren);
+  const { snapshot } = useFamilySnapshot();
+  const [localChildren, setLocalChildren] = useState<typeof pilotChildren | null>(null);
   const [todayChildId, setTodayChildId] = useState<string | null>(null);
   const [localEvents, setLocalEvents] = useState<typeof pilotCalendarEvents>([]);
   const [localRecords, setLocalRecords] = useState<typeof pilotLearningRecords>([]);
-  const [goals, setGoals] = useState(pilotEducationGoals);
-  const [snapshot, setSnapshot] = useState<FamilySnapshot | null>(null);
+  const [localGoals, setLocalGoals] = useState<typeof pilotEducationGoals | null>(null);
   const [activeMode, setActiveMode] = useState<DashboardMode>("today");
   const [showWeeklyReport, setShowWeeklyReport] = useState(false);
   const [eventFormRequest, setEventFormRequest] = useState(0);
   const [recordFormRequest, setRecordFormRequest] = useState(0);
+
+  const children = localChildren ?? (snapshot?.children.length ? snapshot.children : pilotChildren);
+  const goals = localGoals ?? snapshot?.educationGoals ?? pilotEducationGoals;
 
   function changeMode(mode: DashboardMode, targetId?: string) {
     if (targetId === "event-planner") setEventFormRequest((value) => value + 1);
@@ -108,24 +111,6 @@ export default function Home() {
     return () => window.removeEventListener("hashchange", sync);
   }, []);
 
-  useEffect(() => {
-    if (!isPrivateApiMode()) return;
-    let active = true;
-    fetch("/api/private/snapshot")
-      .then(async (response) => {
-        const payload = (await response.json()) as { data?: FamilySnapshot; error?: string };
-        if (!response.ok || !payload.data) throw new Error(payload.error ?? "读取家庭数据失败");
-        return payload.data;
-      })
-      .then((data) => {
-        if (!active) return;
-        setSnapshot(data);
-        if (data.children.length) setChildren(data.children);
-      })
-      .catch(() => active && setSnapshot(null));
-    return () => { active = false; };
-  }, []);
-
   const events = useMemo(
     () => mergeRemoteAndLocal(snapshot?.calendarEvents ?? pilotCalendarEvents, localEvents).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)),
     [localEvents, snapshot]
@@ -136,8 +121,6 @@ export default function Home() {
   );
   const resources = snapshot?.resources ?? pilotResources;
   const workspaceLabel = children.map((child) => child.firstName).join(" · ");
-
-  useEffect(() => setGoals(snapshot?.educationGoals ?? pilotEducationGoals), [snapshot]);
 
   if (misconfigured) {
     return (
@@ -188,7 +171,7 @@ export default function Home() {
           <>
             <LearningRecordPlanner childProfiles={children} existingRecords={records} onRecordsChange={setLocalRecords} openFormRequest={recordFormRequest} />
             <TutorFeedbackBoard childProfiles={children} />
-            <EducationRoadmap goals={goals} childProfiles={children} onGoalsChange={setGoals} />
+            <EducationRoadmap goals={goals} childProfiles={children} onGoalsChange={setLocalGoals} />
           </>
         ) : null}
 
@@ -197,7 +180,7 @@ export default function Home() {
             <CalendarSyncCard currentEvents={events} childProfiles={children} />
             <ShareLinksCard childProfiles={children} />
             <ExportPreviewCenter childProfiles={children} events={events} goals={goals} records={records} resources={resources} />
-            <GradeSettings childProfiles={children} setChildren={setChildren} />
+            <GradeSettings childProfiles={children} setChildren={setLocalChildren} />
             <PwaInstallCard />
           </>
         ) : null}
