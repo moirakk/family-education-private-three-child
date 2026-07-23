@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { todayIsoDate } from "@/lib/date-utils";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import { getLocalOnlyItems } from "@/lib/reconciled-collection";
 import type { Child, LearningRecord } from "@/lib/types";
@@ -36,12 +37,8 @@ const examTypes: { value: ExamType; label: string }[] = [
   { value: "other", label: "其他" }
 ];
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function initialForm(children: Child[]): FormState {
-  return { childId: children[0]?.id ?? "", subject: "数学", customSubject: "", title: "", date: today(), score: "", maxScore: "100", examType: "quiz", notes: "" };
+  return { childId: children[0]?.id ?? "", subject: "数学", customSubject: "", title: "", date: todayIsoDate(), score: "", maxScore: "100", examType: "quiz", notes: "" };
 }
 
 function percentage(record: LearningRecord) {

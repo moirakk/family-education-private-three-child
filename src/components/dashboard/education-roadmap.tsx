@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { todayIsoDate as today } from "@/lib/date-utils";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, EducationGoal, GoalStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,6 @@ type PlanType = NonNullable<EducationGoal["planType"]>;
 type FormState = { childId: string; title: string; targetDate: string; planType: PlanType; customType: string; status: "planned" | "achieved" | "cancelled"; syncToCalendar: boolean };
 const planTypes: { value: PlanType; label: string }[] = [{ value: "exam", label: "考试" }, { value: "competition", label: "比赛" }, { value: "school", label: "升学" }, { value: "other", label: "其他" }];
 const statusLabels: Record<string, string> = { planned: "计划中", achieved: "已完成", cancelled: "已取消", in_progress: "计划中", at_risk: "计划中" };
-function today() { return new Date().toISOString().slice(0, 10); }
 function initial(children: Child[]): FormState { return { childId: children[0]?.id ?? "", title: "", targetDate: today(), planType: "exam", customType: "", status: "planned", syncToCalendar: true }; }
 
 export function EducationRoadmap({ goals, childProfiles, onGoalsChange }: { goals: EducationGoal[]; childProfiles: Child[]; onGoalsChange?: (goals: EducationGoal[]) => void }) {

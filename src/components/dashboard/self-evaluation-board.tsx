@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { todayIsoDate as todayDate } from "@/lib/date-utils";
 import { deletePrivateApi, getPrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
 import type { Child, SelfEvaluation } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -32,10 +33,6 @@ const scoreOptions = [
   { value: "4", label: "不错" },
   { value: "5", label: "很稳" }
 ];
-
-function todayDate() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function clampScore(value: string) {
   return Math.min(5, Math.max(1, Number(value) || 3));
