@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { assertChildrenBelongToFamily, getPrivateWriteContext, jsonError, optionalString, parseBody } from "@/app/api/private/_utils";
+import {
+  assertChildrenBelongToFamily,
+  optionalString,
+  parseBody,
+  requireQueryParam,
+  supabaseError,
+  withPrivateRoute
+} from "@/app/api/private/_utils";
 import type { EventCategory } from "@/lib/types";
 import { eventInputSchema } from "@/lib/schemas/event";
 
@@ -30,126 +37,85 @@ function mapEventRow(data: {
   };
 }
 
-export async function POST(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const payload = parseBody(eventInputSchema, await request.json());
-    const title = payload.title;
-    const category = payload.category;
-    const startsAt = payload.startsAt;
-    const childIds = payload.childIds;
-
-    await assertChildrenBelongToFamily(supabase, familyId, childIds);
-
-    const { data, error } = await supabase
-      .from("calendar_events")
-      .insert({
-        family_id: familyId,
-        title,
-        category,
-        source: "parent",
-        starts_at: startsAt,
-        ends_at: payload.endsAt ?? null,
-        location: optionalString(payload.location) ?? "",
-        description: optionalString(payload.description) ?? ""
-        ,recurrence_rule: optionalString(payload.recurrenceRule)
-        ,recurrence_end: optionalString(payload.recurrenceEnd)
-        ,all_day: Boolean(payload.allDay)
-      })
-      .select("id,title,category,starts_at,ends_at,location,description,recurrence_rule,recurrence_end,all_day")
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const eventId = data.id as string;
-    const { error: linkError } = await supabase.from("calendar_event_children").insert(
-      childIds.map((childId) => ({
-        event_id: eventId,
-        child_id: childId
-      }))
-    );
-
-    if (linkError) {
-      return NextResponse.json({ error: linkError.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ data: mapEventRow(data, childIds) }, { status: 201 });
-  } catch (error) {
-    return jsonError(error);
-  }
+function eventColumnValues(payload: import("zod").infer<typeof eventInputSchema>) {
+  return {
+    title: payload.title,
+    category: payload.category,
+    starts_at: payload.startsAt,
+    ends_at: payload.endsAt ?? null,
+    location: optionalString(payload.location) ?? "",
+    description: optionalString(payload.description) ?? "",
+    recurrence_rule: optionalString(payload.recurrenceRule),
+    recurrence_end: optionalString(payload.recurrenceEnd),
+    all_day: Boolean(payload.allDay)
+  };
 }
 
-export async function PUT(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const url = new URL(request.url);
-    const eventId = url.searchParams.get("eventId");
-    const payload = parseBody(eventInputSchema, await request.json());
-    const title = payload.title;
-    const category = payload.category;
-    const startsAt = payload.startsAt;
-    const childIds = payload.childIds;
+const eventSelectColumns = "id,title,category,starts_at,ends_at,location,description,recurrence_rule,recurrence_end,all_day";
 
-    if (!eventId) return NextResponse.json({ error: "eventId is required" }, { status: 400 });
-    await assertChildrenBelongToFamily(supabase, familyId, childIds);
+export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(eventInputSchema, await request.json());
+  const childIds = payload.childIds;
 
-    const { data, error } = await supabase
-      .from("calendar_events")
-      .update({
-        title,
-        category,
-        starts_at: startsAt,
-        ends_at: payload.endsAt ?? null,
-        location: optionalString(payload.location) ?? "",
-        description: optionalString(payload.description) ?? ""
-        ,recurrence_rule: optionalString(payload.recurrenceRule)
-        ,recurrence_end: optionalString(payload.recurrenceEnd)
-        ,all_day: Boolean(payload.allDay)
-      })
-      .eq("family_id", familyId)
-      .eq("id", eventId)
-      .select("id,title,category,starts_at,ends_at,location,description,recurrence_rule,recurrence_end,all_day")
-      .single();
+  await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { data, error } = await supabase
+    .from("calendar_events")
+    .insert({ family_id: familyId, source: "parent", ...eventColumnValues(payload) })
+    .select(eventSelectColumns)
+    .single();
 
-    const deleteLinks = await supabase.from("calendar_event_children").delete().eq("event_id", eventId);
-    if (deleteLinks.error) return NextResponse.json({ error: deleteLinks.error.message }, { status: 500 });
+  if (error) return supabaseError(error);
 
-    const insertLinks = await supabase.from("calendar_event_children").insert(
-      childIds.map((childId) => ({
-        event_id: eventId,
-        child_id: childId
-      }))
-    );
-    if (insertLinks.error) return NextResponse.json({ error: insertLinks.error.message }, { status: 500 });
+  const eventId = data.id as string;
+  const { error: linkError } = await supabase.from("calendar_event_children").insert(
+    childIds.map((childId) => ({
+      event_id: eventId,
+      child_id: childId
+    }))
+  );
 
-    return NextResponse.json({ data: mapEventRow(data, childIds) });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  if (linkError) return supabaseError(linkError);
 
-export async function DELETE(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const url = new URL(request.url);
-    const eventId = url.searchParams.get("eventId");
+  return NextResponse.json({ data: mapEventRow(data, childIds) }, { status: 201 });
+});
 
-    if (!eventId) {
-      return NextResponse.json({ error: "eventId is required" }, { status: 400 });
-    }
+export const PUT = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(eventInputSchema, await request.json());
+  const childIds = payload.childIds;
+  const eventId = requireQueryParam(request, "eventId");
 
-    const { error } = await supabase.from("calendar_events").delete().eq("family_id", familyId).eq("id", eventId);
+  await assertChildrenBelongToFamily(supabase, familyId, childIds);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  const { data, error } = await supabase
+    .from("calendar_events")
+    .update(eventColumnValues(payload))
+    .eq("family_id", familyId)
+    .eq("id", eventId)
+    .select(eventSelectColumns)
+    .single();
 
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  if (error) return supabaseError(error);
+
+  const deleteLinks = await supabase.from("calendar_event_children").delete().eq("event_id", eventId);
+  if (deleteLinks.error) return supabaseError(deleteLinks.error);
+
+  const insertLinks = await supabase.from("calendar_event_children").insert(
+    childIds.map((childId) => ({
+      event_id: eventId,
+      child_id: childId
+    }))
+  );
+  if (insertLinks.error) return supabaseError(insertLinks.error);
+
+  return NextResponse.json({ data: mapEventRow(data, childIds) });
+});
+
+export const DELETE = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const eventId = requireQueryParam(request, "eventId");
+
+  const { error } = await supabase.from("calendar_events").delete().eq("family_id", familyId).eq("id", eventId);
+  if (error) return supabaseError(error);
+
+  return NextResponse.json({ ok: true });
+});

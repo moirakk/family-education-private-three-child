@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
+import {
+  assertChildBelongsToFamily,
+  numberOrNull,
+  optionalString,
+  parseBody,
+  requireQueryParam,
+  supabaseError,
+  withPrivateRoute,
+  type PrivateSupabaseClient
+} from "@/app/api/private/_utils";
 import type { EducationGoal, GoalStatus } from "@/lib/types";
 import { goalInputSchema } from "@/lib/schemas/goal";
 
@@ -84,11 +93,21 @@ function mapGoal(goal: GoalRow, milestones: MilestoneRow[]): EducationGoal {
   };
 }
 
-async function loadGoalWithMilestones(
-  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
-  familyId: string,
-  goalId: string
-) {
+function goalColumnValues(payload: import("zod").infer<typeof goalInputSchema>) {
+  return {
+    child_id: payload.childId,
+    title: payload.title,
+    subject: optionalString(payload.subject),
+    target_date: optionalString(payload.targetDate),
+    status: cleanStatus(payload.status),
+    progress: cleanProgress(payload.progress),
+    plan_type: payload.planType ?? "other",
+    custom_type: optionalString(payload.customType),
+    sync_to_calendar: payload.syncToCalendar !== false
+  };
+}
+
+async function loadGoalWithMilestones(supabase: PrivateSupabaseClient, familyId: string, goalId: string) {
   const goalResult = await supabase
     .from("education_goals")
     .select("id,child_id,title,subject,target_date,status,progress,plan_type,custom_type,sync_to_calendar")
@@ -112,120 +131,81 @@ async function loadGoalWithMilestones(
   };
 }
 
-export async function POST(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const payload = parseBody(goalInputSchema, await request.json());
-    const childId = payload.childId;
-    const title = payload.title;
-    const milestones = cleanMilestones(payload.milestones);
-    await assertChildBelongsToFamily(supabase, familyId, childId);
+async function insertMilestones(
+  supabase: PrivateSupabaseClient,
+  goalId: string,
+  milestones: ReturnType<typeof cleanMilestones>
+) {
+  if (milestones.length === 0) return null;
 
-    const { data, error } = await supabase
-      .from("education_goals")
-      .insert({
-        family_id: familyId,
-        child_id: childId,
-        title,
-        subject: optionalString(payload.subject),
-        target_date: optionalString(payload.targetDate),
-        status: cleanStatus(payload.status),
-        progress: cleanProgress(payload.progress)
-        ,plan_type: payload.planType ?? "other"
-        ,custom_type: optionalString(payload.customType)
-        ,sync_to_calendar: payload.syncToCalendar !== false
-      })
-      .select("id")
-      .single();
+  const result = await supabase.from("milestones").insert(
+    milestones.map((milestone) => ({
+      goal_id: goalId,
+      ...milestone
+    }))
+  );
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    const goalId = data.id as string;
-    if (milestones.length > 0) {
-      const insertMilestones = await supabase.from("milestones").insert(
-        milestones.map((milestone) => ({
-          goal_id: goalId,
-          ...milestone
-        }))
-      );
-      if (insertMilestones.error) return NextResponse.json({ error: insertMilestones.error.message }, { status: 500 });
-    }
-
-    const result = await loadGoalWithMilestones(supabase, familyId, goalId);
-    if (result.error || !result.data) return NextResponse.json({ error: result.error ?? "Goal save failed" }, { status: 500 });
-
-    return NextResponse.json({ data: result.data }, { status: 201 });
-  } catch (error) {
-    return jsonError(error);
-  }
+  return result.error;
 }
 
-export async function PUT(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const goalId = new URL(request.url).searchParams.get("goalId");
-    const payload = parseBody(goalInputSchema, await request.json());
-    const childId = payload.childId;
-    const title = payload.title;
-    const milestones = cleanMilestones(payload.milestones);
-    await assertChildBelongsToFamily(supabase, familyId, childId);
+export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(goalInputSchema, await request.json());
+  const milestones = cleanMilestones(payload.milestones);
+  await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
-    if (!goalId) return NextResponse.json({ error: "goalId is required" }, { status: 400 });
+  const { data, error } = await supabase
+    .from("education_goals")
+    .insert({ family_id: familyId, ...goalColumnValues(payload) })
+    .select("id")
+    .single();
 
-    const { data, error } = await supabase
-      .from("education_goals")
-      .update({
-        child_id: childId,
-        title,
-        subject: optionalString(payload.subject),
-        target_date: optionalString(payload.targetDate),
-        status: cleanStatus(payload.status),
-        progress: cleanProgress(payload.progress)
-        ,plan_type: payload.planType ?? "other"
-        ,custom_type: optionalString(payload.customType)
-        ,sync_to_calendar: payload.syncToCalendar !== false
-      })
-      .eq("family_id", familyId)
-      .eq("id", goalId)
-      .select("id")
-      .single();
+  if (error) return supabaseError(error);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    if (!data) return NextResponse.json({ error: "Goal not found" }, { status: 404 });
+  const goalId = data.id as string;
+  const milestoneError = await insertMilestones(supabase, goalId, milestones);
+  if (milestoneError) return supabaseError(milestoneError);
 
-    const deleteMilestones = await supabase.from("milestones").delete().eq("goal_id", goalId);
-    if (deleteMilestones.error) return NextResponse.json({ error: deleteMilestones.error.message }, { status: 500 });
+  const result = await loadGoalWithMilestones(supabase, familyId, goalId);
+  if (result.error || !result.data) return NextResponse.json({ error: result.error ?? "Goal save failed" }, { status: 500 });
 
-    if (milestones.length > 0) {
-      const insertMilestones = await supabase.from("milestones").insert(
-        milestones.map((milestone) => ({
-          goal_id: goalId,
-          ...milestone
-        }))
-      );
-      if (insertMilestones.error) return NextResponse.json({ error: insertMilestones.error.message }, { status: 500 });
-    }
+  return NextResponse.json({ data: result.data }, { status: 201 });
+});
 
-    const result = await loadGoalWithMilestones(supabase, familyId, goalId);
-    if (result.error || !result.data) return NextResponse.json({ error: result.error ?? "Goal update failed" }, { status: 500 });
+export const PUT = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(goalInputSchema, await request.json());
+  const milestones = cleanMilestones(payload.milestones);
+  await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
-    return NextResponse.json({ data: result.data });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  const goalId = requireQueryParam(request, "goalId");
 
-export async function DELETE(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const goalId = new URL(request.url).searchParams.get("goalId");
-    if (!goalId) return NextResponse.json({ error: "goalId is required" }, { status: 400 });
+  const { data, error } = await supabase
+    .from("education_goals")
+    .update(goalColumnValues(payload))
+    .eq("family_id", familyId)
+    .eq("id", goalId)
+    .select("id")
+    .single();
 
-    const { error } = await supabase.from("education_goals").delete().eq("family_id", familyId).eq("id", goalId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return supabaseError(error);
+  if (!data) return NextResponse.json({ error: "Goal not found" }, { status: 404 });
 
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  const deleteMilestones = await supabase.from("milestones").delete().eq("goal_id", goalId);
+  if (deleteMilestones.error) return supabaseError(deleteMilestones.error);
+
+  const milestoneError = await insertMilestones(supabase, goalId, milestones);
+  if (milestoneError) return supabaseError(milestoneError);
+
+  const result = await loadGoalWithMilestones(supabase, familyId, goalId);
+  if (result.error || !result.data) return NextResponse.json({ error: result.error ?? "Goal update failed" }, { status: 500 });
+
+  return NextResponse.json({ data: result.data });
+});
+
+export const DELETE = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const goalId = requireQueryParam(request, "goalId");
+
+  const { error } = await supabase.from("education_goals").delete().eq("family_id", familyId).eq("id", goalId);
+  if (error) return supabaseError(error);
+
+  return NextResponse.json({ ok: true });
+});

@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
-import { getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
+import {
+  numberOrNull,
+  optionalString,
+  parseBody,
+  requireQueryParam,
+  supabaseError,
+  withPrivateRoute,
+  type PrivateSupabaseClient
+} from "@/app/api/private/_utils";
 import { childInputSchema } from "@/lib/schemas/child";
 
 function arrayOrEmpty(value: unknown) {
@@ -32,20 +40,29 @@ function mapChildRow(data: {
   };
 }
 
-async function countRows(
-  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
-  table: string,
-  childId: string
-) {
+function childColumnValues(payload: import("zod").infer<typeof childInputSchema>) {
+  return {
+    first_name: payload.firstName,
+    last_name: optionalString(payload.lastName),
+    age: numberOrNull(payload.age),
+    grade: optionalString(payload.grade),
+    school_name: optionalString(payload.schoolName),
+    school_program: optionalString(payload.schoolProgram),
+    avatar_color: optionalString(payload.avatarColor) ?? "#2563eb",
+    interests: arrayOrEmpty(payload.interests),
+    focus_areas: arrayOrEmpty(payload.focusAreas)
+  };
+}
+
+const childSelectColumns = "id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas";
+
+async function countRows(supabase: PrivateSupabaseClient, table: string, childId: string) {
   const { count, error } = await supabase.from(table).select("child_id", { count: "exact", head: true }).eq("child_id", childId);
   if (error) throw new Error(`${table}: ${error.message}`);
   return count ?? 0;
 }
 
-async function getChildDependencyCount(
-  supabase: Awaited<ReturnType<typeof getPrivateWriteContext>>["supabase"],
-  childId: string
-) {
+async function getChildDependencyCount(supabase: PrivateSupabaseClient, childId: string) {
   const counts = await Promise.all([
     countRows(supabase, "child_intake_profiles", childId),
     countRows(supabase, "calendar_event_children", childId),
@@ -60,110 +77,69 @@ async function getChildDependencyCount(
   return counts.reduce((sum, count) => sum + count, 0);
 }
 
-export async function POST(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const payload = parseBody(childInputSchema, await request.json());
-    const firstName = payload.firstName;
+export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(childInputSchema, await request.json());
 
-    const { data, error } = await supabase
-      .from("children")
-      .insert({
-        family_id: familyId,
-        first_name: firstName,
-        last_name: optionalString(payload.lastName),
-        age: numberOrNull(payload.age),
-        grade: optionalString(payload.grade),
-        school_name: optionalString(payload.schoolName),
-        school_program: optionalString(payload.schoolProgram),
-        avatar_color: optionalString(payload.avatarColor) ?? "#2563eb",
-        interests: arrayOrEmpty(payload.interests),
-        focus_areas: arrayOrEmpty(payload.focusAreas)
-      })
-      .select("id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas")
-      .single();
+  const { data, error } = await supabase
+    .from("children")
+    .insert({ family_id: familyId, ...childColumnValues(payload) })
+    .select(childSelectColumns)
+    .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapChildRow(data) }, { status: 201 });
-  } catch (error) {
-    return jsonError(error);
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapChildRow(data) }, { status: 201 });
+});
+
+export const PUT = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(childInputSchema, await request.json());
+  const childId = requireQueryParam(request, "childId");
+
+  const { data, error } = await supabase
+    .from("children")
+    .update(childColumnValues(payload))
+    .eq("family_id", familyId)
+    .eq("id", childId)
+    .select(childSelectColumns)
+    .single();
+
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapChildRow(data) });
+});
+
+export const DELETE = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const childId = requireQueryParam(request, "childId");
+
+  const { count, error: countError } = await supabase
+    .from("children")
+    .select("id", { count: "exact", head: true })
+    .eq("family_id", familyId);
+
+  if (countError) return supabaseError(countError);
+  if ((count ?? 0) <= 1) return NextResponse.json({ error: "At least one child profile is required" }, { status: 400 });
+
+  const { data: child, error: childError } = await supabase
+    .from("children")
+    .select("id")
+    .eq("family_id", familyId)
+    .eq("id", childId)
+    .maybeSingle();
+
+  if (childError) return supabaseError(childError);
+  if (!child) return NextResponse.json({ error: "Child profile not found" }, { status: 404 });
+
+  const dependencyCount = await getChildDependencyCount(supabase, childId);
+  if (dependencyCount > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "This child profile has linked education data and cannot be deleted. Edit the profile instead, or export a backup before manual database maintenance."
+      },
+      { status: 409 }
+    );
   }
-}
 
-export async function PUT(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const childId = new URL(request.url).searchParams.get("childId");
-    const payload = parseBody(childInputSchema, await request.json());
-    const firstName = payload.firstName;
+  const { error } = await supabase.from("children").delete().eq("family_id", familyId).eq("id", childId);
+  if (error) return supabaseError(error);
 
-    if (!childId) return NextResponse.json({ error: "childId is required" }, { status: 400 });
-
-    const { data, error } = await supabase
-      .from("children")
-      .update({
-        first_name: firstName,
-        last_name: optionalString(payload.lastName),
-        age: numberOrNull(payload.age),
-        grade: optionalString(payload.grade),
-        school_name: optionalString(payload.schoolName),
-        school_program: optionalString(payload.schoolProgram),
-        avatar_color: optionalString(payload.avatarColor) ?? "#2563eb",
-        interests: arrayOrEmpty(payload.interests),
-        focus_areas: arrayOrEmpty(payload.focusAreas)
-      })
-      .eq("family_id", familyId)
-      .eq("id", childId)
-      .select("id,first_name,last_name,age,grade,school_name,school_program,avatar_color,interests,focus_areas")
-      .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapChildRow(data) });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
-
-export async function DELETE(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const childId = new URL(request.url).searchParams.get("childId");
-    if (!childId) return NextResponse.json({ error: "childId is required" }, { status: 400 });
-
-    const { count, error: countError } = await supabase
-      .from("children")
-      .select("id", { count: "exact", head: true })
-      .eq("family_id", familyId);
-
-    if (countError) return NextResponse.json({ error: countError.message }, { status: 500 });
-    if ((count ?? 0) <= 1) return NextResponse.json({ error: "At least one child profile is required" }, { status: 400 });
-
-    const { data: child, error: childError } = await supabase
-      .from("children")
-      .select("id")
-      .eq("family_id", familyId)
-      .eq("id", childId)
-      .maybeSingle();
-
-    if (childError) return NextResponse.json({ error: childError.message }, { status: 500 });
-    if (!child) return NextResponse.json({ error: "Child profile not found" }, { status: 404 });
-
-    const dependencyCount = await getChildDependencyCount(supabase, childId);
-    if (dependencyCount > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "This child profile has linked education data and cannot be deleted. Edit the profile instead, or export a backup before manual database maintenance."
-        },
-        { status: 409 }
-      );
-    }
-
-    const { error } = await supabase.from("children").delete().eq("family_id", familyId).eq("id", childId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  return NextResponse.json({ ok: true });
+});

@@ -4,7 +4,7 @@ import { assertPrivateWriteConfigured } from "@/lib/supabase-admin";
 import { getSupabaseUserClient } from "@/lib/supabase-user-context";
 import type { AccessRole, TutorInviteScope } from "@/lib/private-access";
 
-type PrivateSupabaseClient = Awaited<ReturnType<typeof getSupabaseUserClient>>;
+export type PrivateSupabaseClient = Awaited<ReturnType<typeof getSupabaseUserClient>>;
 
 /** Thrown for any caller-input problem (missing/invalid fields). Always maps to HTTP 400. */
 export class ValidationError extends Error {
@@ -17,6 +17,57 @@ export class ValidationError extends Error {
 export function jsonError(error: unknown, status?: number) {
   const resolvedStatus = status ?? (error instanceof ValidationError ? 400 : 500);
   return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: resolvedStatus });
+}
+
+/** Maps a Supabase/PostgREST error to the standard `{ error }` JSON response (HTTP 500 by default). */
+export function supabaseError(error: { message: string }, status = 500) {
+  return NextResponse.json({ error: error.message }, { status });
+}
+
+export type PrivateRouteContext = {
+  familyId: string;
+  supabase: PrivateSupabaseClient;
+};
+
+/**
+ * Standard shell for /api/private CRUD handlers: builds the RLS-scoped
+ * Supabase context and converts any thrown error into the shared JSON error
+ * response (ValidationError -> 400, everything else -> 500). Route files keep
+ * only the business logic.
+ */
+export function withPrivateRoute(
+  handler: (context: PrivateRouteContext, request: Request) => Promise<Response>
+) {
+  return async (request: Request): Promise<Response> => {
+    try {
+      const context = await getPrivateWriteContext(request);
+      return await handler(context, request);
+    } catch (error) {
+      return jsonError(error);
+    }
+  };
+}
+
+/**
+ * Error-boundary-only variant for handlers that must run role guards or
+ * branching *before* creating the Supabase context (share-links, export,
+ * tutor-context). The handler calls getPrivateWriteContext itself when needed.
+ */
+export function withPrivateErrorHandling(handler: (request: Request) => Promise<Response>) {
+  return async (request: Request): Promise<Response> => {
+    try {
+      return await handler(request);
+    } catch (error) {
+      return jsonError(error);
+    }
+  };
+}
+
+/** Reads a required query-string parameter; missing/empty -> ValidationError (HTTP 400). */
+export function requireQueryParam(request: Request, name: string) {
+  const value = new URL(request.url).searchParams.get(name);
+  if (!value) throw new ValidationError(`${name} is required`);
+  return value;
 }
 
 /**
