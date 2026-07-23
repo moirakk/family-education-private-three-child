@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
-import { assertChildBelongsToFamily, getPrivateWriteContext, jsonError, numberOrNull, optionalString, parseBody } from "@/app/api/private/_utils";
+import {
+  assertChildBelongsToFamily,
+  numberOrNull,
+  optionalString,
+  parseBody,
+  requireQueryParam,
+  supabaseError,
+  withPrivateRoute,
+  type PrivateRouteContext
+} from "@/app/api/private/_utils";
 import type { LearningMaterial } from "@/lib/types";
 import { materialFormInputSchema, materialInputSchema } from "@/lib/schemas/material";
 
@@ -48,8 +57,10 @@ function safePathSegment(value: string) {
     .toLowerCase();
 }
 
-async function handleMultipartUpload(request: Request) {
-  const { familyId, supabase } = await getPrivateWriteContext(request);
+const materialSelectColumns =
+  "id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at";
+
+async function handleMultipartUpload({ familyId, supabase }: PrivateRouteContext, request: Request) {
   const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
   const formData = await request.formData();
   const file = formData.get("file");
@@ -87,9 +98,7 @@ async function handleMultipartUpload(request: Request) {
     upsert: false
   });
 
-  if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
-  }
+  if (uploadError) return supabaseError(uploadError);
 
   const { data, error } = await supabase
     .from("learning_materials")
@@ -107,156 +116,131 @@ async function handleMultipartUpload(request: Request) {
       notes,
       tags
     })
-    .select("id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at")
+    .select(materialSelectColumns)
     .single();
 
   if (error) {
     await supabase.storage.from(bucket).remove([storagePath]);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return supabaseError(error);
   }
 
   return NextResponse.json({ data: mapMaterialRow(data) }, { status: 201 });
 }
 
-export async function POST(request: Request) {
-  try {
-    const contentType = request.headers.get("content-type") ?? "";
-    if (contentType.includes("multipart/form-data")) {
-      return handleMultipartUpload(request);
-    }
-
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const payload = parseBody(materialInputSchema, await request.json());
-    const title = payload.title;
-    const subject = payload.subject;
-    if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
-
-    const { data, error } = await supabase
-      .from("learning_materials")
-      .insert({
-        family_id: familyId,
-        child_id: payload.childId ?? null,
-        title,
-        subject,
-        kind: payload.kind ?? "file",
-        file_name: optionalString(payload.fileName),
-        file_size: numberOrNull(payload.fileSize),
-        mime_type: optionalString(payload.mimeType),
-        storage_path: optionalString(payload.storagePath),
-        external_url: optionalString(payload.externalUrl),
-        notes: optionalString(payload.notes),
-        tags: payload.tags ?? []
-      })
-      .select("id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at")
-      .single();
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapMaterialRow(data) }, { status: 201 });
-  } catch (error) {
-    return jsonError(error);
+export const POST = withPrivateRoute(async (context, request) => {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    return handleMultipartUpload(context, request);
   }
-}
 
-export async function GET(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const url = new URL(request.url);
-    const materialId = url.searchParams.get("materialId");
-    const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
+  const { familyId, supabase } = context;
+  const payload = parseBody(materialInputSchema, await request.json());
+  if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
 
-    if (materialId) {
-      const { data, error } = await supabase
-        .from("learning_materials")
-        .select("external_url,storage_path")
-        .eq("family_id", familyId)
-        .eq("id", materialId)
-        .single();
+  const { data, error } = await supabase
+    .from("learning_materials")
+    .insert({
+      family_id: familyId,
+      child_id: payload.childId ?? null,
+      title: payload.title,
+      subject: payload.subject,
+      kind: payload.kind ?? "file",
+      file_name: optionalString(payload.fileName),
+      file_size: numberOrNull(payload.fileSize),
+      mime_type: optionalString(payload.mimeType),
+      storage_path: optionalString(payload.storagePath),
+      external_url: optionalString(payload.externalUrl),
+      notes: optionalString(payload.notes),
+      tags: payload.tags ?? []
+    })
+    .select(materialSelectColumns)
+    .single();
 
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapMaterialRow(data) }, { status: 201 });
+});
 
-      if (data.external_url) {
-        return NextResponse.json({ data: { url: data.external_url } });
-      }
+export const GET = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const url = new URL(request.url);
+  const materialId = url.searchParams.get("materialId");
+  const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
 
-      if (!data.storage_path) {
-        return NextResponse.json({ error: "material has no downloadable source" }, { status: 404 });
-      }
-
-      const signed = await supabase.storage.from(bucket).createSignedUrl(data.storage_path, 60 * 10);
-      if (signed.error) return NextResponse.json({ error: signed.error.message }, { status: 500 });
-      return NextResponse.json({ data: { url: signed.data.signedUrl } });
-    }
-
+  if (materialId) {
     const { data, error } = await supabase
       .from("learning_materials")
-      .select("id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at")
-      .eq("family_id", familyId)
-      .order("created_at", { ascending: false });
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: (data ?? []).map(mapMaterialRow) });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
-
-export async function PUT(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const materialId = new URL(request.url).searchParams.get("materialId");
-    const payload = parseBody(materialInputSchema, await request.json());
-    const title = payload.title;
-    const subject = payload.subject;
-
-    if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
-    if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
-
-    const { data, error } = await supabase
-      .from("learning_materials")
-      .update({
-        child_id: payload.childId ?? null,
-        title,
-        subject,
-        kind: payload.kind ?? "file",
-        external_url: optionalString(payload.externalUrl),
-        notes: optionalString(payload.notes),
-        tags: payload.tags ?? []
-      })
+      .select("external_url,storage_path")
       .eq("family_id", familyId)
       .eq("id", materialId)
-      .select("id,child_id,title,subject,kind,file_name,file_size,mime_type,storage_path,external_url,notes,tags,created_at,updated_at")
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapMaterialRow(data) });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+    if (error) return supabaseError(error);
 
-export async function DELETE(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const materialId = new URL(request.url).searchParams.get("materialId");
-    if (!materialId) return NextResponse.json({ error: "materialId is required" }, { status: 400 });
-
-    const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
-    const { data: material } = await supabase
-      .from("learning_materials")
-      .select("storage_path")
-      .eq("family_id", familyId)
-      .eq("id", materialId)
-      .maybeSingle();
-
-    const { error } = await supabase.from("learning_materials").delete().eq("family_id", familyId).eq("id", materialId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    if (material?.storage_path) {
-      await supabase.storage.from(bucket).remove([material.storage_path]);
+    if (data.external_url) {
+      return NextResponse.json({ data: { url: data.external_url } });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return jsonError(error);
+    if (!data.storage_path) {
+      return NextResponse.json({ error: "material has no downloadable source" }, { status: 404 });
+    }
+
+    const signed = await supabase.storage.from(bucket).createSignedUrl(data.storage_path, 60 * 10);
+    if (signed.error) return supabaseError(signed.error);
+    return NextResponse.json({ data: { url: signed.data.signedUrl } });
   }
-}
+
+  const { data, error } = await supabase
+    .from("learning_materials")
+    .select(materialSelectColumns)
+    .eq("family_id", familyId)
+    .order("created_at", { ascending: false });
+
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: (data ?? []).map(mapMaterialRow) });
+});
+
+export const PUT = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(materialInputSchema, await request.json());
+  const materialId = requireQueryParam(request, "materialId");
+
+  if (payload.childId) await assertChildBelongsToFamily(supabase, familyId, payload.childId);
+
+  const { data, error } = await supabase
+    .from("learning_materials")
+    .update({
+      child_id: payload.childId ?? null,
+      title: payload.title,
+      subject: payload.subject,
+      kind: payload.kind ?? "file",
+      external_url: optionalString(payload.externalUrl),
+      notes: optionalString(payload.notes),
+      tags: payload.tags ?? []
+    })
+    .eq("family_id", familyId)
+    .eq("id", materialId)
+    .select(materialSelectColumns)
+    .single();
+
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapMaterialRow(data) });
+});
+
+export const DELETE = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const materialId = requireQueryParam(request, "materialId");
+
+  const bucket = process.env.SUPABASE_LEARNING_MATERIALS_BUCKET ?? defaultBucket;
+  const { data: material } = await supabase
+    .from("learning_materials")
+    .select("storage_path")
+    .eq("family_id", familyId)
+    .eq("id", materialId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("learning_materials").delete().eq("family_id", familyId).eq("id", materialId);
+  if (error) return supabaseError(error);
+
+  if (material?.storage_path) {
+    await supabase.storage.from(bucket).remove([material.storage_path]);
+  }
+
+  return NextResponse.json({ ok: true });
+});

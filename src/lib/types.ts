@@ -91,19 +91,6 @@ export type LearningMaterial = {
   updatedAt: string;
 };
 
-export type SelfEvaluation = {
-  id: string;
-  childId: string;
-  evaluationDate: string;
-  subject: string;
-  mood: number;
-  effort: number;
-  confidence: number;
-  reflection: string;
-  nextStep: string;
-  createdAt: string;
-};
-
 export type TutorFeedback = {
   id: string;
   childId: string;

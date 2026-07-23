@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import {
   assertChildBelongsToFamily,
   getAccessRoleFromRequest,
-  getPrivateWriteContext,
   getTutorInviteScopeFromRequest,
-  jsonError,
   numberOrNull,
   optionalString,
   parseBody,
+  requireQueryParam,
   requireString,
-  scoreOneToFive
+  scoreOneToFive,
+  supabaseError,
+  withPrivateRoute
 } from "@/app/api/private/_utils";
 import { tutorFeedbackInputSchema } from "@/lib/schemas/tutor-feedback";
 
@@ -43,112 +44,86 @@ function mapFeedbackRow(data: {
   };
 }
 
-export async function GET(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const { data, error } = await supabase
-      .from("tutor_feedback")
-      .select("id,child_id,tutor_name,subject,session_date,duration_minutes,focus,performance,homework,next_focus,rating,created_at")
-      .eq("family_id", familyId)
-      .order("session_date", { ascending: false });
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: (data ?? []).map(mapFeedbackRow) });
-  } catch (error) {
-    return jsonError(error);
-  }
+function feedbackColumnValues(
+  payload: import("zod").infer<typeof tutorFeedbackInputSchema>,
+  identity: { childId: string; tutorName: string; subject: string }
+) {
+  return {
+    child_id: identity.childId,
+    tutor_name: identity.tutorName,
+    subject: identity.subject,
+    session_date: payload.sessionDate || new Date().toISOString().slice(0, 10),
+    duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
+    focus: payload.focus,
+    performance: optionalString(payload.performance),
+    homework: optionalString(payload.homework),
+    next_focus: optionalString(payload.nextFocus),
+    rating: scoreOneToFive(payload.rating)
+  };
 }
 
-export async function POST(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const payload = parseBody(tutorFeedbackInputSchema, await request.json());
-    const role = getAccessRoleFromRequest(request);
-    const tutorScope = role === "tutor" ? getTutorInviteScopeFromRequest(request) : null;
-    if (role === "tutor" && !tutorScope) {
-      return NextResponse.json({ error: "A scoped tutor invitation is required." }, { status: 403 });
-    }
+const feedbackSelectColumns =
+  "id,child_id,tutor_name,subject,session_date,duration_minutes,focus,performance,homework,next_focus,rating,created_at";
 
-    const childId = tutorScope?.childId ?? requireString(payload.childId, "childId");
-    const tutorName = tutorScope?.tutorName ?? requireString(payload.tutorName, "tutorName");
-    const subject = tutorScope?.subject ?? requireString(payload.subject, "subject");
-    const focus = payload.focus;
-    await assertChildBelongsToFamily(supabase, familyId, childId);
+export const GET = withPrivateRoute(async ({ familyId, supabase }) => {
+  const { data, error } = await supabase
+    .from("tutor_feedback")
+    .select(feedbackSelectColumns)
+    .eq("family_id", familyId)
+    .order("session_date", { ascending: false });
 
-    const { data, error } = await supabase
-      .from("tutor_feedback")
-      .insert({
-        family_id: familyId,
-        child_id: childId,
-        tutor_name: tutorName,
-        subject,
-        session_date: payload.sessionDate || new Date().toISOString().slice(0, 10),
-        duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
-        focus,
-        performance: optionalString(payload.performance),
-        homework: optionalString(payload.homework),
-        next_focus: optionalString(payload.nextFocus),
-        rating: scoreOneToFive(payload.rating)
-      })
-      .select("id,child_id,tutor_name,subject,session_date,duration_minutes,focus,performance,homework,next_focus,rating,created_at")
-      .single();
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: (data ?? []).map(mapFeedbackRow) });
+});
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapFeedbackRow(data) }, { status: 201 });
-  } catch (error) {
-    return jsonError(error);
+export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(tutorFeedbackInputSchema, await request.json());
+  const role = getAccessRoleFromRequest(request);
+  const tutorScope = role === "tutor" ? getTutorInviteScopeFromRequest(request) : null;
+  if (role === "tutor" && !tutorScope) {
+    return NextResponse.json({ error: "A scoped tutor invitation is required." }, { status: 403 });
   }
-}
 
-export async function PUT(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const feedbackId = new URL(request.url).searchParams.get("feedbackId");
-    const payload = parseBody(tutorFeedbackInputSchema, await request.json());
-    const childId = requireString(payload.childId, "childId");
-    const tutorName = requireString(payload.tutorName, "tutorName");
-    const subject = requireString(payload.subject, "subject");
-    const focus = payload.focus;
-    await assertChildBelongsToFamily(supabase, familyId, childId);
+  const childId = tutorScope?.childId ?? requireString(payload.childId, "childId");
+  const tutorName = tutorScope?.tutorName ?? requireString(payload.tutorName, "tutorName");
+  const subject = tutorScope?.subject ?? requireString(payload.subject, "subject");
+  await assertChildBelongsToFamily(supabase, familyId, childId);
 
-    if (!feedbackId) return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
+  const { data, error } = await supabase
+    .from("tutor_feedback")
+    .insert({ family_id: familyId, ...feedbackColumnValues(payload, { childId, tutorName, subject }) })
+    .select(feedbackSelectColumns)
+    .single();
 
-    const { data, error } = await supabase
-      .from("tutor_feedback")
-      .update({
-        child_id: childId,
-        tutor_name: tutorName,
-        subject,
-        session_date: payload.sessionDate || new Date().toISOString().slice(0, 10),
-        duration_minutes: numberOrNull(payload.durationMinutes) ?? 0,
-        focus,
-        performance: optionalString(payload.performance),
-        homework: optionalString(payload.homework),
-        next_focus: optionalString(payload.nextFocus),
-        rating: scoreOneToFive(payload.rating)
-      })
-      .eq("family_id", familyId)
-      .eq("id", feedbackId)
-      .select("id,child_id,tutor_name,subject,session_date,duration_minutes,focus,performance,homework,next_focus,rating,created_at")
-      .single();
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapFeedbackRow(data) }, { status: 201 });
+});
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data: mapFeedbackRow(data) });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+export const PUT = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const payload = parseBody(tutorFeedbackInputSchema, await request.json());
+  const childId = requireString(payload.childId, "childId");
+  const tutorName = requireString(payload.tutorName, "tutorName");
+  const subject = requireString(payload.subject, "subject");
+  await assertChildBelongsToFamily(supabase, familyId, childId);
 
-export async function DELETE(request: Request) {
-  try {
-    const { familyId, supabase } = await getPrivateWriteContext(request);
-    const feedbackId = new URL(request.url).searchParams.get("feedbackId");
-    if (!feedbackId) return NextResponse.json({ error: "feedbackId is required" }, { status: 400 });
+  const feedbackId = requireQueryParam(request, "feedbackId");
 
-    const { error } = await supabase.from("tutor_feedback").delete().eq("family_id", familyId).eq("id", feedbackId);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ ok: true });
-  } catch (error) {
-    return jsonError(error);
-  }
-}
+  const { data, error } = await supabase
+    .from("tutor_feedback")
+    .update(feedbackColumnValues(payload, { childId, tutorName, subject }))
+    .eq("family_id", familyId)
+    .eq("id", feedbackId)
+    .select(feedbackSelectColumns)
+    .single();
+
+  if (error) return supabaseError(error);
+  return NextResponse.json({ data: mapFeedbackRow(data) });
+});
+
+export const DELETE = withPrivateRoute(async ({ familyId, supabase }, request) => {
+  const feedbackId = requireQueryParam(request, "feedbackId");
+
+  const { error } = await supabase.from("tutor_feedback").delete().eq("family_id", familyId).eq("id", feedbackId);
+  if (error) return supabaseError(error);
+  return NextResponse.json({ ok: true });
+});

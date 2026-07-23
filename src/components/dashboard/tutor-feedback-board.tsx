@@ -1,67 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MessageSquareText, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { deletePrivateApi, getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
-import type { Child, TutorFeedback } from "@/lib/types";
-
-const storageKey = "family-education-private-tutor-feedback-v1";
+import { useTutorFeedback } from "@/hooks/use-tutor-feedback";
+import type { Child } from "@/lib/types";
 
 export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }) {
-  const [feedbackItems, setFeedbackItems] = useState<TutorFeedback[]>([]);
-  const [syncStatus, setSyncStatus] = useState("");
+  const { feedbackItems, syncStatus, deleteFeedback } = useTutorFeedback();
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return;
-
-    try {
-      setFeedbackItems(JSON.parse(raw) as TutorFeedback[]);
-    } catch {
-      setFeedbackItems([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(feedbackItems));
-  }, [feedbackItems]);
-
-  useEffect(() => {
-    if (!isPrivateApiMode()) return;
-
-    getPrivateApi<TutorFeedback[]>("/api/private/tutor-feedback")
-      .then((remoteFeedback) => {
-        setFeedbackItems((current) => {
-          const localOnly = current.filter((feedback) => feedback.id.startsWith("local-"));
-          return [...remoteFeedback, ...localOnly];
-        });
-      })
-      .catch((error) => {
-        setSyncStatus(error instanceof Error ? `家教反馈读取数据库失败：${error.message}` : "家教反馈读取数据库失败。");
-      });
-
-  }, []);
 
   const childById = useMemo(() => new Map(childProfiles.map((child) => [child.id, child.firstName])), [childProfiles]);
 
-  async function deleteFeedback(feedbackId: string) {
-    const previousFeedback = feedbackItems;
+  function confirmDelete(feedbackId: string) {
     setConfirmingDeleteId(null);
-    setFeedbackItems((current) => current.filter((feedback) => feedback.id !== feedbackId));
-
-    if (isPrivateApiMode() && !feedbackId.startsWith("local-")) {
-      try {
-        await deletePrivateApi(`/api/private/tutor-feedback?feedbackId=${encodeURIComponent(feedbackId)}`);
-        setSyncStatus("家教反馈已删除。");
-      } catch (error) {
-        setFeedbackItems(previousFeedback);
-        setSyncStatus(error instanceof Error ? `删除失败，已恢复：${error.message}` : "删除失败，已恢复。");
-      }
-    }
+    void deleteFeedback(feedbackId);
   }
 
   return (
@@ -96,7 +51,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                   <div className="flex shrink-0 flex-col items-end gap-2 rounded-2xl border border-destructive/20 bg-destructive/5 p-2 text-right sm:flex-row sm:items-center">
                     <span className="text-xs font-medium text-destructive">删除这条反馈？</span>
                     <div className="flex gap-1">
-                      <Button type="button" variant="destructive" size="sm" className="rounded-full px-3" onClick={() => deleteFeedback(feedback.id)}>
+                      <Button type="button" variant="destructive" size="sm" className="rounded-full px-3" onClick={() => confirmDelete(feedback.id)}>
                         确认删除
                       </Button>
                       <Button type="button" variant="ghost" size="sm" className="rounded-full px-3" onClick={() => setConfirmingDeleteId(null)}>

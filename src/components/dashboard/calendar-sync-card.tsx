@@ -5,14 +5,9 @@ import { CalendarCheck, CheckCircle2, Copy, Download, Smartphone } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCalendarLink } from "@/hooks/use-calendar-link";
 import { buildEducationCalendarIcs } from "@/lib/ics";
-import { getPrivateApi, isPrivateApiMode } from "@/lib/private-api-client";
 import type { CalendarEvent, Child } from "@/lib/types";
-
-type CalendarLink = {
-  httpsUrl: string;
-  webcalUrl: string;
-};
 
 export function CalendarSyncCard({
   currentEvents,
@@ -23,19 +18,10 @@ export function CalendarSyncCard({
 }) {
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
-  const [calendarLink, setCalendarLink] = useState<CalendarLink | null>(null);
-  const [calendarLinkError, setCalendarLinkError] = useState("");
+  const { calendarLink, calendarLinkError } = useCalendarLink();
 
   useEffect(() => {
     setOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
-    if (!isPrivateApiMode()) return;
-
-    getPrivateApi<CalendarLink>("/api/private/calendar-link")
-      .then(setCalendarLink)
-      .catch((error) => setCalendarLinkError(error instanceof Error ? error.message : "订阅链接加载失败"));
   }, []);
 
   const httpsFeedUrl = useMemo(() => calendarLink?.httpsUrl ?? (origin ? `${origin}/api/calendar/ios` : "/api/calendar/ios"), [calendarLink, origin]);

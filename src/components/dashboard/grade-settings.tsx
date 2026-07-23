@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ export function GradeSettings({
   setChildren
 }: {
   childProfiles: Child[];
-  setChildren: Dispatch<SetStateAction<Child[]>>;
+  setChildren: (children: Child[]) => void;
 }) {
   const [grades, setGrades] = useState(() => Object.fromEntries(childProfiles.map((child) => [child.id, child.grade])));
   const [status, setStatus] = useState("");

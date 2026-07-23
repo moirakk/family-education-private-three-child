@@ -101,15 +101,6 @@ begin
     focus_areas = excluded.focus_areas,
     updated_at = now();
 
-  insert into public.child_intake_profiles (child_id, current_goals)
-  values
-    (boyang_id, '小升初衔接、数学体系化、英文写作'),
-    (zhongyang_id, '高年级过渡、阅读稳定性、作业独立性'),
-    (shuyang_id, '低年级习惯、拼读启蒙、专注力')
-  on conflict (child_id) do update set
-    current_goals = excluded.current_goals,
-    updated_at = now();
-
   insert into public.calendar_events (id, family_id, title, category, source, starts_at, ends_at, location, created_by)
   values
     ('88888888-8888-8888-8888-888888888801', target_family_id, '周一校内事项确认', 'school', 'system', '2026-06-22 08:00:00+09', '2026-06-22 08:20:00+09', '家庭晨间检查', owner_user_id),
