@@ -186,6 +186,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
               {subject === "其他" && (
                 <Input
                   value={customSubject}
+                  aria-label="自定义科目名称"
                   placeholder="输入科目名称"
                   className="h-11 rounded-xl bg-card"
                   onChange={(event) => {
