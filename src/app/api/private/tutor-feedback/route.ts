@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   assertChildBelongsToFamily,
   getAccessRoleFromRequest,
+  getPrivateWriteContext,
   getTutorInviteScopeFromRequest,
   numberOrNull,
   optionalString,
@@ -10,8 +11,11 @@ import {
   requireString,
   scoreOneToFive,
   supabaseError,
+  withPrivateErrorHandling,
   withPrivateRoute
 } from "@/app/api/private/_utils";
+import { isPrivateApiDataMode } from "@/lib/family-data-mode";
+import { pilotChildren } from "@/lib/pilot-data";
 import { tutorFeedbackInputSchema } from "@/lib/schemas/tutor-feedback";
 
 function mapFeedbackRow(data: {
@@ -76,7 +80,7 @@ export const GET = withPrivateRoute(async ({ familyId, supabase }) => {
   return NextResponse.json({ data: (data ?? []).map(mapFeedbackRow) });
 });
 
-export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => {
+export const POST = withPrivateErrorHandling(async (request) => {
   const payload = parseBody(tutorFeedbackInputSchema, await request.json());
   const role = getAccessRoleFromRequest(request);
   const tutorScope = role === "tutor" ? getTutorInviteScopeFromRequest(request) : null;
@@ -87,6 +91,29 @@ export const POST = withPrivateRoute(async ({ familyId, supabase }, request) => 
   const childId = tutorScope?.childId ?? requireString(payload.childId, "childId");
   const tutorName = tutorScope?.tutorName ?? requireString(payload.tutorName, "tutorName");
   const subject = tutorScope?.subject ?? requireString(payload.subject, "subject");
+
+  if (!isPrivateApiDataMode()) {
+    // Local/demo mode: accept the submission without a database. The `local-`
+    // id prefix marks the row as demo/local-only for the client hooks.
+    if (!pilotChildren.some((child) => child.id === childId)) {
+      return NextResponse.json({ error: "Invalid child for this family." }, { status: 400 });
+    }
+
+    const nowIso = new Date().toISOString();
+    return NextResponse.json(
+      {
+        data: mapFeedbackRow({
+          id: `local-${Date.now().toString(36)}`,
+          created_at: nowIso,
+          ...feedbackColumnValues(payload, { childId, tutorName, subject })
+        }),
+        demoMode: true
+      },
+      { status: 201 }
+    );
+  }
+
+  const { familyId, supabase } = await getPrivateWriteContext(request);
   await assertChildBelongsToFamily(supabase, familyId, childId);
 
   const { data, error } = await supabase

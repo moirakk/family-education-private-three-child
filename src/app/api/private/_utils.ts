@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { z } from "zod";
+import { isPrivateApiDataMode } from "@/lib/family-data-mode";
 import { assertPrivateWriteConfigured } from "@/lib/supabase-admin";
 import { getSupabaseUserClient } from "@/lib/supabase-user-context";
 import type { AccessRole, TutorInviteScope } from "@/lib/private-access";
@@ -14,8 +15,21 @@ export class ValidationError extends Error {
   }
 }
 
+/**
+ * Thrown when a database-backed private endpoint is called while the app is
+ * running in local/demo data mode (NEXT_PUBLIC_FAMILY_DATA_MODE !== "private-api").
+ * Maps to HTTP 503 instead of a misleading 500, in both dev and prod builds.
+ */
+export class LocalDataModeError extends Error {
+  constructor() {
+    super("Private database writes are disabled in local data mode. Set NEXT_PUBLIC_FAMILY_DATA_MODE=private-api to enable them.");
+    this.name = "LocalDataModeError";
+  }
+}
+
 export function jsonError(error: unknown, status?: number) {
-  const resolvedStatus = status ?? (error instanceof ValidationError ? 400 : 500);
+  const resolvedStatus =
+    status ?? (error instanceof ValidationError ? 400 : error instanceof LocalDataModeError ? 503 : 500);
   return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: resolvedStatus });
 }
 
@@ -118,6 +132,10 @@ export function getTutorInviteScopeFromRequest(request: Request): Omit<TutorInvi
  * always attaches a verified role header before forwarding the request.
  */
 export async function getPrivateWriteContext(request: Request) {
+  if (!isPrivateApiDataMode()) {
+    throw new LocalDataModeError();
+  }
+
   assertPrivateWriteConfigured();
   const familyId = process.env.NEXT_PUBLIC_PRIVATE_FAMILY_ID;
 

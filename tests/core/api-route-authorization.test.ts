@@ -5,6 +5,7 @@ import test from "node:test";
 import type { AccessRole } from "../../src/lib/private-access.ts";
 
 // Configure env before the modules under test are loaded.
+process.env.NEXT_PUBLIC_FAMILY_DATA_MODE = "private-api";
 process.env.PRIVATE_SESSION_SECRET = "api-route-test-session-secret-at-least-32chars";
 process.env.PRIVATE_PARENT_ACCESS_CODE = "parent-code-v1";
 process.env.PRIVATE_CAREGIVER_ACCESS_CODE = "caregiver-code-v1";

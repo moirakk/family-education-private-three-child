@@ -6,6 +6,7 @@ import {
   supabaseError,
   withPrivateErrorHandling
 } from "@/app/api/private/_utils";
+import { isPrivateApiDataMode } from "@/lib/family-data-mode";
 import { pilotChildren } from "@/lib/pilot-data";
 
 function mapChild(row: {
@@ -29,19 +30,19 @@ export const GET = withPrivateErrorHandling(async (request) => {
     return NextResponse.json({ error: "A scoped tutor invitation is required." }, { status: 403 });
   }
 
-  if (process.env.NEXT_PUBLIC_FAMILY_DATA_MODE !== "private-api") {
-    if (process.env.NODE_ENV === "production") {
-      return NextResponse.json({ error: "NEXT_PUBLIC_FAMILY_DATA_MODE must be private-api in production." }, { status: 500 });
-    }
-
+  if (!isPrivateApiDataMode()) {
+    // Local/demo mode (any NODE_ENV): serve the bundled pilot data so the
+    // tutor flow stays usable without a database.
     return NextResponse.json({
       data: {
-        children: pilotChildren.map((child) => ({
-          id: child.id,
-          firstName: child.firstName,
-          grade: child.grade,
-          avatarColor: child.avatarColor
-        })),
+        children: pilotChildren
+          .filter((child) => !tutorScope || child.id === tutorScope.childId)
+          .map((child) => ({
+            id: child.id,
+            firstName: child.firstName,
+            grade: child.grade,
+            avatarColor: child.avatarColor
+          })),
         tutorScope
       }
     });

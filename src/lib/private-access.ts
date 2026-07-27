@@ -1,3 +1,5 @@
+import { isPrivateApiDataMode } from "./family-data-mode.ts";
+
 export const accessSessionCookieName = "family_private_session";
 export const accessAttemptCookieName = "family_access_attempts";
 export const tutorInviteCookieName = "family_tutor_invite";
@@ -52,15 +54,19 @@ function getSessionSecret() {
   const secret = process.env.PRIVATE_SESSION_SECRET;
   if (secret && secret.length >= 32) return secret;
 
-  if (process.env.NODE_ENV === "production") {
+  // NODE_ENV alone cannot distinguish "deployed" from "next build + next
+  // start of the local demo": both run with NODE_ENV=production. Only a
+  // production build that actually serves private data (private-api mode)
+  // must refuse to run without a real secret.
+  if (process.env.NODE_ENV === "production" && isPrivateApiDataMode()) {
     throw new Error("PRIVATE_SESSION_SECRET must be set to at least 32 characters in production.");
   }
 
-  // Development/test fallback only. This is a fixed, publicly-known value
-  // (never treated as a real secret) so it must never be reachable in
-  // production -- the throw above enforces that. We warn loudly instead of
-  // failing silently, since a misconfigured local/staging environment
-  // should be obvious, not a silent security downgrade.
+  // Local/demo fallback only. This is a fixed, publicly-known value
+  // (never treated as a real secret) so it must never be reachable in a
+  // private-api production deployment -- the throw above enforces that.
+  // We warn loudly instead of failing silently, since a misconfigured
+  // environment should be obvious, not a silent security downgrade.
   if (!hasWarnedAboutDevSessionSecret) {
     hasWarnedAboutDevSessionSecret = true;
     console.warn(
