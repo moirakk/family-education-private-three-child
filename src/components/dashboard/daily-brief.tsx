@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { getChildTheme } from "@/lib/child-theme";
 import type { CalendarEvent, Child } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { getEventUrgency, type Urgency } from "@/lib/urgency";
+import { getEventUrgency } from "@/lib/urgency";
+import { urgencyBadgeClasses, urgencyLabels } from "@/lib/urgency-labels";
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -30,13 +31,6 @@ function formatDayLabel(date: Date) {
 function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
-
-const urgencyCopy: Record<Urgency, { label: string; className: string }> = {
-  critical: { label: "需要关注", className: "border-destructive/30 bg-destructive/10 text-destructive" },
-  warning: { label: "本周安排", className: "border-primary/30 bg-primary/10 text-primary" },
-  ok: { label: "已安排", className: "border-border bg-muted text-muted-foreground" },
-  past: { label: "已过期", className: "border-border bg-muted text-muted-foreground" }
-};
 
 export function DailyBrief({
   childProfiles,
@@ -80,25 +74,23 @@ export function DailyBrief({
             </div>
           </div>
           <h2 className="mt-2.5 font-voice text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-[1.7rem]">
-            {nextEvent ? "下一项安排" : "今天没有安排"}
+            {nextEvent ? `${formatTime(nextEvent.startsAt)} ${nextEvent.title}` : "今天没有安排"}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {nextEvent ? `${formatTime(nextEvent.startsAt)} · ${nextEvent.title}` : "给自己泡杯茶，或者从新增日程开始安排这一天。"}
-          </p>
+          {!nextEvent ? (
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">给自己泡杯茶，或者从新增日程开始安排这一天。</p>
+          ) : null}
 
           {nextEvent ? (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-white/60 bg-white/80 p-3.5 shadow-sm shadow-black/[0.05] backdrop-blur-sm transition-transform duration-300 group-hover:translate-x-0.5 dark:border-white/10 dark:bg-white/[0.08]">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   {nextUrgency ? (
-                    <Badge variant="outline" className={cn("h-6 rounded-full px-2", urgencyCopy[nextUrgency].className)}>
-                      {urgencyCopy[nextUrgency].label}
+                    <Badge variant="outline" className={cn("h-6 rounded-full px-2", urgencyBadgeClasses[nextUrgency])}>
+                      {urgencyLabels[nextUrgency]}
                     </Badge>
                   ) : null}
-                  <span className="text-xs font-medium tabular-nums text-muted-foreground">{formatTime(nextEvent.startsAt)}</span>
                 </div>
-                <p className="mt-2 line-clamp-2 text-base font-semibold leading-6 text-foreground">{nextEvent.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{nextEvent.location ? nextEvent.location : "点击查看本周安排"}</p>
+                {nextEvent.location ? <p className="mt-2 text-sm text-muted-foreground">{nextEvent.location}</p> : null}
               </div>
               <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" />
             </div>
@@ -106,7 +98,6 @@ export function DailyBrief({
         </button>
 
         <div className="rounded-2xl border border-white/50 bg-white/50 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04]">
-          <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">三个孩子</p>
           <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
           {childProfiles.map((child) => {
             const theme = getChildTheme(child);

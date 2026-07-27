@@ -43,7 +43,7 @@ export function WeeklyFamilyReport({
 
   const reportText = useMemo(() => {
     const lines = [
-      "Family Education Weekly Report",
+      "家庭教育周报",
       "",
       `本周事项：${events.length} 个`,
       `学习记录：${records.length} 条`,
@@ -60,7 +60,6 @@ export function WeeklyFamilyReport({
       lines.push("");
     });
 
-    lines.push("下一步：今天现场补齐固定课表、重要日期和家长关注点。");
     return lines.join("\n");
   }, [childSummaries, events.length, goals.length, records.length]);
 
@@ -77,11 +76,9 @@ export function WeeklyFamilyReport({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Share2 className="h-4 w-4 text-primary" />
-              家长版周报预览
+              本周家庭摘要
             </CardTitle>
-            <CardDescription>
-              适合今天现场讲解、截图、打印或复制给家长的只读摘要。
-            </CardDescription>
+            <CardDescription>可复制、打印或存 PDF</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2 print:hidden">
             <Button variant="outline" size="sm" onClick={copyReport}>
@@ -99,8 +96,7 @@ export function WeeklyFamilyReport({
         <div className="rounded-2xl border border-border/60 bg-secondary/50 p-5 dark:border-white/10 dark:bg-white/[0.05]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Private Family Education Report</p>
-              <h2 className="mt-2 font-voice text-2xl font-bold leading-snug tracking-tight text-foreground">Family Education Weekly Report</h2>
+              <h2 className="font-voice text-2xl font-bold leading-snug tracking-tight text-foreground">家庭教育周报</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">本周事项 {events.length}</Badge>
