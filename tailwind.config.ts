@@ -26,6 +26,9 @@ const config: Config = {
           "SF Pro Display",
           "Inter",
           "Segoe UI",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
           "sans-serif"
         ],
         voice: ["ui-serif", "New York", "Georgia", "serif"]

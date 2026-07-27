@@ -65,12 +65,12 @@ export function DailyBrief({
   }
 
   return (
-    <section className="rounded-2xl border border-white/50 bg-white/70 p-3 shadow-card backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-white/10 dark:bg-white/[0.06] sm:p-4">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <button type="button" onClick={() => onModeChange("week", "calendar")} className="group min-w-0 rounded-2xl bg-gradient-to-br from-amber-50/90 via-orange-50/70 to-rose-50/60 p-3.5 text-left transition-colors duration-300 hover:from-amber-100/80 hover:to-rose-100/60 dark:from-white/[0.06] dark:via-white/[0.04] dark:to-white/[0.03] dark:hover:from-white/[0.09] dark:hover:to-white/[0.05] sm:p-5">
+    <section className="rounded-2xl border border-white/50 bg-white/70 p-4 shadow-card backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-white/10 dark:bg-white/[0.06] sm:p-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <button type="button" onClick={() => onModeChange("week", "calendar")} className="group min-w-0 rounded-2xl bg-secondary/60 p-4 text-left transition-colors duration-300 hover:bg-secondary/80 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
               {formatDayLabel(today)}
             </p>
             <div className="flex gap-1.5">
@@ -82,7 +82,7 @@ export function DailyBrief({
           <h2 className="mt-2.5 font-voice text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-[1.7rem]">
             {nextEvent ? "下一项安排" : "今天没有安排"}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             {nextEvent ? `${formatTime(nextEvent.startsAt)} · ${nextEvent.title}` : "给自己泡杯茶，或者从新增日程开始安排这一天。"}
           </p>
 

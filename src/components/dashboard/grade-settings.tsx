@@ -53,7 +53,7 @@ export function GradeSettings({
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {childProfiles.map((child) => (
-            <div key={child.id} className="space-y-1.5">
+            <div key={child.id} className="space-y-2">
               <Label htmlFor={`grade-${child.id}`}>{child.firstName}</Label>
               <Input
                 id={`grade-${child.id}`}

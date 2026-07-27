@@ -58,7 +58,7 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
                     </div>
                   ))}
                 {!events.some((event) => event.category === category) && (
-                  <p className="rounded-xl border border-dashed border-amber-200/60 bg-white/30 p-3 text-center text-xs text-muted-foreground dark:border-white/15 dark:bg-white/[0.03]">本周暂无事项</p>
+                  <p className="rounded-xl border border-dashed border-border bg-muted/30 p-3 text-center text-xs text-muted-foreground dark:border-white/15 dark:bg-white/[0.03]">本周暂无事项</p>
                 )}
               </div>
             </div>

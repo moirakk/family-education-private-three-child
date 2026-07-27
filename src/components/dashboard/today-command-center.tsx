@@ -92,7 +92,7 @@ export function TodayCommandCenter({
             })}
           </div>
         ) : (
-          <div className="mt-3 rounded-xl border border-dashed border-amber-200/80 bg-gradient-to-br from-amber-50/70 to-rose-50/50 p-4 text-center dark:border-white/15 dark:from-white/[0.05] dark:to-white/[0.03]">
+          <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/40 p-4 text-center dark:border-white/15 dark:bg-white/[0.04]">
             <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <Check className="h-4 w-4" />
             </span>

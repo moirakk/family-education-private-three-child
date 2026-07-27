@@ -76,7 +76,7 @@ export function PwaInstallCard() {
         <div className="flex flex-col justify-between rounded-2xl bg-foreground p-4 text-background">
           <div>
             <p className="text-sm font-semibold">安装状态</p>
-            <p className="mt-2 text-sm leading-6 text-background/70">
+            <p className="mt-2 text-sm leading-relaxed text-background/70">
               {isStandalone ? "当前已经像 App 一样从主屏幕打开。" : "iPhone 使用分享菜单添加；Chrome/Android 可直接安装。"}
             </p>
           </div>

@@ -96,7 +96,7 @@ export function WeeklyFamilyReport({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-2xl border border-white/50 bg-gradient-to-br from-amber-50/70 via-orange-50/50 to-rose-50/40 p-5 backdrop-blur-sm dark:border-white/10 dark:from-white/[0.06] dark:via-white/[0.04] dark:to-white/[0.03]">
+        <div className="rounded-2xl border border-border/60 bg-secondary/50 p-5 dark:border-white/10 dark:bg-white/[0.05]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Private Family Education Report</p>

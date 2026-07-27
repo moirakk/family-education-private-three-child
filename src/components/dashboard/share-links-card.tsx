@@ -104,7 +104,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
       <CardContent className="grid gap-3 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold text-foreground">家长手机入口</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">安装到主屏幕后直接点图标进入，不需要访问码。</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">安装到主屏幕后直接点图标进入，不需要访问码。</p>
           <p className="mt-3 break-all rounded-xl bg-card px-3 py-2 text-xs text-muted-foreground ring-1 ring-border">{links.parentUrl || "正在生成链接..."}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" onClick={() => copyLink("家长链接", links.parentUrl)} disabled={!links.parentUrl}>
@@ -124,10 +124,10 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
 
         <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold text-foreground">生成家教专属链接</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">每条链接只允许给指定孩子、指定科目提交反馈。</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">每条链接只允许给指定孩子、指定科目提交反馈。</p>
 
           <div className="mt-3 grid gap-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>孩子</Label>
               <div className="grid grid-cols-3 gap-2">
                 {childProfiles.map((child) => (
@@ -149,7 +149,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label htmlFor="share-tutor-name">老师姓名</Label>
               <Input
                 id="share-tutor-name"
@@ -163,7 +163,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>科目</Label>
               <div className="grid grid-cols-4 gap-1.5">
                 {tutorSubjects.map((option) => (
@@ -204,7 +204,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
 
           {generatedTutorUrl && (
             <div className="mt-3 rounded-xl bg-card p-3 ring-1 ring-border">
-              <p className="break-all text-xs leading-5 text-muted-foreground">{generatedTutorUrl}</p>
+              <p className="break-all text-xs leading-relaxed text-muted-foreground">{generatedTutorUrl}</p>
               <Button size="sm" className="mt-3" onClick={() => copyLink("家教链接", generatedTutorUrl)}>
                 <Copy className="mr-2 h-4 w-4" />
                 复制给老师

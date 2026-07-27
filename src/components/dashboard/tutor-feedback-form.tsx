@@ -118,7 +118,7 @@ export default function TutorFeedbackPage() {
         <Card className="overflow-hidden">
           <CardHeader className="space-y-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
                 <MessageSquareText className="h-5 w-5" />
               </div>
               <Badge variant="outline" className="w-fit gap-1 rounded-full">
@@ -135,7 +135,7 @@ export default function TutorFeedbackPage() {
           <CardContent>
             {child && tutorScope ? (
               <form onSubmit={saveFeedback} className="grid gap-5">
-                <section className="rounded-2xl border-l-[3px] bg-gradient-to-r from-amber-50/80 to-orange-50/40 p-3 dark:from-white/[0.06] dark:to-white/[0.03]" style={theme.borderStyle}>
+                <section className="rounded-2xl border-l-[3px] bg-secondary/60 p-4 dark:bg-white/[0.05]" style={theme.borderStyle}>
                   <p className="text-xs text-muted-foreground">本链接已绑定</p>
                   <p className="mt-1 text-base font-semibold text-foreground">
                     {child.firstName} · {tutorScope.subject}
@@ -143,7 +143,7 @@ export default function TutorFeedbackPage() {
                   <p className="mt-1 text-xs text-muted-foreground">{tutorScope.tutorName} · {child.grade}</p>
                 </section>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="session-date">1. 上课日期 *</Label>
                   <Input
                     id="session-date"
@@ -155,7 +155,7 @@ export default function TutorFeedbackPage() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="focus">2. 授课内容 *</Label>
                   <Textarea
                     id="focus"
@@ -167,7 +167,7 @@ export default function TutorFeedbackPage() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="performance">3. 孩子表现 *</Label>
                   <Textarea
                     id="performance"
@@ -179,7 +179,7 @@ export default function TutorFeedbackPage() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="homework">4. 课后任务 *</Label>
                   <Textarea
                     id="homework"
@@ -196,7 +196,7 @@ export default function TutorFeedbackPage() {
                 </Button>
               </form>
             ) : (
-              <p className="rounded-2xl bg-muted/60 p-4 text-sm leading-6 text-muted-foreground">{status}</p>
+              <p className="rounded-2xl bg-muted/60 p-4 text-sm leading-relaxed text-muted-foreground">{status}</p>
             )}
 
             {child && tutorScope && status && (

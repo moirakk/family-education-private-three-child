@@ -202,12 +202,12 @@ export function ExportPreviewCenter({
 
           <TabsContent value="report">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-sm leading-6 text-background">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-sm leading-relaxed text-background">
                 {reportText}
               </pre>
               <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                 <p className="text-sm font-semibold">导出用途</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   适合复制到微信、邮件，或用“打印 / 存 PDF”生成家长会议材料。
                 </p>
                 <div className="mt-4 grid gap-2">
@@ -232,7 +232,7 @@ export function ExportPreviewCenter({
 
           <TabsContent value="backup">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-relaxed text-background">
                 {backupJson}
               </pre>
               <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
@@ -243,7 +243,7 @@ export function ExportPreviewCenter({
                 <Badge variant={backupStatus === "database" ? "default" : "secondary"} className="mt-3">
                   {backupModeLabel}
                 </Badge>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {backupDescription}
                 </p>
                 <div className="mt-4 grid gap-2">
@@ -262,7 +262,7 @@ export function ExportPreviewCenter({
 
           <TabsContent value="calendar">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
+              <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-relaxed text-background">
                 {calendarIcs}
               </pre>
               <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">

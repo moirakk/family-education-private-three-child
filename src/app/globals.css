@@ -16,7 +16,7 @@
   --accent: 32 52% 91%;
   --accent-foreground: 24 24% 18%;
   --muted: 36 24% 91%;
-  --muted-foreground: 28 8% 42%;
+  --muted-foreground: 28 10% 38%;
   --destructive: 4 74% 51%;
   --destructive-foreground: 0 0% 100%;
   --border: 32 20% 86%;
@@ -40,7 +40,7 @@
     --accent: 30 12% 20%;
     --accent-foreground: 38 18% 90%;
     --muted: 28 8% 17%;
-    --muted-foreground: 30 7% 64%;
+    --muted-foreground: 30 8% 68%;
     --destructive: 4 64% 55%;
     --destructive-foreground: 0 0% 100%;
     --border: 28 8% 22%;
@@ -56,26 +56,14 @@
 body {
   max-width: 100%;
   overflow-x: hidden;
-  background:
-    radial-gradient(1100px 540px at 92% -12%, hsl(24 92% 86% / 0.42), transparent 62%),
-    radial-gradient(880px 500px at -8% 6%, hsl(350 78% 89% / 0.32), transparent 55%),
-    radial-gradient(720px 420px at 55% 110%, hsl(42 90% 88% / 0.3), transparent 60%),
-    linear-gradient(180deg, hsl(42 64% 95.5%), hsl(var(--background)) 42%);
-  background-attachment: fixed;
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", sans-serif;
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background:
-      radial-gradient(1100px 540px at 92% -12%, hsl(24 60% 30% / 0.22), transparent 62%),
-      radial-gradient(880px 500px at -8% 6%, hsl(350 50% 28% / 0.16), transparent 55%),
-      linear-gradient(180deg, hsl(28 12% 10%), hsl(var(--background)) 45%);
-    background-attachment: fixed;
-  }
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 html {

@@ -19,10 +19,10 @@ export default async function AccessPage({
         : "";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30">
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
             <BookOpen className="h-5 w-5" />
           </div>
           <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
@@ -36,7 +36,7 @@ export default async function AccessPage({
         <CardContent>
           <form action="/api/access" method="post" className="grid gap-4">
             <input type="hidden" name="next" value={next} />
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label htmlFor="code">访问码</Label>
               <Input id="code" name="code" type="password" autoComplete="current-password" autoFocus />
               {errorMessage && <p className="text-xs text-destructive">{errorMessage}</p>}

@@ -21,7 +21,7 @@ function LoadingSection() {
     <div aria-busy="true" className="min-h-32 animate-pulse rounded-2xl border border-white/50 bg-white/60 p-5 shadow-card backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.05]">
       <div className="h-4 w-1/3 rounded-full bg-muted/80" />
       <div className="mt-3 h-3 w-2/3 rounded-full bg-muted/60" />
-      <div className="mt-5 h-16 rounded-xl bg-gradient-to-r from-muted/70 via-muted/40 to-muted/70" />
+      <div className="mt-5 h-16 rounded-xl bg-muted/50" />
     </div>
   );
 }
@@ -128,7 +128,7 @@ export default function Home() {
         <section className="w-full max-w-lg rounded-2xl border border-destructive/20 bg-card p-6 shadow-card">
           <p className="text-sm font-semibold text-destructive">部署配置错误</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">数据模式未配置</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">请设置 NEXT_PUBLIC_FAMILY_DATA_MODE=private-api 后重新部署。</p>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">请设置 NEXT_PUBLIC_FAMILY_DATA_MODE=private-api 后重新部署。</p>
         </section>
       </main>
     );
@@ -154,10 +154,10 @@ export default function Home() {
           <>
             <FamilyEventPlanner childProfiles={children} existingEvents={events} onEventsChange={setLocalEvents} openFormRequest={eventFormRequest} />
             <UnifiedCalendar events={events} childProfiles={children} />
-            <section className="rounded-2xl border border-white/50 bg-white/70 p-4 shadow-card backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-white/10 dark:bg-white/[0.06]">
+            <section className="rounded-2xl border border-white/50 bg-white/70 p-5 shadow-card backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-white/10 dark:bg-white/[0.06]">
               <button type="button" className="group flex w-full items-center justify-between rounded-xl text-left" onClick={() => setShowWeeklyReport((value) => !value)}>
                 <span>
-                  <span className="block text-sm font-bold tracking-tight">家庭周报</span>
+                  <span className="block text-sm font-semibold tracking-tight">家庭周报</span>
                   <span className="mt-1 block text-xs text-muted-foreground">有数据时用于阶段复盘</span>
                 </span>
                 <span className="rounded-full bg-muted/80 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary">{showWeeklyReport ? "收起" : "展开"}</span>

@@ -72,13 +72,13 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
                   </Button>
                 )}
               </div>
-              <p className="mt-3 text-sm leading-6 text-foreground">{feedback.focus}</p>
-              {feedback.performance && <p className="mt-2 text-xs leading-5 text-muted-foreground">表现：{feedback.performance}</p>}
-              {feedback.homework && <p className="mt-1 text-xs leading-5 text-muted-foreground">任务：{feedback.homework}</p>}
+              <p className="mt-3 text-sm leading-relaxed text-foreground">{feedback.focus}</p>
+              {feedback.performance && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">表现：{feedback.performance}</p>}
+              {feedback.homework && <p className="mt-1 text-xs leading-relaxed text-muted-foreground">任务：{feedback.homework}</p>}
             </div>
           ))}
           {feedbackItems.length === 0 && (
-            <p className="rounded-xl border border-dashed border-amber-200/70 bg-gradient-to-br from-amber-50/60 to-rose-50/40 p-5 text-center text-sm leading-6 text-muted-foreground dark:border-white/15 dark:from-white/[0.05] dark:to-white/[0.03]">
+            <p className="rounded-xl border border-dashed border-border bg-muted/40 p-5 text-center text-sm leading-relaxed text-muted-foreground dark:border-white/15 dark:bg-white/[0.04]">
               还没有家教反馈。请在“设置 → 分享入口”生成专属链接发给老师，提交后会自动出现在这里。
             </p>
           )}

@@ -68,9 +68,9 @@ export function CalendarSyncCard({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="rounded-2xl border border-white/50 bg-gradient-to-br from-amber-50/70 to-orange-50/40 p-4 backdrop-blur-sm dark:border-white/10 dark:from-white/[0.06] dark:to-white/[0.04]">
+        <div className="rounded-2xl border border-border/60 bg-secondary/50 p-5 dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold">今天可用方式</p>
-          <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
+          <div className="mt-3 grid gap-2 text-sm leading-relaxed text-muted-foreground">
             <p>1. 本地演示时，先下载 `.ics` 文件并导入 iPhone / Mac 日历。</p>
             <p>2. 私有 Vercel 部署后，复制订阅链接，在 iOS 日历中添加“订阅日历”。</p>
             <p>3. 后续接 Supabase 后，家长补充的新日程会进入同一个订阅源。</p>
@@ -102,7 +102,7 @@ export function CalendarSyncCard({
 
         <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold">同步策略</p>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             当前页面 ICS 会包含本机新增日程，适合今天现场导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。
           </p>
           <p className="mt-4 break-all rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground ring-1 ring-border">{webcalUrl}</p>
