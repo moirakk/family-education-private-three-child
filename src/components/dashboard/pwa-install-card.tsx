@@ -50,10 +50,10 @@ export function PwaInstallCard() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Smartphone className="h-4 w-4 text-primary" />
-              手机桌面私有 App
+              添加到手机主屏幕
             </CardTitle>
             <CardDescription>
-              Family Education 按 PWA 设计：家长打开私有链接后，可以添加到手机主屏幕，像 App 一样日常使用。
+              添加到主屏幕后，像 App 一样直接打开。
             </CardDescription>
           </div>
           <Badge variant={isStandalone ? "success" : "outline"} className="gap-1">
@@ -62,9 +62,9 @@ export function PwaInstallCard() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <CardContent className="grid gap-4">
         <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
-          <p className="text-sm font-semibold">iPhone 家长使用方式</p>
+          <p className="text-sm font-semibold">iPhone 添加步骤</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
             <p className="flex gap-2 rounded-xl bg-muted/50 p-3"><span className="font-semibold text-foreground">1.</span> Safari 打开私有链接并输入访问码。</p>
             <p className="flex gap-2 rounded-xl bg-muted/50 p-3"><Share className="mt-0.5 h-4 w-4 text-muted-foreground" /> 点击分享按钮。</p>
@@ -73,18 +73,10 @@ export function PwaInstallCard() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-between rounded-2xl bg-foreground p-4 text-background">
-          <div>
-            <p className="text-sm font-semibold">安装状态</p>
-            <p className="mt-2 text-sm leading-relaxed text-background/70">
-              {isStandalone ? "当前已经像 App 一样从主屏幕打开。" : "iPhone 使用分享菜单添加；Chrome/Android 可直接安装。"}
-            </p>
-          </div>
-          <Button className="mt-4 w-full" variant="secondary" disabled={!installPrompt} onClick={installApp}>
-            <Download className="mr-2 h-4 w-4" />
-            {installPrompt ? "安装到设备" : "iPhone 请用分享菜单添加"}
-          </Button>
-        </div>
+        <Button className="w-full sm:w-auto sm:justify-self-start" variant="secondary" disabled={!installPrompt} onClick={installApp}>
+          <Download className="mr-2 h-4 w-4" />
+          {installPrompt ? "安装到设备" : "请按上方步骤添加"}
+        </Button>
       </CardContent>
     </Card>
   );

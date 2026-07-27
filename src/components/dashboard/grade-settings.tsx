@@ -35,7 +35,7 @@ export function GradeSettings({
         next.map((child) => putPrivateApi<Child>(`/api/private/children?childId=${encodeURIComponent(child.id)}`, child))
       );
       setChildren(saved);
-      setStatus("三个孩子的年级已保存。");
+      setStatus("年级已保存。");
     } catch (error) {
       setChildren(previous);
       setStatus(error instanceof Error ? `保存失败，已恢复：${error.message}` : "保存失败，已恢复。" );

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Copy, ExternalLink, Link2, ShieldCheck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, Copy, ExternalLink, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,19 +86,11 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
   return (
     <Card id="share-links">
       <CardHeader>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Link2 className="h-4 w-4 text-primary" />
-              分享入口
-            </CardTitle>
-            <CardDescription>家长直接打开主入口；家教使用绑定孩子和科目的专属链接。</CardDescription>
-          </div>
-          <Badge variant="outline" className="w-fit gap-1 rounded-full bg-card">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            私有分享
-          </Badge>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-primary" />
+          分享入口
+        </CardTitle>
+        <CardDescription>给家人和老师的访问链接。</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">

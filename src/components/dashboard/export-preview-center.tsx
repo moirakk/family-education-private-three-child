@@ -106,7 +106,6 @@ export function ExportPreviewCenter({
       lines.push("");
     });
 
-    lines.push("下一步：补齐固定课表、重要日期、资料库、自评与家教反馈。");
     return lines.join("\n");
   }, [childProfiles, events, goals, records]);
 
@@ -133,16 +132,13 @@ export function ExportPreviewCenter({
 
   const backupModeLabel =
     backupStatus === "database"
-      ? "数据库备份已连接"
+      ? "云端备份"
       : backupStatus === "loading"
-        ? "正在读取数据库备份"
+        ? "正在读取云端备份"
         : backupStatus === "failed"
-          ? "数据库备份读取失败，当前显示本机备份"
-          : "当前显示本机备份";
-  const backupDescription =
-    backupStatus === "database"
-      ? "来自 Supabase PostgreSQL 的全量元数据备份，包含资料库、自评、家教反馈和 Storage 文件路径。"
-      : "当前为浏览器本机备份，适合 demo 和离线留档；部署数据库后会自动切换为 Supabase 备份。";
+          ? "云端备份读取失败，当前显示本机备份"
+          : "本机备份";
+  const backupDescription = "包含全部日程、成绩、计划和反馈，可用于恢复数据。";
   const backupFileName = databaseBackup ? "family-education-database-backup.json" : "family-education-local-backup.json";
 
   const calendarIcs = useMemo(
@@ -170,9 +166,9 @@ export function ExportPreviewCenter({
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-4 w-4 text-primary" />
-              导出效果预览
+              导出与备份
             </CardTitle>
-            <CardDescription>提前看到发给家长、备份数据和导入 iOS 日历后的文件内容。</CardDescription>
+            <CardDescription>周报、数据备份和日历文件，导出前先预览。</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline">{events.length} 个日程</Badge>
@@ -183,8 +179,8 @@ export function ExportPreviewCenter({
       <CardContent>
         <Tabs defaultValue="report">
           <TabsList className="flex h-auto flex-wrap justify-start">
-            <TabsTrigger value="report">家长周报</TabsTrigger>
-            <TabsTrigger value="backup">JSON 备份</TabsTrigger>
+            <TabsTrigger value="report">周报</TabsTrigger>
+            <TabsTrigger value="backup">数据备份</TabsTrigger>
             <TabsTrigger value="calendar">iOS 日历</TabsTrigger>
           </TabsList>
 
@@ -196,7 +192,7 @@ export function ExportPreviewCenter({
               <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                 <p className="text-sm font-semibold">导出用途</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  适合复制到微信、邮件，或用“打印 / 存 PDF”生成家长会议材料。
+                  可复制到微信，或打印 / 存 PDF。
                 </p>
                 <div className="mt-4 grid gap-2">
                   <Button variant="outline" onClick={() => copyText("report", reportText)}>
@@ -270,7 +266,7 @@ export function ExportPreviewCenter({
                   onClick={() => downloadTextFile("boyang-zhongyang-shuyang-current-calendar.ics", calendarIcs, "text/calendar;charset=utf-8")}
                 >
                   <Download className="mr-2 h-4 w-4" />
-                  下载 ICS 日历
+                  下载日历文件
                 </Button>
               </div>
             </div>
