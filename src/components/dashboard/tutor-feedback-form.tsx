@@ -69,7 +69,8 @@ export default function TutorFeedbackPage() {
         setStatus("");
       })
       .catch((error) => {
-        setStatus(error instanceof Error ? `链接验证失败：${error.message}` : "链接验证失败，请联系家长重新生成。");
+        console.error("Failed to load tutor context:", error);
+        setStatus("链接验证失败，请联系家长重新生成专属链接。");
       });
   }, []);
 
@@ -99,7 +100,8 @@ export default function TutorFeedbackPage() {
       setStatus("已提交。家长会在家庭教育系统里看到这条反馈。");
       setForm(createInitialForm());
     } catch (error) {
-      setStatus(error instanceof Error ? `提交失败：${error.message}` : "提交失败，请稍后重试。");
+      console.error("Failed to submit tutor feedback:", error);
+      setStatus("提交失败，请稍后重试或联系家长获取新链接。");
     } finally {
       setIsSaving(false);
     }
