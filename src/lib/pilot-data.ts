@@ -1,5 +1,20 @@
 import type { CalendarEvent, Child, EducationGoal, LearningRecord, Resource } from "@/lib/types";
 
+function atDay(offsetDays: number, hour: number, minute = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  date.setHours(hour, minute, 0, 0);
+  return date.toISOString();
+}
+
+function dayStamp(offsetDays: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export const pilotFamilyName = "Family Education Management System";
 
 export const pilotChildren: Child[] = [
@@ -43,11 +58,29 @@ export const pilotChildren: Child[] = [
 
 export const pilotCalendarEvents: CalendarEvent[] = [
   {
+    id: "pilot-event-past-1",
+    title: "三人周复盘",
+    category: "exam",
+    startsAt: atDay(-2, 10, 0),
+    endsAt: atDay(-2, 11, 0),
+    location: "家庭会议",
+    childIds: ["bo", "zhong", "shu"]
+  },
+  {
+    id: "pilot-event-past-2",
+    title: "仲杨：阅读打卡 + 口头复述",
+    category: "family",
+    startsAt: atDay(-1, 19, 30),
+    endsAt: atDay(-1, 20, 0),
+    location: "客厅阅读角",
+    childIds: ["zhong"]
+  },
+  {
     id: "pilot-event-1",
-    title: "周一校内事项确认",
+    title: "校内事项确认",
     category: "school",
-    startsAt: "2026-06-22T08:00:00+09:00",
-    endsAt: "2026-06-22T08:20:00+09:00",
+    startsAt: atDay(0, 8, 0),
+    endsAt: atDay(0, 8, 20),
     location: "家庭晨间检查",
     childIds: ["bo", "zhong", "shu"]
   },
@@ -55,35 +88,53 @@ export const pilotCalendarEvents: CalendarEvent[] = [
     id: "pilot-event-2",
     title: "伯杨：数学错题复盘",
     category: "tutoring",
-    startsAt: "2026-06-22T19:00:00+09:00",
-    endsAt: "2026-06-22T19:45:00+09:00",
+    startsAt: atDay(0, 19, 0),
+    endsAt: atDay(0, 19, 45),
     location: "家庭学习桌",
     childIds: ["bo"]
   },
   {
     id: "pilot-event-3",
+    title: "叔杨：睡前故事时间",
+    category: "family",
+    startsAt: atDay(0, 20, 30),
+    endsAt: atDay(0, 20, 50),
+    location: "叔杨房间",
+    childIds: ["shu"]
+  },
+  {
+    id: "pilot-event-4",
     title: "仲杨：阅读打卡 + 口头复述",
     category: "family",
-    startsAt: "2026-06-23T19:30:00+09:00",
-    endsAt: "2026-06-23T20:00:00+09:00",
+    startsAt: atDay(1, 19, 30),
+    endsAt: atDay(1, 20, 0),
     location: "客厅阅读角",
     childIds: ["zhong"]
   },
   {
-    id: "pilot-event-4",
+    id: "pilot-event-5",
     title: "叔杨：拼读小游戏",
     category: "activity",
-    startsAt: "2026-06-24T18:30:00+09:00",
-    endsAt: "2026-06-24T18:50:00+09:00",
+    startsAt: atDay(2, 18, 30),
+    endsAt: atDay(2, 18, 50),
     location: "家庭互动区",
     childIds: ["shu"]
   },
   {
-    id: "pilot-event-5",
+    id: "pilot-event-6",
+    title: "伯杨：英语段落写作练习",
+    category: "tutoring",
+    startsAt: atDay(3, 19, 0),
+    endsAt: atDay(3, 19, 40),
+    location: "家庭学习桌",
+    childIds: ["bo"]
+  },
+  {
+    id: "pilot-event-7",
     title: "三人周复盘",
     category: "exam",
-    startsAt: "2026-06-28T10:00:00+09:00",
-    endsAt: "2026-06-28T11:00:00+09:00",
+    startsAt: atDay(5, 10, 0),
+    endsAt: atDay(5, 11, 0),
     location: "家庭会议",
     childIds: ["bo", "zhong", "shu"]
   }
@@ -95,7 +146,7 @@ export const pilotLearningRecords: LearningRecord[] = [
     childId: "bo",
     subject: "数学",
     title: "错题本：分数与方程",
-    date: "2026-06-18",
+    date: dayStamp(-3),
     durationMinutes: 45,
     score: 86,
     confidence: 4
@@ -105,7 +156,7 @@ export const pilotLearningRecords: LearningRecord[] = [
     childId: "bo",
     subject: "英语",
     title: "段落写作：观点 + 例证",
-    date: "2026-06-17",
+    date: dayStamp(-4),
     durationMinutes: 35,
     score: 82,
     confidence: 3
@@ -115,7 +166,7 @@ export const pilotLearningRecords: LearningRecord[] = [
     childId: "zhong",
     subject: "阅读",
     title: "章节书复述",
-    date: "2026-06-18",
+    date: dayStamp(-2),
     durationMinutes: 30,
     score: 80,
     confidence: 3
@@ -125,7 +176,7 @@ export const pilotLearningRecords: LearningRecord[] = [
     childId: "shu",
     subject: "拼读",
     title: "短元音和字母音",
-    date: "2026-06-18",
+    date: dayStamp(-1),
     durationMinutes: 20,
     score: 90,
     confidence: 5
@@ -138,13 +189,13 @@ export const pilotEducationGoals: EducationGoal[] = [
     childId: "bo",
     title: "建立小升初衔接节奏",
     subject: "综合规划",
-    targetDate: "2026-11-30",
+    targetDate: dayStamp(120),
     status: "in_progress",
     progress: 58,
     milestones: [
-      { id: "pilot-m1", title: "完成小升初数学能力盘点", dueDate: "2026-07-05", completed: true },
-      { id: "pilot-m2", title: "建立每周错题复盘流程", dueDate: "2026-07-20", completed: false },
-      { id: "pilot-m3", title: "完成一次模拟考试复盘", dueDate: "2026-09-15", completed: false }
+      { id: "pilot-m1", title: "完成小升初数学能力盘点", dueDate: dayStamp(-14), completed: true },
+      { id: "pilot-m2", title: "建立每周错题复盘流程", dueDate: dayStamp(10), completed: false },
+      { id: "pilot-m3", title: "完成一次模拟考试复盘", dueDate: dayStamp(50), completed: false }
     ]
   },
   {
@@ -152,12 +203,12 @@ export const pilotEducationGoals: EducationGoal[] = [
     childId: "zhong",
     title: "形成五年级前的自主学习习惯",
     subject: "习惯培养",
-    targetDate: "2026-09-30",
+    targetDate: dayStamp(65),
     status: "in_progress",
     progress: 46,
     milestones: [
-      { id: "pilot-m4", title: "连续两周完成阅读打卡", dueDate: "2026-07-10", completed: false },
-      { id: "pilot-m5", title: "独立完成每日作业清单", dueDate: "2026-08-05", completed: false }
+      { id: "pilot-m4", title: "连续两周完成阅读打卡", dueDate: dayStamp(12), completed: false },
+      { id: "pilot-m5", title: "独立完成每日作业清单", dueDate: dayStamp(35), completed: false }
     ]
   },
   {
@@ -165,12 +216,12 @@ export const pilotEducationGoals: EducationGoal[] = [
     childId: "shu",
     title: "完成二年级学习流程衔接",
     subject: "启蒙衔接",
-    targetDate: "2026-08-31",
+    targetDate: dayStamp(35),
     status: "planned",
     progress: 32,
     milestones: [
-      { id: "pilot-m6", title: "熟悉晨间准备流程", dueDate: "2026-07-05", completed: true },
-      { id: "pilot-m7", title: "完成短元音拼读包", dueDate: "2026-08-01", completed: false }
+      { id: "pilot-m6", title: "熟悉晨间准备流程", dueDate: dayStamp(-14), completed: true },
+      { id: "pilot-m7", title: "完成短元音拼读包", dueDate: dayStamp(6), completed: false }
     ]
   }
 ];
@@ -183,7 +234,7 @@ export const pilotResources: Resource[] = [
     title: "伯杨：小升初衔接观察记录",
     subject: "规划",
     tags: ["升学", "复盘", "数学"],
-    updatedAt: "2026-06-18"
+    updatedAt: dayStamp(-2)
   },
   {
     id: "pilot-res-2",
@@ -192,7 +243,7 @@ export const pilotResources: Resource[] = [
     title: "仲杨：阅读复述模板",
     subject: "阅读",
     tags: ["阅读", "习惯", "表达"],
-    updatedAt: "2026-06-17"
+    updatedAt: dayStamp(-3)
   },
   {
     id: "pilot-res-3",
@@ -201,7 +252,7 @@ export const pilotResources: Resource[] = [
     title: "叔杨：拼读练习包",
     subject: "拼读",
     tags: ["启蒙", "拼读", "游戏"],
-    updatedAt: "2026-06-16"
+    updatedAt: dayStamp(-4)
   },
   {
     id: "pilot-res-4",
@@ -209,7 +260,7 @@ export const pilotResources: Resource[] = [
     title: "家庭教育周复盘模板",
     subject: "家庭管理",
     tags: ["周复盘", "家长", "路线图"],
-    updatedAt: "2026-06-15"
+    updatedAt: dayStamp(-5)
   }
 ];
 
