@@ -160,6 +160,7 @@ export default function TutorFeedbackPage() {
                   <Textarea
                     id="focus"
                     required
+                    maxLength={2000}
                     placeholder="今天讲了什么、解决了什么问题"
                     value={form.focus}
                     className="min-h-28 rounded-2xl text-base"
@@ -172,6 +173,7 @@ export default function TutorFeedbackPage() {
                   <Textarea
                     id="performance"
                     required
+                    maxLength={2000}
                     placeholder="理解情况、专注度、需要关注的地方"
                     value={form.performance}
                     className="min-h-24 rounded-2xl text-base"
@@ -184,6 +186,7 @@ export default function TutorFeedbackPage() {
                   <Textarea
                     id="homework"
                     required
+                    maxLength={2000}
                     placeholder="作业、复习内容或下次课前准备"
                     value={form.homework}
                     className="min-h-24 rounded-2xl text-base"

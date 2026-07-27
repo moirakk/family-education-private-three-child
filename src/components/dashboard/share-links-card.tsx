@@ -76,7 +76,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
         subject: finalSubject
       });
       setGeneratedTutorUrl(result.tutorFeedbackUrl);
-      setStatus("家教专属链接已生成，有效期一年。");
+      setStatus("家教专属链接已生成，有效期 90 天。");
     } catch (error) {
       setStatus(error instanceof Error ? `生成失败：${error.message}` : "生成失败，请稍后重试。");
     } finally {
