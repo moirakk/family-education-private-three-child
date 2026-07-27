@@ -11,20 +11,14 @@ import { buildEducationCalendarIcs } from "@/lib/ics";
 import type { CalendarEvent, Child, EducationGoal, LearningRecord, Resource } from "@/lib/types";
 
 type LocalExportData = {
-  intake: unknown;
   localEvents: unknown;
   localLearningRecords: unknown;
-  materials: unknown;
-  selfEvaluations: unknown;
   tutorFeedback: unknown;
 };
 
 const localStorageKeys = {
-  intake: "family-education-private-intake-v1",
   localEvents: "family-education-private-events-v1",
   localLearningRecords: "family-education-private-learning-records-v1",
-  materials: "family-education-private-materials-v1",
-  selfEvaluations: "family-education-private-self-evaluations-v1",
   tutorFeedback: "family-education-private-tutor-feedback-v1"
 } satisfies Record<keyof LocalExportData, string>;
 
@@ -72,11 +66,8 @@ export function ExportPreviewCenter({
   resources: Resource[];
 }) {
   const [localData, setLocalData] = useState<LocalExportData>({
-    intake: null,
     localEvents: null,
     localLearningRecords: null,
-    materials: null,
-    selfEvaluations: null,
     tutorFeedback: null
   });
   const [copied, setCopied] = useState<string | null>(null);
@@ -84,11 +75,8 @@ export function ExportPreviewCenter({
 
   useEffect(() => {
     setLocalData({
-      intake: readJsonStorage(localStorageKeys.intake),
       localEvents: readJsonStorage(localStorageKeys.localEvents),
       localLearningRecords: readJsonStorage(localStorageKeys.localLearningRecords),
-      materials: readJsonStorage(localStorageKeys.materials),
-      selfEvaluations: readJsonStorage(localStorageKeys.selfEvaluations),
       tutorFeedback: readJsonStorage(localStorageKeys.tutorFeedback)
     });
   }, []);
