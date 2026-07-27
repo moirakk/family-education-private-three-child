@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { deletePrivateApi, isPrivateApiMode, postPrivateApi, putPrivateApi } from "@/lib/private-api-client";
+import { getLocalOnlyItems } from "@/lib/reconciled-collection";
 import type { CalendarEvent, Child, EventCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ type FormState = {
   repeatEnd: "never" | "date" | "count"; repeatEndDate: string; repeatCount: string;
 };
 
+const storageKey = "family-education-private-events-v1";
 const categories: { value: EventCategory; label: string }[] = [
   { value: "school", label: "学校" }, { value: "tutoring", label: "辅导" }, { value: "activity", label: "活动" },
   { value: "exam", label: "测评" }, { value: "family", label: "家庭" }
@@ -64,7 +66,20 @@ export function FamilyEventPlanner({ childProfiles, existingEvents = [], onEvent
 
   useEffect(() => { if (!loaded.current && existingEvents.length) { loaded.current = true; setEvents(existingEvents); } }, [existingEvents]);
   useEffect(() => { if (openFormRequest > 0) setShowForm(true); }, [openFormRequest]);
-  useEffect(() => { onEventsChange(events); }, [events, onEventsChange]);
+  useEffect(() => {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as CalendarEvent[];
+      const local = isPrivateApiMode() ? getLocalOnlyItems(parsed) : parsed;
+      setEvents(local);
+      onEventsChange(local);
+    } catch { setEvents([]); }
+  }, [onEventsChange]);
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(isPrivateApiMode() ? getLocalOnlyItems(events) : events));
+    onEventsChange(events);
+  }, [events, onEventsChange]);
 
   const visible = useMemo(() => events.filter((event) => childFilter === "all" || event.childIds.includes(childFilter)).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt)), [childFilter, events]);
   const now = Date.now();
