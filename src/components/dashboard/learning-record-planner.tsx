@@ -154,8 +154,9 @@ export function LearningRecordPlanner({ childProfiles, existingRecords = [], onR
       setRecords((current) => current.map((item) => item.id === next.id ? saved : item));
       setStatus("成绩已保存。");
     } catch (error) {
+      console.error("Failed to save learning record:", error);
       setRecords(previous);
-      setStatus(error instanceof Error ? `保存失败，已恢复：${error.message}` : "保存失败，已恢复。" );
+      setStatus("保存失败，请重试。");
     }
   }
 
@@ -165,7 +166,7 @@ export function LearningRecordPlanner({ childProfiles, existingRecords = [], onR
     setRecords((current) => current.filter((item) => item.id !== id));
     if (!isPrivateApiMode() || id.startsWith("local-")) return;
     try { await deletePrivateApi(`/api/private/learning-records?recordId=${encodeURIComponent(id)}`); setStatus("成绩已删除。" ); }
-    catch (error) { setRecords(previous); setStatus(error instanceof Error ? `删除失败：${error.message}` : "删除失败。" ); }
+    catch (error) { console.error("Failed to delete learning record:", error); setRecords(previous); setStatus("删除失败，请重试。"); }
   }
 
   function exportExcel() {
@@ -204,7 +205,7 @@ export function LearningRecordPlanner({ childProfiles, existingRecords = [], onR
             {confirmDeleteId === record.id ? <div className="flex flex-col gap-1"><Button size="sm" variant="destructive" onClick={() => remove(record.id)}>确认删除</Button><Button size="sm" variant="ghost" onClick={() => setConfirmDeleteId(null)}>取消</Button></div> : <div className="flex"><Button size="icon" variant="ghost" aria-label={`编辑成绩：${record.title}`} onClick={() => edit(record)}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="ghost" aria-label={`删除成绩：${record.title}`} onClick={() => setConfirmDeleteId(record.id)}><Trash2 className="h-4 w-4" /></Button></div>}</div>
             {record.notes ? <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{record.notes}</p> : null}
           </div>)}
-          {!visible.length ? <p className="rounded-xl border border-dashed border-border bg-muted/40 p-5 text-center text-sm text-muted-foreground dark:border-white/15 dark:bg-white/[0.04]">还没有符合条件的成绩，换个筛选试试。</p> : null}
+          {!visible.length ? <p className="rounded-xl border border-dashed border-border bg-muted/40 p-5 text-center text-sm text-muted-foreground dark:border-white/15 dark:bg-white/[0.04]">{records.length ? "还没有符合条件的成绩，换个筛选试试。" : "还没有成绩，点右上角「录入成绩」开始。"}</p> : null}
         </div>
         {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
         {showForm ? <form onSubmit={save} className="rounded-2xl border border-border/70 bg-muted/20 p-4 shadow-sm shadow-black/[0.03]"><div className="mb-4 flex items-center justify-between"><p className="font-semibold tracking-tight">{editingId ? "编辑成绩" : "录入成绩"}</p><button type="button" aria-label="关闭表单" className="-m-2 flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground" onClick={reset}><X className="h-4 w-4" /></button></div><div className="grid gap-4">

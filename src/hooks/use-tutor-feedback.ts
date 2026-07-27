@@ -26,7 +26,8 @@ export function useTutorFeedback() {
 
   useEffect(() => {
     if (error) {
-      setSyncStatus(`家教反馈读取数据库失败：${error.message}`);
+      console.error("Failed to load tutor feedback:", error);
+      setSyncStatus("家教反馈读取失败，请刷新重试。");
     }
   }, [error]);
 
@@ -61,8 +62,9 @@ export function useTutorFeedback() {
         );
         setSyncStatus("家教反馈已删除。");
       } catch (deleteError) {
+        console.error("Failed to delete tutor feedback:", deleteError);
         setLocalItems(previousLocalItems);
-        setSyncStatus(deleteError instanceof Error ? `删除失败，已恢复：${deleteError.message}` : "删除失败，已恢复。");
+        setSyncStatus("删除失败，请重试。");
       }
     },
     [localItems, mutate]

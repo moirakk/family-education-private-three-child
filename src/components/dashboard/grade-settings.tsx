@@ -37,8 +37,9 @@ export function GradeSettings({
       setChildren(saved);
       setStatus("年级已保存。");
     } catch (error) {
+      console.error("Failed to save child profile:", error);
       setChildren(previous);
-      setStatus(error instanceof Error ? `保存失败，已恢复：${error.message}` : "保存失败，已恢复。" );
+      setStatus("保存失败，请重试。");
     }
   }
 

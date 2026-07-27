@@ -97,7 +97,7 @@ export default function TutorFeedbackPage() {
         createdAt: new Date().toISOString()
       });
 
-      setStatus("已提交。家长会在家庭教育系统里看到这条反馈。");
+      setStatus("已提交，家长可以看到这条反馈了。");
       setForm(createInitialForm());
     } catch (error) {
       console.error("Failed to submit tutor feedback:", error);
@@ -125,12 +125,12 @@ export default function TutorFeedbackPage() {
               </div>
               <Badge variant="outline" className="w-fit gap-1 rounded-full">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                仅反馈入口
+                专属链接
               </Badge>
             </div>
             <div>
               <CardTitle className="text-2xl font-bold tracking-tight">家教课后反馈</CardTitle>
-              <CardDescription className="mt-2 leading-6">填写本次课后的四项反馈，不开放完整家庭工作台。</CardDescription>
+              <CardDescription className="mt-2 leading-6">填写本次课后的四项反馈，提交后家长即可看到。</CardDescription>
             </div>
           </CardHeader>
 

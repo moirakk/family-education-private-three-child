@@ -28,7 +28,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
               <MessageSquareText className="h-4 w-4 text-primary" />
               家教课后反馈
             </CardTitle>
-            <CardDescription>家长侧只查看老师提交的反馈，填写入口通过专属链接分享给家教。</CardDescription>
+            <CardDescription>老师通过专属链接提交，这里只做查看。</CardDescription>
           </div>
           <Badge variant="outline" className="w-fit rounded-full bg-card">{feedbackItems.length} 条</Badge>
         </div>

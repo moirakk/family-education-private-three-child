@@ -72,10 +72,7 @@ export function AppShell({
           </div>
         </div>
 
-        <div className="mt-7 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
-          Workspace
-        </div>
-        <nav className="mt-2 space-y-1.5">
+        <nav className="mt-7 space-y-1.5">
           {modeItems.map((item) => {
             const isActive = item.mode === activeMode;
 
@@ -115,10 +112,7 @@ export function AppShell({
         </nav>
 
         <div className="mt-auto pt-8">
-          <div className="rounded-2xl border border-border/60 bg-secondary/60 p-4 dark:border-white/10 dark:bg-white/[0.05]">
-            <p className="text-xs font-semibold text-foreground">私有家庭工作区</p>
-            <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">日程、成绩与家教反馈长期保存并定期备份。</p>
-          </div>
+          <p className="px-2 text-xs text-muted-foreground">数据私有保存，定期备份。</p>
           <Button type="button" variant="ghost" size="sm" className="mt-3 w-full justify-start gap-2 text-muted-foreground hover:text-foreground" onClick={() => void logout()}>
             <LogOut className="h-4 w-4" />
             退出登录
@@ -134,7 +128,6 @@ export function AppShell({
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold tracking-tight">{activeItem.label}</p>
-                <p className="truncate text-xs text-muted-foreground">{activeItem.description}</p>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">

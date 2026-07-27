@@ -40,7 +40,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
 
   useEffect(() => {
     if (shareLinksError) {
-      setStatus(`分享链接读取失败：${shareLinksError}`);
+      setStatus(shareLinksError);
     }
   }, [shareLinksError]);
 
@@ -77,7 +77,8 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
       setGeneratedTutorUrl(result.tutorFeedbackUrl);
       setStatus("家教专属链接已生成，有效期 90 天。");
     } catch (error) {
-      setStatus(error instanceof Error ? `生成失败：${error.message}` : "生成失败，请稍后重试。");
+      console.error("Failed to generate tutor link:", error);
+      setStatus("生成失败，请稍后重试。");
     } finally {
       setIsGenerating(false);
     }

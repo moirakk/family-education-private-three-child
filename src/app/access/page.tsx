@@ -27,10 +27,10 @@ export default async function AccessPage({
           </div>
           <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
             <LockKeyhole className="h-4 w-4 text-primary" />
-            Family Education 私有访问
+            Family Education
           </CardTitle>
           <CardDescription>
-            家长/照护人进入完整工作台；家教访问码会进入课后反馈入口。
+            输入访问码。家长进入管理页，家教老师进入反馈页。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -41,7 +41,7 @@ export default async function AccessPage({
               <Input id="code" name="code" type="password" autoComplete="current-password" autoFocus />
               {errorMessage && <p className="text-xs text-destructive">{errorMessage}</p>}
             </div>
-            <Button type="submit">进入私有工作台</Button>
+            <Button type="submit">进入</Button>
           </form>
         </CardContent>
       </Card>
