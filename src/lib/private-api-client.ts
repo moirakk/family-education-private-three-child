@@ -46,20 +46,6 @@ export async function getPrivateApi<T>(path: string): Promise<T> {
   return result.data;
 }
 
-export async function postPrivateFormData<T>(path: string, payload: FormData): Promise<T> {
-  const response = await fetch(path, {
-    method: "POST",
-    body: payload
-  });
-  const result = (await response.json()) as { data?: T; error?: string };
-
-  if (!response.ok || !result.data) {
-    throw new Error(result.error ?? "Private API upload failed");
-  }
-
-  return result.data;
-}
-
 export async function putPrivateApi<T>(path: string, payload: unknown): Promise<T> {
   const response = await fetch(path, {
     method: "PUT",

@@ -15,8 +15,6 @@ function dayStamp(offsetDays: number) {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-export const pilotFamilyName = "Family Education Management System";
-
 export const pilotChildren: Child[] = [
   {
     id: "bo",
@@ -261,78 +259,5 @@ export const pilotResources: Resource[] = [
     subject: "家庭管理",
     tags: ["周复盘", "家长", "路线图"],
     updatedAt: dayStamp(-5)
-  }
-];
-
-export const parentActions = [
-  {
-    id: "action-1",
-    owner: "家长",
-    title: "补全三人真实学校/课程/固定安排",
-    priority: "今天必须",
-    status: "待补充"
-  },
-  {
-    id: "action-2",
-    owner: "家长",
-    title: "确认本周固定课外课和接送时间",
-    priority: "今天必须",
-    status: "待确认"
-  },
-  {
-    id: "action-3",
-    owner: "系统",
-    title: "把定制数据迁移到 Supabase",
-    priority: "今日交付",
-    status: "下一步"
-  },
-  {
-    id: "action-4",
-    owner: "家长",
-    title: "为每个孩子设定一个本月可衡量目标",
-    priority: "本周完成",
-    status: "进行中"
-  }
-];
-
-export const childOperatingPlans = [
-  {
-    childId: "bo",
-    stage: "小升初衔接期",
-    weeklyFocus: "初一适应准备 + 数学体系化 + 英文表达",
-    parentRole: "减少临时催促，固定复盘节奏",
-    risk: "进入初中前目标变多，节奏容易碎片化",
-    nextStep: "每周一次错题归因，而不是只看分数"
-  },
-  {
-    childId: "zhong",
-    stage: "五年级准备期",
-    weeklyFocus: "高年级过渡 + 阅读稳定性 + 作业独立性",
-    parentRole: "把任务拆小，让孩子自己勾选",
-    risk: "从中年级进入高年级后，任务量增加带来稳定性压力",
-    nextStep: "建立每日 20 分钟阅读 + 2 分钟复述"
-  },
-  {
-    childId: "shu",
-    stage: "二年级习惯成型期",
-    weeklyFocus: "低年级学习流程 + 拼读启蒙 + 晨间流程",
-    parentRole: "用游戏化方式保持正反馈",
-    risk: "注意力窗口短，需要稳定但轻量的学习仪式",
-    nextStep: "每次学习控制在 15-20 分钟"
-  }
-];
-
-export const productTracks = [
-  {
-    title: "Family Education 私有定制版",
-    deadline: "今日优先交付",
-    goal: "服务当前三孩家庭，完成可直接使用的教育管理中枢。",
-    scope: ["三人画像", "周计划", "家长行动清单", "学习记录", "资源中心", "路线图"]
-  },
-  {
-    title: "通用商业版",
-    deadline: "定制版稳定后推进",
-    goal: "抽象为可注册、可邀请、可收费的家庭教育 SaaS。",
-    scope: ["Auth", "Family workspace", "动态孩子数量", "权限", "订阅", "模板市场"]
   }
 ];
