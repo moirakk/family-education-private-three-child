@@ -49,7 +49,7 @@ export function CalendarSyncCard({
   }
 
   return (
-    <Card id="calendar-sync" className="border-border bg-card shadow-none">
+    <Card id="calendar-sync">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -68,7 +68,7 @@ export function CalendarSyncCard({
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="rounded-2xl border border-border bg-muted/50 p-4">
+        <div className="rounded-2xl border border-white/50 bg-gradient-to-br from-amber-50/70 to-orange-50/40 p-4 backdrop-blur-sm dark:border-white/10 dark:from-white/[0.06] dark:to-white/[0.04]">
           <p className="text-sm font-semibold">今天可用方式</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
             <p>1. 本地演示时，先下载 `.ics` 文件并导入 iPhone / Mac 日历。</p>
@@ -100,7 +100,7 @@ export function CalendarSyncCard({
           {calendarLinkError ? <p className="mt-3 text-xs text-red-600">{calendarLinkError}</p> : null}
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold">同步策略</p>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             当前页面 ICS 会包含本机新增日程，适合今天现场导入。订阅链接需要私有部署和 Supabase 后才能做到长期实时更新。

@@ -43,7 +43,7 @@ export function GradeSettings({
   }
 
   return (
-    <Card id="grade-settings" className="border-border bg-card shadow-none">
+    <Card id="grade-settings">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <GraduationCap className="h-4 w-4 text-primary" />

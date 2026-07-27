@@ -85,7 +85,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
   }
 
   return (
-    <Card id="share-links" className="border-border bg-card shadow-none">
+    <Card id="share-links">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -102,7 +102,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-muted/40 p-3">
+        <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold text-foreground">家长手机入口</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">安装到主屏幕后直接点图标进入，不需要访问码。</p>
           <p className="mt-3 break-all rounded-xl bg-card px-3 py-2 text-xs text-muted-foreground ring-1 ring-border">{links.parentUrl || "正在生成链接..."}</p>
@@ -122,7 +122,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-muted/40 p-3">
+        <div className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
           <p className="text-sm font-semibold text-foreground">生成家教专属链接</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">每条链接只允许给指定孩子、指定科目提交反馈。</p>
 
@@ -140,7 +140,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
                     }}
                     className={cn(
                       "rounded-xl border px-2 py-2 text-sm font-medium transition",
-                      selectedChildId === child.id ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
+                      selectedChildId === child.id ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25 transition-colors duration-200" : "border-border bg-card text-muted-foreground transition-colors duration-200 hover:border-muted-foreground/40 hover:text-foreground"
                     )}
                   >
                     {child.firstName}
@@ -176,7 +176,7 @@ export function ShareLinksCard({ childProfiles }: { childProfiles: Child[] }) {
                     }}
                     className={cn(
                       "rounded-lg border px-2 py-2 text-xs font-medium transition",
-                      subject === option ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground"
+                      subject === option ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25 transition-colors duration-200" : "border-border bg-card text-muted-foreground transition-colors duration-200 hover:border-muted-foreground/40 hover:text-foreground"
                     )}
                   >
                     {option}

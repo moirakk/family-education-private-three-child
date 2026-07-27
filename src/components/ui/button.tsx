@@ -4,15 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        outline: "border bg-background hover:bg-muted",
-        ghost: "hover:bg-muted",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+        default: "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-md shadow-primary/25 hover:-translate-y-px hover:shadow-lg hover:shadow-primary/30 hover:brightness-105",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        outline: "border border-border/80 bg-white/60 shadow-sm shadow-black/[0.03] backdrop-blur-sm hover:-translate-y-px hover:bg-white/90 hover:shadow-md hover:shadow-black/[0.06] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]",
+        ghost: "hover:bg-muted/80",
+        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90"
       },
       size: {
         default: "h-11 px-4 py-2 sm:h-10",

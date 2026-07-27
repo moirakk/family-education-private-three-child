@@ -17,7 +17,7 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
   const childById = new Map(childProfiles.map((child) => [child.id, child]));
 
   return (
-    <Card id="calendar" className="border-border bg-card shadow-none">
+    <Card id="calendar">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -33,22 +33,22 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
       <CardContent>
         <div className="grid gap-3 lg:grid-cols-5">
           {(["school", "tutoring", "activity", "exam", "family"] as EventCategory[]).map((category) => (
-            <div key={category} className="rounded-xl border border-border bg-muted/50 p-3">
-              <p className="text-sm font-semibold">{categoryLabels[category]}</p>
+            <div key={category} className="rounded-xl border border-white/50 bg-white/40 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-sm font-semibold tracking-tight">{categoryLabels[category]}</p>
               <div className="mt-3 space-y-2">
                 {events
                   .filter((event) => event.category === category)
                   .map((event) => (
-                    <div key={event.id} className="rounded-xl border border-border bg-card p-3">
+                    <div key={event.id} className="rounded-xl border border-white/60 bg-white/80 p-3 shadow-sm shadow-black/[0.03] transition-all duration-300 hover:-translate-y-px hover:shadow-md hover:shadow-black/[0.07] dark:border-white/10 dark:bg-white/[0.07]">
                       <p className="text-sm font-medium">{event.title}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{format(new Date(event.startsAt), "EEE h:mm a")}</p>
+                      <p className="mt-1 text-xs tabular-nums text-muted-foreground">{format(new Date(event.startsAt), "EEE h:mm a")}</p>
                       <p className="mt-2 flex flex-wrap gap-1 text-xs text-muted-foreground">
                         {event.childIds.map((childId) => {
                           const child = childById.get(childId);
                           if (!child) return null;
                           const theme = getChildTheme(child);
                           return (
-                            <span key={childId} className="rounded-full bg-muted/60 px-2 py-0.5">
+                            <span key={childId} className="rounded-full px-2 py-0.5 font-medium" style={{ ...theme.surfaceStyle, ...theme.avatarTextStyle }}>
                               <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle" style={theme.dotStyle} />
                               {child.firstName}
                             </span>
@@ -58,7 +58,7 @@ export function UnifiedCalendar({ events, childProfiles }: { events: CalendarEve
                     </div>
                   ))}
                 {!events.some((event) => event.category === category) && (
-                  <p className="rounded-xl bg-card p-3 text-xs text-muted-foreground">本周暂无事项</p>
+                  <p className="rounded-xl border border-dashed border-amber-200/60 bg-white/30 p-3 text-center text-xs text-muted-foreground dark:border-white/15 dark:bg-white/[0.03]">本周暂无事项</p>
                 )}
               </div>
             </div>

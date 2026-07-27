@@ -71,7 +71,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)"
       },
       boxShadow: {
-        soft: "0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 32px rgba(16, 24, 40, 0.08)"
+        soft: "0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 32px rgba(16, 24, 40, 0.08)",
+        card: "0 1px 2px rgba(124, 82, 40, 0.05), 0 6px 20px -6px rgba(124, 82, 40, 0.09)",
+        "card-hover": "0 2px 6px rgba(124, 82, 40, 0.06), 0 20px 40px -12px rgba(124, 82, 40, 0.18)"
       }
     }
   },

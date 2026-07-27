@@ -113,21 +113,21 @@ export default function TutorFeedbackPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background px-3 py-4 sm:px-4 sm:py-6">
+    <main className="min-h-screen px-3 py-4 sm:px-4 sm:py-6">
       <div className="mx-auto grid max-w-xl gap-4">
-        <Card className="overflow-hidden border-border bg-card shadow-sm shadow-black/[0.03]">
+        <Card className="overflow-hidden">
           <CardHeader className="space-y-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30">
                 <MessageSquareText className="h-5 w-5" />
               </div>
-              <Badge variant="outline" className="w-fit gap-1 rounded-full bg-card">
+              <Badge variant="outline" className="w-fit gap-1 rounded-full">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 仅反馈入口
               </Badge>
             </div>
             <div>
-              <CardTitle className="text-2xl tracking-tight">家教课后反馈</CardTitle>
+              <CardTitle className="text-2xl font-bold tracking-tight">家教课后反馈</CardTitle>
               <CardDescription className="mt-2 leading-6">填写本次课后的四项反馈，不开放完整家庭工作台。</CardDescription>
             </div>
           </CardHeader>
@@ -135,7 +135,7 @@ export default function TutorFeedbackPage() {
           <CardContent>
             {child && tutorScope ? (
               <form onSubmit={saveFeedback} className="grid gap-5">
-                <section className="rounded-2xl border-l-[3px] bg-muted/50 p-3" style={theme.borderStyle}>
+                <section className="rounded-2xl border-l-[3px] bg-gradient-to-r from-amber-50/80 to-orange-50/40 p-3 dark:from-white/[0.06] dark:to-white/[0.03]" style={theme.borderStyle}>
                   <p className="text-xs text-muted-foreground">本链接已绑定</p>
                   <p className="mt-1 text-base font-semibold text-foreground">
                     {child.firstName} · {tutorScope.subject}

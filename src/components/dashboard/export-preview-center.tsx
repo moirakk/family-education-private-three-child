@@ -176,7 +176,7 @@ export function ExportPreviewCenter({
   }
 
   return (
-    <Card id="export-preview" className="border-border bg-card shadow-none">
+    <Card id="export-preview">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -205,7 +205,7 @@ export function ExportPreviewCenter({
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-sm leading-6 text-background">
                 {reportText}
               </pre>
-              <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                 <p className="text-sm font-semibold">导出用途</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   适合复制到微信、邮件，或用“打印 / 存 PDF”生成家长会议材料。
@@ -235,7 +235,7 @@ export function ExportPreviewCenter({
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
                 {backupJson}
               </pre>
-              <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <FileJson className="h-4 w-4 text-primary" />
                   完整备份包
@@ -265,7 +265,7 @@ export function ExportPreviewCenter({
               <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl bg-foreground p-4 text-xs leading-5 text-background">
                 {calendarIcs}
               </pre>
-              <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                 <p className="text-sm font-semibold">导入日历后会显示</p>
                 <div className="mt-3 grid gap-2">
                   {nextEvents.map((event) => (

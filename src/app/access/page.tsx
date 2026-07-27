@@ -19,13 +19,13 @@ export default async function AccessPage({
         : "";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-      <Card className="w-full max-w-md border-white/70 bg-white/90 shadow-sm backdrop-blur">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md shadow-primary/30">
             <BookOpen className="h-5 w-5" />
           </div>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold tracking-tight">
             <LockKeyhole className="h-4 w-4 text-primary" />
             Family Education 私有访问
           </CardTitle>

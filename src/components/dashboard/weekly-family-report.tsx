@@ -71,7 +71,7 @@ export function WeeklyFamilyReport({
   }
 
   return (
-    <Card id="weekly-report" className="border-border bg-card shadow-none print:shadow-none">
+    <Card id="weekly-report" className="print:border-0 print:shadow-none">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -96,11 +96,11 @@ export function WeeklyFamilyReport({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-2xl border border-border bg-muted/50 p-5">
+        <div className="rounded-2xl border border-white/50 bg-gradient-to-br from-amber-50/70 via-orange-50/50 to-rose-50/40 p-5 backdrop-blur-sm dark:border-white/10 dark:from-white/[0.06] dark:via-white/[0.04] dark:to-white/[0.03]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Private Family Education Report</p>
-              <h2 className="mt-2 font-voice text-2xl leading-snug text-foreground">Family Education Weekly Report</h2>
+              <h2 className="mt-2 font-voice text-2xl font-bold leading-snug tracking-tight text-foreground">Family Education Weekly Report</h2>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">本周事项 {events.length}</Badge>
@@ -112,7 +112,7 @@ export function WeeklyFamilyReport({
             {childSummaries.map(({ child, eventCount, recordCount, minutes, nextGoal }) => {
               const theme = getChildTheme(child);
               return (
-                <div key={child.id} className="rounded-2xl border border-border bg-card p-4">
+                <div key={child.id} className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm shadow-black/[0.03] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.05]">
                   <div className="flex items-center gap-2">
                     <span className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium" style={{ ...theme.avatarBgStyle, ...theme.avatarTextStyle }}>
                       {child.firstName.slice(0, 1)}

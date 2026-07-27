@@ -47,11 +47,11 @@ export function TodayCommandCenter({
   const nextEvents = sortEventsByUrgency(visibleEvents.filter((event) => new Date(event.startsAt) >= todayStart)).slice(0, 3);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-3 sm:p-4">
-      <div className="rounded-2xl border border-border bg-muted/40 p-3 sm:p-4">
+    <section className="rounded-2xl border border-white/50 bg-white/70 p-3 shadow-card backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover dark:border-white/10 dark:bg-white/[0.06] sm:p-4">
+      <div className="rounded-2xl border border-white/50 bg-white/40 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.03] sm:p-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium text-foreground">下一步提醒</p>
-          <button type="button" className="-m-2 min-h-11 rounded-lg p-2 text-xs font-medium text-primary" onClick={() => onModeChange("week", "calendar")}>查看全部</button>
+          <p className="text-sm font-bold tracking-tight text-foreground">下一步提醒</p>
+          <button type="button" className="-m-2 min-h-11 rounded-lg p-2 text-xs font-medium text-primary transition-colors duration-200 hover:text-primary/80" onClick={() => onModeChange("week", "calendar")}>查看全部</button>
         </div>
 
         {nextEvents.length > 0 ? (
@@ -67,20 +67,20 @@ export function TodayCommandCenter({
                   type="button"
                   onClick={() => onModeChange("week", "calendar")}
                   className={cn(
-                    "flex min-h-11 items-center gap-3 py-2.5 pl-2 pr-1 text-left transition hover:bg-muted/40",
+                    "flex min-h-11 items-center gap-3 rounded-lg py-2.5 pl-2.5 pr-1.5 text-left transition-colors duration-200 hover:bg-white/80 dark:hover:bg-white/[0.07]",
                     singleChild && "border-l-[3px]",
-                    index > 0 && "border-t border-border"
+                    index > 0 && "border-t border-border/60"
                   )}
                   style={singleChildTheme?.borderStyle}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-foreground">{event.title}</p>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                    <p className="truncate text-sm font-medium text-foreground">{event.title}</p>
+                    <div className="mt-0.5 flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
                       <span>{formatEventTime(event.startsAt)}</span>
                       {event.childIds.length > 1 && event.childIds.slice(0, 3).map((childId) => {
                         const child = childProfiles.find((profile) => profile.id === childId);
                         const theme = getChildTheme(child);
-                        return <span key={childId} className="h-1.5 w-1.5 rounded-full" style={theme.dotStyle} />;
+                        return <span key={childId} className="h-2 w-2 rounded-full ring-1 ring-white/80" style={theme.dotStyle} />;
                       })}
                     </div>
                   </div>
@@ -92,12 +92,12 @@ export function TodayCommandCenter({
             })}
           </div>
         ) : (
-          <div className="mt-3 rounded-xl bg-muted/60 p-3">
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Check className="h-3.5 w-3.5" />
-              暂无近期提醒
-            </p>
-            <p className="mt-1 pl-[22px] text-xs text-muted-foreground">目前没有需要处理的近期事项。</p>
+          <div className="mt-3 rounded-xl border border-dashed border-amber-200/80 bg-gradient-to-br from-amber-50/70 to-rose-50/50 p-4 text-center dark:border-white/15 dark:from-white/[0.05] dark:to-white/[0.03]">
+            <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+              <Check className="h-4 w-4" />
+            </span>
+            <p className="mt-2 text-sm font-medium text-foreground">一切都安排妥当</p>
+            <p className="mt-1 text-xs text-muted-foreground">目前没有需要处理的近期事项，好好享受这段时光。</p>
           </div>
         )}
       </div>

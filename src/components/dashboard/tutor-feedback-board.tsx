@@ -20,7 +20,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
   }
 
   return (
-    <Card id="tutor-feedback" className="border-border bg-card shadow-none">
+    <Card id="tutor-feedback">
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -36,7 +36,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
       <CardContent className="grid gap-4">
         <div className="grid gap-3">
           {feedbackItems.map((feedback) => (
-            <div key={feedback.id} className="rounded-2xl border border-border bg-card p-3">
+            <div key={feedback.id} className="rounded-2xl border border-white/60 bg-white/60 p-3 shadow-sm shadow-black/[0.03] backdrop-blur-sm transition-shadow duration-300 hover:shadow-md hover:shadow-black/[0.06] dark:border-white/10 dark:bg-white/[0.05]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -78,7 +78,7 @@ export function TutorFeedbackBoard({ childProfiles }: { childProfiles: Child[] }
             </div>
           ))}
           {feedbackItems.length === 0 && (
-            <p className="rounded-xl bg-muted/60 p-4 text-sm text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-amber-200/70 bg-gradient-to-br from-amber-50/60 to-rose-50/40 p-5 text-center text-sm leading-6 text-muted-foreground dark:border-white/15 dark:from-white/[0.05] dark:to-white/[0.03]">
               还没有家教反馈。请在“设置 → 分享入口”生成专属链接发给老师，提交后会自动出现在这里。
             </p>
           )}
