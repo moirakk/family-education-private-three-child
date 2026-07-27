@@ -158,7 +158,7 @@ export default function Home() {
               <button type="button" className="group flex w-full items-center justify-between rounded-xl text-left" onClick={() => setShowWeeklyReport((value) => !value)}>
                 <span>
                   <span className="block text-sm font-semibold tracking-tight">家庭周报</span>
-                  <span className="mt-1 block text-xs text-muted-foreground">按周汇总三个孩子的安排和成绩</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">按周汇总每个孩子的安排和成绩</span>
                 </span>
                 <span className="rounded-full bg-muted/80 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary">{showWeeklyReport ? "收起" : "展开"}</span>
               </button>

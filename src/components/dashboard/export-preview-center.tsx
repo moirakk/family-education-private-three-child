@@ -83,7 +83,7 @@ export function ExportPreviewCenter({
 
   const reportText = useMemo(() => {
     const lines = [
-      "Family Education Weekly Report",
+      "家庭教育周报",
       "",
       `本周事项：${events.length} 个`,
       `学习记录：${records.length} 条`,
