@@ -8,7 +8,7 @@ import { loadLocalEnv } from "./private-env.mjs";
 
 loadLocalEnv();
 
-const defaultProductionUrl = "https://bzs-family-edu.netlify.app";
+const defaultProductionUrl = "https://family-education-private-three-chil.vercel.app";
 
 function getArgValue(name) {
   const index = process.argv.indexOf(name);
@@ -33,8 +33,8 @@ function usage() {
   console.log("- --out <dir>        Output directory. Defaults to timestamped private-backup-*.");
   console.log("");
   console.log("Required env:");
-  console.log("- PRIVATE_PARENT_ACCESS_CODE or PRIVATE_ACCESS_CODE when parent access mode is code.");
-  console.log("- In open parent access mode, the script can obtain a session by visiting the app root.");
+  console.log("- PRIVATE_PARENT_ACCESS_CODE or PRIVATE_ACCESS_CODE for the current private production mode.");
+  console.log("- Legacy unsafe-open deployments can still obtain a session by visiting the app root.");
   console.log("- NEXT_PUBLIC_SUPABASE_URL");
   console.log("- SUPABASE_SERVICE_ROLE_KEY");
   console.log("- SUPABASE_LEARNING_MATERIALS_BUCKET, defaults to learning-materials");
@@ -79,12 +79,12 @@ async function getParentSessionCookie(baseUrl) {
     return cookie;
   }
 
-  const openModeResponse = await fetch(new URL("/", baseUrl), {
+  const fallbackResponse = await fetch(new URL("/", baseUrl), {
     method: "GET",
     redirect: "manual"
   });
 
-  const cookie = collectCookies(openModeResponse);
+  const cookie = collectCookies(fallbackResponse);
   if (!cookie.includes("family_private_session=")) {
     throw new Error("Could not obtain a private session. Set PRIVATE_PARENT_ACCESS_CODE for automated backups.");
   }

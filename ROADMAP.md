@@ -1,185 +1,48 @@
-# Family Education Management System — 路线图
+# Family Education Management System Roadmap
 
-**这份文档是活文档，不是一次性交付物。** 之前几轮我分别发过 `family-education-audit.md`、`family-education-followup.md` 两份独立文档，那种"每轮开一个新文件"的方式已经不适合现在的节奏——从这份文档开始，状态直接在文档里更新（标记"已完成/进行中/未开始"），不再每轮新建文件。这份文档取代前两份，前两份可以归档或删除。
+This roadmap tracks the current private three-child version. Historical plans, review briefs, and earlier Netlify-era notes are archived under `docs/archive/`.
 
-**主分支**：`main`
-**当前维护基准提交**：`main`（以 CI 通过的最新提交为准）
-**标准验证**：`npm run typecheck && npm run lint && npm run test && npm run build`
-**当前正式家长入口**：`https://bzs-family-edu.netlify.app`
+## Current Baseline
 
----
+| Item | Current state |
+| --- | --- |
+| Main branch | `main` |
+| Production URL | `https://family-education-private-three-chil.vercel.app/` |
+| Hosting | Vercel Production |
+| Database | Supabase PostgreSQL, `ap-northeast-1` |
+| Access model | Private API mode with short-lived Supabase JWT sessions and trusted parent access |
+| Validation gate | `npm run typecheck && npm run lint && npm run test && npm run build` |
 
-## 本轮已完成（本次会话里直接改好并验证过）
+## Shipped
 
-- [x] `sortEventsByUrgency` 补上 `today` 参数透传，修复测试套件"因为日历翻页而周期性变红"的问题（`src/lib/urgency.ts` + `tests/core/urgency.test.ts`）
-- [x] 新增 `.github/workflows/ci.yml`，每次 push/PR 自动跑 typecheck/lint/test/build 四件套
-- [x] 家教反馈页完成手机端重构；家长工作台移除重复填写表单，只保留反馈列表、复制家教链接和删除能力（`src/app/tutor-feedback/page.tsx` + `src/components/dashboard/tutor-feedback-board.tsx`）
-- [x] 完成一次真实的备份 -> 全新 Supabase 测试项目 -> 恢复演练；数据库恢复和 Storage 恢复脚本均跑通，测试项目行数验证通过。
-- [x] 家长访问模式正式确认：私有定制版维持 `open` 主链接模式，家教端继续使用带 code 的专属链接。
-- [x] 资料库曾完成相册化第一版；最终需求确认后已退出家长界面，历史数据和备份能力仍保留。
-- [x] 记录页最终收敛为考试成绩、家教反馈、成长计划；资料库、自评和完整档案均退出家长界面。
-- [x] 底部 tab 已将"更多"改为"设置"，内容按账号与分享、数据与导出、应用安装、初始化资料重新排序。
-- [x] 修正备份脚本默认生产域名；备份脚本已兼容当前 `PRIVATE_PARENT_ACCESS_MODE=open`，没有家长访问码时也能通过首页签发 parent session 后导出。
-- [x] R1 表单默认收起：记录页和本周页打开后优先展示内容列表，学习记录与日程录入表单改为点击新增或编辑时再展开。
-- [x] R2 家教反馈细节收敛：家长侧删除反馈改为内联二次确认，家教填写页改成面向老师的必填项说明并标出 4 个必填字段。
-- [x] R3 扫视体验减法：单孩子事项改用孩子色左边条，PWA 已安装时隐藏安装卡，今天页空状态去掉重复建议，设置页“初始化资料/工作台”文案改为“孩子建档资料”。
-- [x] 2026-07-17 三项生产数据库迁移已执行并校验：日程重复/全天、考试成绩、成长计划字段和状态均已上线。
-- [x] 家教分享改为一年有效的签名专属链接，绑定孩子、科目和老师；轮换 `PRIVATE_TUTOR_ACCESS_CODE` 可使旧链接失效。
-- [x] 家教反馈页收敛为上课日期、授课内容、孩子表现、课后任务四个必填项，身份信息由专属链接锁定。
+- Four-task parent dashboard: Today, Week, Records, Settings.
+- Private Supabase-backed APIs with RLS-based family scoping.
+- Three-child seed data, calendar events, education goals, resources, tutor feedback, learning records, and learning materials support.
+- Signed tutor feedback links scoped to child, tutor, and subject.
+- iOS Calendar ICS/webcal endpoint.
+- PWA manifest, icon, service worker, and offline page.
+- Backup, restore, smoke-test, and Obsidian export scripts.
+- Vercel production deployment verified on 2026-08-09.
 
-上述事项均已进入当前主线；每轮代码改动继续以 typecheck、lint、test、build 作为合并前验证标准。
+## Current Focus
 
----
+1. Real-device observation on the parent iPhone PWA.
+2. Confirm tutor feedback flow on a tutor phone before regular use.
+3. Run a fresh backup after the first real data changes.
+4. Keep documentation and operational scripts aligned with the Vercel + Supabase production environment.
 
-## 明确不做的事（连同原因）
+## Next Decisions
 
-在给方案之前先说清楚"cut"了什么——这是你让我做的事，不是漏掉了：
+| Decision | When to decide | Default |
+| --- | --- | --- |
+| Keep or remove the Settings "sync database" action | After parent uses the app for one week | Remove or rename if it creates confusion |
+| Add monitoring or error capture | After a repeated production issue | Keep manual observation for now |
+| Add automated scheduled backup | After real data becomes daily-critical | Reuse existing backup/export path |
+| Expand tutor access model | When multiple tutors need separate controls | Keep signed per-link access |
 
-| 原本可能会做的事 | 处理方式 | 为什么 |
-|---|---|---|
-| 引入 Sentry 之类的错误监控服务 | 改为最小方案：`error.tsx` 兜底时顺手往一张 Supabase 表里写一行错误日志 | 私有单家庭工具，Sentry 的告警/看板/团队协作能力全用不上，多一个第三方账号和依赖不划算 |
-| 家教访问码的后台管理/轮换界面 | 不做界面，只写清楚"改 `PRIVATE_TUTOR_ACCESS_CODE` 环境变量 + 重新部署"这几步操作说明 | 一个家庭只有一个家教，轮换频率是"一年可能一次"，做界面纯属过度工程 |
-| 自我评价"按孩子开放"做成可配置开关系统 | 不做；自评已按最终需求退出家长界面 | 三孩定制版不需要额外配置层，也不再保留该日常入口 |
-| PWA 完整离线读写（本地队列、离线新增再同步） | 只做只读缓存：缓存 App Shell 和最近一次快照，离线时能看上次数据，不能离线新增 | 完整离线同步涉及冲突处理，工作量和收益不成比例；家长真正需要的是"地铁里能看一眼"，不是"地铁里能新增日程" |
-| 独立的定时备份服务/worker | 用 GitHub Actions 的 `schedule` 触发器，或 Vercel Cron 直接调用一个包一层现有备份脚本逻辑的 API route | 已经有能跑的备份脚本，不需要为"定时"这一件事再起一套基础设施 |
-| 家教反馈的审核/编辑历史工作流 | 只加一个家长侧的删除按钮 | 一个受信任的家教，"防审核"的价值远低于"填错了能删掉"这个基本需求 |
-| 资料库筛选和相册继续扩展 | 不做；资料模块已退出家长界面 | 家长决定资料后续由外部归档工具承接，系统只保留历史数据兼容性 |
-| 多家庭/角色权限/计费抽象（Brief P2） | 维持现状，不投入 | Brief 自己也写了"大众版以后再抽象"，这里只是重申：现在一行代码都不用为这个方向写 |
+## Not In Scope For This Private Version
 
----
-
-## P0（下一批要做的）
-
-### 1. 备份 → 恢复演练（已完成）
-
-**完成时间**：2026-07-06
-
-**当时演练的备份来源（历史记录）**：`https://family-education-private-three-child.vercel.app`
-
-**本地备份目录**：`private-backups/restore-rehearsal-2026-07-06`
-
-**测试 Supabase 项目**：`eujuwxcbnkwhdxrtnsan`（Family Education Restore Drill）
-
-**执行结果**：
-- `npm run private:backup -- --base-url https://family-education-private-three-child.vercel.app --out ./private-backups/restore-rehearsal-2026-07-06` 成功。
-- `npm run private:restore -- --file ./private-backups/restore-rehearsal-2026-07-06/database-export.json --storage-manifest ./private-backups/restore-rehearsal-2026-07-06/storage/storage-manifest.json --dry-run` 成功。
-- 在新测试项目执行 `docs/private-supabase-schema.sql` 和 `docs/private-supabase-storage.sql` 成功。
-- 指向测试项目运行 `npm run private:restore` 成功。
-- 指向测试项目运行 `npm run private:restore-storage` 成功。
-
-**恢复后验证**：
-- `families`: 1
-- `family_settings`: 1
-- `children`: 3（伯杨、仲杨、叔杨）
-- `child_intake_profiles`: 3
-- `calendar_events`: 5
-- `calendar_event_children`: 9
-- `education_goals`: 3
-- `resources`: 4
-- `learning_records` / `learning_materials` / `self_evaluations` / `tutor_feedback`: 当前备份中均为 0，恢复后也为 0。
-- `learning-materials` Storage bucket 当前对象数为 0，Storage 恢复脚本已跑通，但还没有真实文件样本可验证 signed download。
-
-**当前处理**：资料功能已退出家长界面，因此不再安排真实文件验收；Storage 恢复脚本继续保留作历史数据兼容。
-
-### 2. 家教反馈页手机端重构（已完成）
-
-已按最终定制需求完成：孩子、科目和老师由家长生成的专属链接锁定，老师手机端只填写上课日期、授课内容、孩子表现、课后任务四项。页面不横向滚动，提交后有明确状态反馈。
-
-家长工作台里的重复家教反馈填写表单已去掉，家长侧只保留"查看家教填的反馈列表 + 复制家教专属链接 + 删除某条反馈"。
-
-### 3. 访问模式的正式确认（已完成）
-
-当前实现：`PRIVATE_PARENT_ACCESS_MODE=open` 表示“签名家长链接模式”。家长正常使用不输入访问码，点击设置页生成的一年期家长链接即可签发家长 cookie；裸域名不会自动授予家长权限。访问码表单只作为首次初始化和应急入口。
-
-**结论**：私有定制版维持 `open` 签名链接模式。家长端部署到少数可信设备上，日常使用优先保证低摩擦；家教端使用 `/tutor-feedback?invite=...` 的签名专属链接，只进入指定孩子和科目的反馈入口。
-
-**安全边界**：签名家长链接本身就是家长端访问边界，有效期一年；轮换 `PRIVATE_PARENT_ACCESS_CODE` 并重新部署可使旧家长链接失效。家教知道站点域名也不能借此获得家长权限。
-
----
-
-## P1
-
-### 4. 资料库改成"相册模式"（历史方案，已退出界面）
-
-默认视图：按时间倒序的缩略图网格，顶部一排孩子 Chip 筛选（复用已有的孩子 Chip 组件），上传入口做成右下角悬浮相机按钮。现在"先展开一个字段很多的表单"的模式反过来。上传前用 canvas 把照片压缩到 1600px 宽左右再上传——手机直拍原图 3-8MB，三个孩子长期攒下来 Supabase Storage 免费层的 1GB 会比预期更快用完，压缩后基本不影响可读性。
-
-**已完成**：资料库默认进入相册网格；支持全部/全家/按孩子筛选；上传表单默认折叠；桌面显示"上传资料"按钮，手机显示悬浮拍照按钮；图片上传前会尝试压缩到最长边 1600px；图片资料会显示本地或 Supabase signed URL 缩略图，非图片资料显示文件/链接图标。
-
-**最终决策**：家长端取消存资料功能。相关组件、数据库表和 Storage 备份兼容性暂不破坏性删除，避免丢失历史数据，但不再作为当前产品流程继续投入。
-
-### 5. "记录" tab 页内分组（已被最终结构取代）
-
-不拆 tab（拆了底部导航会变成 5 个，得不偿失），改成页内两个分组：
-- **日常记录**（默认展开）：学习记录、资料库、家教反馈
-- **档案与回顾**（默认折叠）：孩子档案、成长趋势、教育路线图
-
-自我评价只对伯杨展示（按 Brief 决策，二年级的叔杨做结构化自评不现实）。成长趋势模块在数据积累不满 4-6 周之前，不渲染任何图表，用一行文字"数据还在积累，X 周后会看到趋势"代替——渲染一个只有 1-2 个数据点的空图表除了让页面显得更空，没有别的作用。
-
-**最终结构**：记录页直接展示考试成绩、家教反馈、成长计划。旧的资料库、自评、孩子档案、成长趋势和三孩矩阵不再渲染。
-
-### 6. "更多" 改名"设置"（已完成）
-
-对应 Brief 第 8 问。改名之后里面的内容也按"设置"的心智重新分组：账号与分享（分享入口、访问模式说明）、数据（备份导出、初始化资料）、应用（PWA 安装）。"部署状态"这种工程信息，不放在家长可见的设置页里，如果开发者自己需要看，加一个只有直接输入特定路径才能访问的隐藏页面即可。
-
-**已完成**：底部 tab 和桌面侧边栏文案均改为"设置"；设置页先展示账号与分享，其次是数据与导出、应用安装，最后才是初始化资料。部署状态没有放进家长可见设置页。
-
----
-
-## P2（缓一缓再做）
-
-- 图片压缩之外，如果 Storage 用量后续接近上限，再考虑加一个"清理超过 N 年未访问资料"的手动入口，现在数据量还没到需要这个的规模。
-- 限流迁移到 Upstash Redis：如果 P0 第 3 项里你确认维持 `open` 模式，这项可以降到 P2；如果切回 `code` 模式，这项要提到 P0。
-
-## 待决策清单
-
-- 设置页"同步数据库"按钮的用途需要向家长解释清楚或移除。
-- 两周真实使用后决定是否继续保留 Vercel 备用部署；观察期内家长只使用 Netlify 正式入口。
-
----
-
-## Brief 第 7 节八个问题 —— 结论汇总
-
-| 问题 | 结论 |
-|---|---|
-| 四 tab 是否合理 | 合理，保留 |
-| "记录"是否拆分 | 不拆 tab，页内分两组（见上面第 5 项） |
-| 免访问码是否合适 | 可以，但需要你正式确认这个安全边界（见上面 P0 第 3 项），不是默认自动合理 |
-| 家教反馈是否完全独立 | 是，家长工作台里的重复表单要去掉 |
-| 自我评价是否都保留 | 不保留，退出家长界面 |
-| 教育路线/成长趋势是否弱化 | 弱化，归入"档案与回顾"折叠区，数据不够时不渲染图表 |
-| 资料库是否该像相册 | 最终取消家长端存资料功能 |
-| 底部 tab 命名是否要调整 | "更多"→"设置" |
-
----
-
-## 执行顺序
-
-1. 应用本次已经改好的两个小修复（urgency 透传 + CI），推送后确认 GitHub Actions 首次运行是绿的
-2. 备份 → 恢复演练（P0-1，不涉及写代码，是一次操作演练）
-3. 家教反馈页重构（P0-2）
-4. 访问模式的决定（P0-3，你来定，不阻塞其他任务并行推进）
-5. 资料库相册化 + 压缩（P1-4）
-6. 记录页分组 + 更多改名设置（P1-5、P1-6，已完成）
-
----
-
-## 2026-07-17 定制版需求收敛（已上线）
-
-本轮以家长真实手机使用为准，完成 86 项逐条确认后，产品正式从“展示所有模块”收敛为四个任务页面：今天、日程、记录、设置。
-
-### 已完成并通过本地质量门禁
-
-- 首页删除学习时长、主观节奏文案、资料上传、自评和重复快捷入口，只保留今日摘要、孩子筛选与三条近期事项。
-- “本周”更名为“日程”；日程录入改为日期 + 开始时间 + 时长，支持全天、地点、备注和重复规则。
-- “学习记录”改为“考试成绩”，支持得分/满分、百分比、科目和考试类型筛选、趋势、Excel 与 PDF 输出。
-- “教育路线图”改为“成长计划”，只保留考试、比赛、升学、其他以及计划中/完成/取消状态。
-- 资料库、自我评价、完整孩子档案和三孩矩阵退出家长界面；历史数据库数据不做破坏性删除。
-- 设置页只保留日历同步、分享、数据导出、年级和 PWA 安装。
-- 成长计划可进入 iOS 订阅源，日程 RRULE 可导出到 ICS。
-- `npm run typecheck`、`npm run lint`、`npm run test`、清理缓存后的 `npm run build` 均通过。
-
-### 上线结果
-
-- [x] 生产 Supabase 已执行并校验 `docs/migrations/2026-07-17-*.sql`，Netlify 正式站健康检查通过。
-- [x] 家长端维持可信主链接免访问码；家教端改为按孩子、科目、老师绑定的签名专属链接。
-- [x] 家教反馈页已压缩为日期、授课内容、表现、课后任务四个字段。
+- Multi-family SaaS roles, billing, onboarding, or tenant management.
+- Large new navigation sections before the two-week real-use observation period ends.
+- Full offline editing and conflict resolution.
+- New third-party monitoring services unless real incidents justify the extra account and maintenance.

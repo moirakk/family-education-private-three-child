@@ -8,11 +8,11 @@ Do not paste secrets, access codes, calendar tokens, Supabase keys, or `.env.loc
 
 | Item | Status |
 | --- | --- |
-| Production URL | `https://bzs-family-edu.netlify.app/` |
-| Primary hosting | Netlify Free, auto-deployed from GitHub `main` |
-| Fallback hosting | Vercel deployment retained for engineering fallback only |
+| Production URL | `https://family-education-private-three-chil.vercel.app/` |
+| Primary hosting | Vercel Production, deployed from GitHub `main` |
+| Latest verified deployment | `family-education-private-three-child-mob8shtz2.vercel.app` |
 | GitHub repository | `https://github.com/moirakk/family-education-private-three-child` |
-| Parent access model | Trusted-device private link mode |
+| Parent access model | Private API mode with trusted parent session |
 | Tutor access model | Signed link scoped to one child, tutor, and subject |
 | Database | Supabase PostgreSQL |
 | File storage | Supabase Storage bucket for learning materials |
@@ -46,7 +46,7 @@ Use this when installing the system on a parent device.
 9. In Settings, copy or verify the tutor feedback link if needed.
 10. Do not share the parent production URL outside trusted family devices.
 
-Use only the Netlify production URL for the family handoff. Do not mix primary and fallback URLs on parent devices.
+Use only the Vercel production URL above for the family handoff. Do not mix historical or preview URLs on parent devices.
 
 ## Tutor Handoff Flow
 
