@@ -3,7 +3,7 @@
 Run this checklist on a real iPhone before sharing the system with parents. The canonical URL is:
 
 ```text
-https://bzs-family-edu.netlify.app
+https://family-education-private-three-chil.vercel.app
 ```
 
 Do not include screenshots containing child records, tutor codes, calendar tokens, or school details in public issues or review prompts.

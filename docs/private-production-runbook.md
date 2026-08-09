@@ -1,6 +1,6 @@
 # Private Production Runbook
 
-This is the current hosting and operations runbook for the private three-child Family Education Management System.
+Current hosting and operations runbook for the private three-child Family Education Management System.
 
 Do not put access codes, Supabase keys, calendar tokens, or `.env.local` contents in this file.
 
@@ -9,12 +9,11 @@ Do not put access codes, Supabase keys, calendar tokens, or `.env.local` content
 | Layer | Service | Canonical target |
 | --- | --- | --- |
 | Source | GitHub private repository | `moirakk/family-education-private-three-child` |
-| Production web app | Netlify | `https://bzs-family-edu.netlify.app` |
-| Database | Supabase PostgreSQL | private family project |
+| Production web app | Vercel | `https://family-education-private-three-chil.vercel.app` |
+| Database | Supabase PostgreSQL | private family project, `ap-northeast-1` |
 | File storage | Supabase Storage | private `learning-materials` bucket |
-| Backup host | Vercel | engineering fallback only |
 
-Parents should receive only the canonical Netlify URL. A fallback deployment is not a second product URL and should not be installed on family devices unless the primary host is unavailable and the fallback has passed mobile acceptance.
+Parents should receive only the canonical Vercel URL above. Deployment-specific URLs may be used for engineering verification, but should not be installed on family devices unless they have passed the same acceptance checklist.
 
 ## Deployment Flow
 
@@ -22,32 +21,40 @@ Parents should receive only the canonical Netlify URL. A fallback deployment is 
 flowchart LR
   Local["Local workspace"] --> GitHub["GitHub main"]
   GitHub --> CI["GitHub Actions"]
-  GitHub --> Netlify["Netlify production build"]
-  Netlify --> PWA["Parent iPhone PWA"]
-  Netlify --> API["Next.js private API"]
+  GitHub --> Vercel["Vercel production build"]
+  Vercel --> PWA["Parent iPhone PWA"]
+  Vercel --> API["Next.js private API"]
   API --> Postgres["Supabase PostgreSQL"]
   API --> Storage["Supabase Storage"]
 ```
 
 Normal release:
 
-1. Run the four local quality gates with Node.js 22.
-2. Commit and push `main`.
-3. Confirm GitHub Actions is green.
-4. Confirm Netlify published the same commit hash.
-5. Run the production mobile acceptance checklist when behavior changed.
+1. Use Node.js 22, matching `package.json`.
+2. Run local quality gates.
+3. Commit and push to GitHub.
+4. Confirm GitHub Actions is green.
+5. Deploy to Vercel Production.
+6. Run smoke checks against the production URL.
+7. Run the mobile acceptance checklist when user-facing behavior changed.
 
-## Required Netlify Environment Variables
+Manual production deploy:
 
-Configure these in Netlify project environment variables. Values come from `.env.local`; never commit them.
+```bash
+npx vercel --prod --yes
+```
+
+## Required Vercel Environment Variables
+
+Configure these in Vercel project environment variables. Values come from `.env.local`; never commit them.
 
 ```text
 NEXT_PUBLIC_FAMILY_DATA_MODE
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_JWT_SECRET
 NEXT_PUBLIC_PRIVATE_FAMILY_ID
-PRIVATE_PARENT_ACCESS_MODE
 PRIVATE_PARENT_ACCESS_CODE
 PRIVATE_CAREGIVER_ACCESS_CODE
 PRIVATE_TUTOR_ACCESS_CODE
@@ -57,19 +64,19 @@ SUPABASE_LEARNING_MATERIALS_BUCKET
 PRIVATE_CALENDAR_TOKEN
 ```
 
-Current private-family decision:
+Optional:
 
 ```text
-PRIVATE_PARENT_ACCESS_MODE=open
+PRIVATE_PARENT_ACCESS_MODE
 ```
 
-In this deployment, `open` means signed-link mode: the family link grants a parent cookie without asking the parent to type a code, while the bare site origin does not grant dashboard access. Tutor access uses a separately signed link scoped to one child, tutor, and subject. Rotating the corresponding parent or tutor access code and redeploying revokes previously generated links.
+Production should leave `PRIVATE_PARENT_ACCESS_MODE` unset or set to `closed`. Do not use `unsafe-open` in production.
 
 After changing any `NEXT_PUBLIC_*` variable, trigger a new production deploy because the value is embedded at build time.
 
 ## Quality Gates
 
-Use Node.js 22, matching `package.json`:
+Use Node.js 22:
 
 ```bash
 npm run typecheck
@@ -78,20 +85,24 @@ npm run test
 npm run build
 ```
 
-Production smoke command:
+Production smoke checks:
 
 ```bash
-npm run private:smoke -- \
-  --base-url https://bzs-family-edu.netlify.app \
-  --expect-ready \
-  --deep-private
+curl -I https://family-education-private-three-chil.vercel.app/
+curl -s https://family-education-private-three-chil.vercel.app/api/health
 ```
 
-The smoke script reads private values from `.env.local`. Do not paste those values into command history, documentation, screenshots, or review prompts.
+Expected:
+
+- `/` returns `307` to `/access?next=%2F`
+- `/api/health` returns `{"ok":true}`
+- authenticated `/api/private/snapshot` returns live Supabase data
+
+For deeper private checks, use `scripts/private-smoke-test.mjs` with a base URL and values loaded from `.env.local`. Do not paste private values into command history, documentation, screenshots, or review prompts.
 
 ## Backup And Recovery
 
-The default full backup command now targets the canonical Netlify deployment:
+The default full backup command targets the canonical Vercel deployment:
 
 ```bash
 npm run private:backup -- --out ./private-backups/latest
@@ -106,24 +117,35 @@ storage/files/**
 backup-manifest.json
 ```
 
-Database and Storage recovery have already been rehearsed in a fresh Supabase project. Continue to use dry-run before every real restore.
+Dry-run restore before any real restore:
+
+```bash
+npm run private:restore -- \
+  --file ./private-backups/latest/database-export.json \
+  --storage-manifest ./private-backups/latest/storage/storage-manifest.json \
+  --dry-run
+
+npm run private:restore-storage -- --dir ./private-backups/latest/storage --dry-run
+```
+
+Rehearse production recovery in a fresh Supabase project before trusting the backup path.
 
 ## Incident Order
 
 If the family reports that the app is unavailable:
 
-1. Check whether the canonical Netlify URL opens on both Wi-Fi and mobile data.
-2. Check the latest Netlify deploy and function logs.
+1. Check whether the canonical Vercel URL opens on Wi-Fi and mobile data.
+2. Check the latest Vercel deployment and function logs.
 3. Check `/api/health` without exposing its output publicly.
 4. Check Supabase project status and quota.
-5. Use the Vercel fallback only after confirming it runs the current GitHub commit and passes the smoke checklist.
+5. Check recent GitHub Actions runs and the currently deployed commit.
 6. Record the incident in `docs/private-observation-log.md`.
 
 ## Related Documents
 
 - `README.md`
 - `ROADMAP.md`
+- `docs/deployment-guide.md`
 - `docs/private-production-handoff-and-observation.md`
 - `docs/private-production-mobile-acceptance.md`
 - `docs/private-observation-log.md`
-- `docs/private-supabase-vercel-runbook.md` (legacy detailed setup reference)

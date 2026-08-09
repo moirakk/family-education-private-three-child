@@ -2,6 +2,20 @@
 
 This project follows a lightweight human-readable changelog. Dates use the Asia/Tokyo working timezone.
 
+## 2026-08-09
+
+### Production
+
+- Verified the current Vercel production deployment in private-api mode.
+- Added `SUPABASE_JWT_SECRET` to the required private environment checks.
+- Confirmed Supabase snapshot access against the live family dataset.
+
+### Repository
+
+- Refreshed the README, deployment guide, production runbook, handoff, acceptance, and observation docs around the current Vercel + Supabase setup.
+- Archived stale review briefs, Netlify notes, early architecture drafts, and old handoff/debug documents under `docs/archive/`.
+- Updated the full-backup script default production URL to the current Vercel production domain.
+
 ## 2026-07-16
 
 ### Reliability

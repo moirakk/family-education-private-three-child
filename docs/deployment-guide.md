@@ -2,7 +2,7 @@
 
 > 写给第一次接触 Supabase 和 Vercel 的人。照着做即可，每一步都写明了在哪个页面、点哪个按钮、填什么值。
 >
-> 本指南对应代码版本：2026-07-28（main 分支）。项目至今只在本地 `local` 演示模式下验证过，本指南是首次真实部署的完整准备包。
+> 本指南对应代码版本：2026-08-09（main 分支）。当前生产环境已在 Vercel + Supabase private-api 模式下验证通过；本指南保留为首次部署、重建环境和排障时的完整准备包。
 
 ---
 
@@ -252,7 +252,7 @@ npm run private:smoke -- --base-url https://your-app.vercel.app \
 
 | 检查项 | 结论 |
 | --- | --- |
-| localhost / 端口硬编码 | `src/` 下 **零硬编码**。仅 `scripts/private-smoke-test.mjs` 默认 `http://127.0.0.1:3000`（本地脚本默认值，可用 `--base-url` 覆盖，不影响生产）；`scripts/private-backup-all.mjs` 有一个旧的 netlify 默认 URL，生产使用时务必显式传 `--base-url` |
+| localhost / 端口硬编码 | `src/` 下 **零硬编码**。仅 `scripts/private-smoke-test.mjs` 默认 `http://127.0.0.1:3000`（本地脚本默认值，可用 `--base-url` 覆盖，不影响生产）；`scripts/private-backup-all.mjs` 默认指向当前 Vercel 生产 URL，仍可用 `--base-url` 覆盖 |
 | 家教邀请链接域名 | 由 `x-forwarded-host` / `x-forwarded-proto` 请求头动态生成，Vercel 自动注入这两个头，换域名零改动 |
 | webcal 日历链接 | 由 `new URL(request.url).origin` 动态生成，同上 |
 | PWA manifest / 图标 | `src/app/manifest.ts` 全部相对路径（`/icon`），任何域名下正确 |
